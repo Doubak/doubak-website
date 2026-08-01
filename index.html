@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>豆备 Doubak —— 把你的豆瓣备份到自己手里</title>
-<meta name="description" content="豆备是一个浏览器扩展，在你自己的浏览器里把豆瓣页面原样存成标准 WARC 档案。凭据和数据都不离开你的设备，服务器关掉也照样能用。">
+<title>豆备 Doubak（豆瓣备份器 Douban Backup）—— 把你的豆瓣备份到自己手里</title>
+<meta name="description" content="豆备（Doubak）即豆瓣备份器，一个浏览器扩展，在你自己的浏览器里把豆瓣页面原样存成标准 WARC 档案。凭据和数据都不离开你的设备，服务器关掉也照样能用。">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/css/main.css">
-<meta property="og:title" content="豆备 Doubak">
+<meta property="og:title" content="豆备 Doubak · 豆瓣备份器">
 <meta property="og:description" content="在你自己的浏览器里备份豆瓣，存成标准 WARC 档案。数据留在本地。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://doubak.com/">
@@ -22,7 +22,8 @@
         <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
         <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
       </svg>
-      豆备 <span class="en">DOUBAK</span>
+      <span class="brand-name">豆备 <span class="en">DOUBAK</span></span>
+      <span class="brand-full">豆瓣备份器 · Douban Backup</span>
     </a>
     <nav class="site-nav">
       <a href="/" aria-current="page">首页</a>
@@ -40,7 +41,8 @@
     <p class="badge"><span class="dot"></span>公开测试中 · v0.0.1</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
-      豆备是一个浏览器扩展。它在<strong>你自己的浏览器、用你自己的 IP 和节奏</strong>抓取豆瓣，
+      豆备（Doubak）就是<strong>豆瓣备份器</strong>（Douban Backup）——一个浏览器扩展。
+      它在<strong>你自己的浏览器、用你自己的 IP 和节奏</strong>抓取豆瓣，
       把页面原样存成标准 WARC 档案。登录凭据和会话 cookie 不离开你的设备，
       抓下来的东西也不上传到任何地方。连每部作品的详情页一起抓，
       所以这份档案以后能生成一个<strong>完全离线、可以留一辈子的静态豆瓣</strong>。
@@ -74,8 +76,11 @@
     <p class="muted">
       这件事从 2020 年就在做了。
       <a href="https://github.com/its-my-data/doubak">前一版</a>是个 Go 写的命令行工具，
-      已经归档；现在这一版把它整个重写成浏览器扩展，
-      理由写在<a href="/log/2026-07-23-why-warc.html">这篇日志</a>里。
+      古法编程，一行一行手敲出来的，现已归档；这一版是 vibe coding 写的，五天 112 次提交。
+      所以它更得让人读得懂：零依赖、零构建步骤、仓库里的源码就是浏览器里跑的东西——
+      你不需要信任写它的人或模型，你可以直接读它。
+      重写的理由写在<a href="/log/2026-07-23-why-warc.html">这篇日志</a>里，
+      怎么写出来的写在<a href="/log/2026-08-01-public-beta.html#vibe">这篇</a>里。
     </p>
   </div>
 </section>

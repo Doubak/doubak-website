@@ -167,6 +167,19 @@ hr {
   letter-spacing: .06em;
 }
 
+/* 全称。窄屏放不下就收起来——首页正文里另有一处，不会漏掉 */
+.brand .brand-full {
+  color: #8fbf9c;
+  font-weight: 400;
+  font-size: .78rem;
+  white-space: nowrap;
+  padding-left: 11px;
+  border-left: 1px solid rgba(255, 255, 255, .16);
+}
+@media (max-width: 860px) {
+  .brand .brand-full { display: none; }
+}
+
 .site-nav {
   display: flex;
   align-items: center;
