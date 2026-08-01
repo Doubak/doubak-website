@@ -200,6 +200,8 @@ hr {
   margin-bottom: 1.6em;
 }
 
+.hero .lede + .lede { margin-top: -.7em; }
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -313,6 +315,76 @@ hr {
   color: var(--green-link);
   font-weight: 600;
   letter-spacing: .04em;
+}
+
+/* ---------- 数据链路 ---------- */
+
+.pipeline {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 3em;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+.pipeline > li {
+  position: relative;
+  margin: 0;
+  padding: 15px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+/* 步骤之间的箭头 */
+.pipeline > li::after {
+  content: "→";
+  position: absolute;
+  right: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  font-size: .85rem;
+  line-height: 1;
+}
+.pipeline > li:last-child::after { content: none; }
+
+/* 档案那一格：别的都能从它重建，所以它自己一个颜色 */
+.pipeline > li.keystone {
+  border-color: var(--green-line);
+  background: var(--green-soft);
+}
+
+.pipeline .step-k {
+  display: block;
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--text-faint);
+  margin-bottom: .35em;
+}
+.pipeline h3 {
+  font-size: .97rem;
+  margin: 0 0 .4em;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .45em;
+}
+.pipeline p {
+  margin: 0;
+  font-size: .85rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+@media (max-width: 720px) {
+  .pipeline > li::after {
+    content: "↓";
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: -13px;
+    transform: translateX(-50%);
+  }
 }
 
 /* ---------- 功能清单 ---------- */

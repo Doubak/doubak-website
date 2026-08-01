@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>豆备 Doubak（豆瓣备份器 Douban Backup）—— 把你的豆瓣备份到自己手里</title>
-<meta name="description" content="豆备（Doubak）即豆瓣备份器，一个浏览器扩展，在你自己的浏览器里把豆瓣页面原样存成标准 WARC 档案。凭据和数据都不离开你的设备，服务器关掉也照样能用。">
+<meta name="description" content="豆备（Doubak）即豆瓣备份器，一整条数据链路：在你自己的浏览器里把豆瓣原样存成标准 WARC 档案，再解析、生成你自己的静态豆瓣、导出到别处。凭据和数据都不离开你的设备。">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/css/main.css">
 <meta property="og:title" content="豆备 Doubak · 豆瓣备份器">
-<meta property="og:description" content="在你自己的浏览器里备份豆瓣，存成标准 WARC 档案。数据留在本地。">
+<meta property="og:description" content="从抓取、存档、解析，到生成你自己的静态豆瓣。数据留在本地。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://doubak.com/">
 </head>
@@ -37,11 +37,16 @@
 
 <section class="hero">
   <div class="wrap">
-    <p class="badge"><span class="dot"></span>公开测试中 · v0.0.1</p>
+    <p class="badge"><span class="dot"></span>扩展公开测试中 · v0.0.1</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
-      豆备（Doubak）就是<strong>豆瓣备份器</strong>（Douban Backup）——一个浏览器扩展。
-      它在<strong>你自己的浏览器、用你自己的 IP 和节奏</strong>抓取豆瓣，
+      豆备（Doubak）就是<strong>豆瓣备份器</strong>（Douban Backup）。
+      它不是一个工具，而是一整条数据链路：把豆瓣抓下来、存成十几年后还打得开的档案、
+      解析、生成你自己的静态豆瓣、再导出到你想去的地方。
+      每一段都是独立的一块，可以单独审、单独换掉、也可以只用其中一段。
+    </p>
+    <p class="lede">
+      链路的第一步现在能用了——一个浏览器扩展，在<strong>你自己的浏览器、用你自己的 IP 和节奏</strong>抓取豆瓣，
       把页面原样存成标准 WARC 档案。登录凭据和会话 cookie 不离开你的设备，
       抓下来的东西也不上传到任何地方。连每部作品的详情页一起抓，
       所以这份档案以后能生成一个<strong>完全离线、可以留一辈子的静态豆瓣</strong>。
@@ -84,17 +89,53 @@
   </div>
 </section>
 
-<section class="section section-alt" id="features">
+<section class="section section-alt" id="lifecycle">
   <div class="wrap">
-    <h2>它能做什么</h2>
+    <h2>数据的一生</h2>
     <p class="lead-2">
-      抓取是不可逆的一步，别的都不是。所以整条链路被拆开了：
+      抓取是<strong>唯一不可逆</strong>的一步，别的都不是。所以整条链路被拆开成独立的几段：
       先把页面原样存住，怎么解读它可以以后再说——重跑解析器不要钱，请人重爬一次不可能。
-      下面「路线图上的」那几项，都可以在你今天抓下来的档案上跑，不需要你重抓。
+      后面几段今天还没写，但它们将来是跑在<strong>你今天抓下来的那份档案</strong>上的，
+      不需要你重抓一次。
     </p>
 
+    <ol class="pipeline">
+      <li>
+        <span class="step-k">01</span>
+        <h3>抓取 <span class="pill pill-now">已可用</span></h3>
+        <p>浏览器扩展，在你自己的设备上跑。唯一不可逆的一步，所以它先做完。</p>
+      </li>
+      <li class="keystone">
+        <span class="step-k">02</span>
+        <h3>档案 <span class="pill pill-now">已可用</span></h3>
+        <p>WARC + 索引，格式独立成规范。<strong>别的东西全都能从它重建，它不能从别的重建。</strong></p>
+      </li>
+      <li>
+        <span class="step-k">03</span>
+        <h3>解析 <span class="pill pill-soon">计划中</span></h3>
+        <p>档案 → 条目、评分、短评、时间。纯函数、不联网，改错了重跑一遍就行。</p>
+      </li>
+      <li>
+        <span class="step-k">04</span>
+        <h3>结构化数据 <span class="pill pill-soon">计划中</span></h3>
+        <p>每次观察留一份修订的无损超集。你写的东西和豆瓣的条目库分开存。</p>
+      </li>
+      <li>
+        <span class="step-k">05</span>
+        <h3>出口 <span class="pill pill-soon">计划中</span></h3>
+        <p>你自己的静态豆瓣站点，或导出到 NeoDB、Letterboxd、Goodreads。</p>
+      </li>
+    </ol>
+
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="wrap">
+    <h2>具体能做什么</h2>
+
     <div class="feature-group">
-      <h3>现在就能用</h3>
+      <h3>抓取这一段 —— 现在就能用</h3>
       <ul class="features">
         <li>
           <span class="name">本地抓取 <span class="pill pill-now">已可用</span></span>
@@ -154,7 +195,7 @@
     </div>
 
     <div class="feature-group">
-      <h3>路线图上的</h3>
+      <h3>后面几段 —— 路线图上的</h3>
       <ul class="features">
         <li>
           <span class="name">生成你自己的豆瓣网站 <span class="pill pill-soon">计划中</span></span>
@@ -208,7 +249,7 @@
   </div>
 </section>
 
-<section class="section" id="showcase">
+<section class="section section-alt" id="showcase">
   <div class="wrap">
     <h2>样张</h2>
     <p class="lead-2">
@@ -261,7 +302,7 @@
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section">
   <div class="wrap">
     <h2>不让你的账号出事</h2>
     <p class="lead-2">
@@ -280,7 +321,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap">
     <h2>它刻意不抓什么</h2>
     <p class="lead-2">
@@ -318,7 +359,7 @@
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section">
   <div class="wrap">
     <h2>现在能跑到什么程度</h2>
     <div class="callout warn">
@@ -349,7 +390,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap">
     <h2>最近的开发日志</h2>
     <ul class="log-list">
@@ -373,7 +414,7 @@
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section">
   <div class="wrap">
     <h2>项目由几个仓库组成</h2>
     <p class="lead-2">
