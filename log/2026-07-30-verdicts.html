@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>豆瓣的封禁页也返回 200 —— 开发日志</title>
+<meta name="description" content="拿 6341 个真实页面校准判定器，以及豆瓣把「我的广播」改名成「我的动态」那天。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-07-30">2026-07-30</time>
+      <h1>豆瓣的封禁页也返回 200</h1>
+      <p class="summary">拿 6341 个真实页面校准判定器，以及豆瓣把「我的广播」改名成「我的动态」那天。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        一个抓取器最危险的失败方式不是报错，是<strong>把错的东西当成对的存下来</strong>。
+        豆瓣把限流页、验证码页、掉登录后的引导页全部用 HTTP 200 返回。
+        如果只看状态码，你会得到一份「成功抓取了 1157 个页面」的档案，
+        里面装的是 1157 份「请先登录」。
+      </p>
+
+      <h2>每一个响应都要有一个判定</h2>
+      <p>
+        所以每个响应都要过一遍分类，产出六种判定之一：
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>判定</th><th>意思</th><th>该怎么办</th></tr></thead>
+          <tbody>
+            <tr><td><code>ok</code></td><td>正常页面</td><td>存下来，继续</td></tr>
+            <tr><td><code>blocked</code></td><td>被限流／封禁</td><td>停机，不重试</td></tr>
+            <tr><td><code>challenge</code></td><td>要过验证码</td><td>暂停，等人</td></tr>
+            <tr><td><code>login</code></td><td>会话过期</td><td>停机（不是可重试的错误）</td></tr>
+            <tr><td><code>gone</code></td><td>条目已删除</td><td>记下来，这也是信息</td></tr>
+            <tr><td><code>soft404</code></td><td>返回了 200 的「没这个页面」</td><td>按失败处理</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        判定依据是内容：导航栏里有没有你的用户名、有没有跳到
+        <code>sec.douban.com</code>、响应体积相对于滚动分布是不是异常、
+        该有的结构锚点在不在。<strong>判不出来的一律算失败</strong>——
+        没有「大概是对的」这个档位。
+      </p>
+      <p>
+        封禁页本身也照样写进 WARC。这样以后要重新校准分类器，
+        不用再抓一次豆瓣，翻旧档案就行。
+      </p>
+
+      <h2>6341 个页面</h2>
+      <p>
+        作品详情页那条路线的判定描述，是拿一份真实档案里的 6341 个页面校准出来的。
+        这件事没法在设计阶段做——十五年跨度的豆瓣页面结构差异很大，
+        坐在屋里想出来的锚点，碰上 2011 年的页面就碎了。
+      </p>
+
+      <h2>豆瓣把「我的广播」改名了</h2>
+      <p>
+        同一天撞上的：广播页的标题从「我的广播」变成了「我的动态」，
+        而它正好是那条路线的结构锚点之一。于是整条最高优先级的路线一夜之间全部判成失败。
+      </p>
+      <p>
+        这个事故本身是设计生效的证明——判定是「失败」而不是「抓到了空数据」，
+        所以它响了，而不是静静地产出一份空档案。但它也说明锚点的选择要挑
+        <em>结构性</em>的东西，别挑文案。文案是产品经理的，随时会变。
+      </p>
+
+      <h2>个人主页不能当事实来源</h2>
+      <p>
+        还有一个同类的：一开始判定和「豆瓣声称有多少条」都是从个人主页上读的。
+        问题是<strong>个人主页是用户可自定义的</strong>——分类区块可以隐藏、可以调顺序，
+        某个类别可能根本不显示。这意味着两件事：判定不能依赖那些区块的存在，
+        声称数量也不能从那里取。
+      </p>
+      <p>
+        改成从<strong>每一个列表页自己</strong>的标题读，比如
+        <code>&lt;h1&gt;我看过的影视(1333)&lt;/h1&gt;</code>。
+        这个数字必须在抓的当下就记下来，因为它事后不可重建——
+        当然，它能证明的东西比看上去少，那是
+        <a href="/log/2026-07-28-counts-lie.html">另一篇</a>的话题。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-07-31-incremental.html">← 更新：一堆档案不等于一条链</a>
+      <a href="/log/2026-07-28-counts-lie.html">更早：豆瓣自己报的数量不能用来证明抓全了 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

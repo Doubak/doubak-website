@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>档案里第一次有了真的图片 —— 开发日志</title>
+<meta name="description" content="作品封面进档案，bundle 格式随之升到 1.1：surface 多了一个 asset。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-01">2026-08-01</time>
+      <h1>档案里第一次有了真的图片</h1>
+      <p class="summary">作品封面进档案，bundle 格式随之升到 1.1：surface 多了一个 asset。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        在此之前，把档案离线打开，图全是空的——所有 <code>&lt;img&gt;</code> 都指向
+        <code>doubanio.com</code>，而档案里没有那些字节。这是「备份必须联网才能看」的病根，
+        也正是别的豆瓣备份工具普遍留着的那个洞。今天补上了第一块：作品封面。
+      </p>
+
+      <h2>格式先动，代码后动</h2>
+      <p>
+        档案格式在另一个仓库里，是整个项目的基石，规矩是<strong>先落规范，再落生产者和消费者</strong>。
+        所以顺序是：<code>bundle</code> 升到 1.1，<code>surface</code> 词表新增一个取值 <code>asset</code>，
+        然后扩展才跟上。
+      </p>
+      <p>
+        <code>surface</code> 说的是「这个捕获是页面的哪一种表面」——一个 HTML 列表页、
+        一个详情页、还是一张图片。加 <code>asset</code> 而不是复用已有取值，是因为解析器以后
+        必须能一眼把非 HTML 的资源筛出来：它们不参与任何抽取，只在重放的时候被引用。
+      </p>
+      <p>
+        同一次改动里还加了 <code>current_spec_version</code>，把「读者能接受什么版本」
+        和「生产者现在该写什么版本」分成两个字段。以前这是一个字段，
+        意味着一个还没支持 1.1 的读者没法表达「我认得 1.1，但我自己写的是 1.0」。
+      </p>
+
+      <h2>封面跟着作品详情页走</h2>
+      <p>
+        封面图不是一条独立的路线，它挂在作品详情页那条路线下面：抓到一个详情页，
+        顺手把页面里那张封面也抓下来。这个决定很省事，但有一个必须写清楚的后果——
+      </p>
+      <blockquote>
+        <p>
+          如果一次增量抓取没有重抓某个作品详情页，那这个作品的封面也不会有。
+        </p>
+      </blockquote>
+      <p>
+        对于「上次抓的时候还没有封面、这次也没重抓详情页」的老条目，档案里就是没有图。
+        这不是 bug，是这个设计的直接推论，所以它被写进了文档而不是被悄悄容忍。
+        补齐老条目封面的办法是显式地重抓一遍作品详情页，面板上有这个入口。
+      </p>
+
+      <h2>顺手撞上的坑：Referer</h2>
+      <p>
+        <code>doubanio.com</code> 上的图片要求带对 Referer。抓取队列里的条目可以自带请求头，
+        这一段本来是通的——直到它走过一次 checkpoint 之后就不通了。
+      </p>
+      <p>
+        原因是崩溃恢复：checkpoint 把队列写进 OPFS，恢复的时候再读回来。
+        条目上自带的那份请求头没有进序列化，于是<strong>恢复一次，所有图片就开始 403</strong>。
+        这类 bug 有个共同的形状——某个字段在内存里存在、在磁盘上不存在，
+        于是一切正常直到第一次崩溃。今天修的另一个也是同一族：
+        崩溃恢复会静默丢掉「派生出来的活」（作品详情页是从标记列表派生的），
+        恢复之后那些活就消失了，而抓取还会开开心心地报告自己跑完了。
+      </p>
+      <p>
+        「恢复之后还是不是同一份东西」这件事，得每加一个字段就重新问一次。
+        MV3 的 service worker 随时会被杀，所以这不是边缘情况，这是日常。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-01-public-beta.html">← 更新：公开测试开始</a>
+      <a href="/log/2026-07-31-incremental.html">更早：一堆档案不等于一条链 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

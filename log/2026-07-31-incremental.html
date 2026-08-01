@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一堆档案不等于一条链 —— 开发日志</title>
+<meta name="description" content="增量抓取上线，以及一个把四次独立全量误接成一条链、把完整性说成「已验证」的 bug。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-07-31">2026-07-31</time>
+      <h1>一堆档案不等于一条链</h1>
+      <p class="summary">增量抓取上线，以及一个把四次独立全量误接成一条链、把完整性说成「已验证」的 bug。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        第一次抓取是全量，之后每次都全量就太贵了——几千个作品详情页，每次重抓一遍毫无意义，
+        对豆瓣也不礼貌。所以要有增量。增量看起来只是「记住上次抓到哪儿，这次从那儿开始」，
+        实际上它把一个新概念带进了整个系统：<strong>链</strong>。
+      </p>
+
+      <h2>下界是一个值，不是一个引用</h2>
+      <p>
+        豆瓣的每一个列表都是头插的：新东西加在最前面。所以抓取方向是<strong>新 → 旧</strong>，
+        这样插入只会把条目往还没读到的页推，产生重复（免费修掉）而不是静默漏掉
+        （检测不到，而且永久）。
+      </p>
+      <p>
+        增量要做的就是沿着这个方向走到「上次已经抓过的地方」为止。
+        这个下界必须是一个<strong>时间值</strong>，不能是一个条目 ID——任何一条广播都可能被删掉，
+        用 ID 当锚点，锚点会凭空消失。同理，跨会话保存的页码一律不可信，
+        每次都要靠内容重新定位。
+      </p>
+      <p>
+        规范里为此加了 <code>crawl_state.floor_from_bundle_id</code>：
+        这一份档案的下界是从哪一份档案读来的。有了它，多份档案才连得成一条链。
+      </p>
+
+      <h2>基准必须是同一个账号</h2>
+      <p>
+        增量的前提是「上一份档案抓的是同一个人的东西」。如果中途换过账号，
+        接上去的东西完全没有意义。所以规范要求基准档案的账号和用户名都必须对得上，
+        对不上就不给下界，从头重走一遍全量。
+      </p>
+      <p>
+        同样，<strong>有缺口的路线不提供下界</strong>。缺口意味着「这条路线上有一段没抓到」，
+        在它上面接一段增量，等于把缺口永久封在中间——上面是新的，下面是旧的，
+        缺的那一段以后再也没有理由回去补。
+      </p>
+
+      <h2>然后是那个 bug</h2>
+      <p>
+        覆盖率页有一个「链视图」，把多份档案接起来看整体完整性。它上线之后我拿四份真实档案试，
+        显示得很漂亮：一条完整的链，连续性 ✔ 已验证。
+      </p>
+      <p>
+        问题是那四份档案是<strong>四次互相独立的全量抓取</strong>，没有任何一份是从另一份接下来的。
+        链视图按时间排了个序就把它们串起来了，然后基于这条并不存在的链，
+        宣布完整性「已验证」。
+      </p>
+      <p>
+        这是最坏的一类 bug：它不报错，它给你一个更强的结论。用户看到「✔ 已验证」，
+        就不会再去检查了。修法是链关系只认 <code>floor_from_bundle_id</code>，
+        接不上就是四条独立的链，各自显示各自的覆盖率。
+      </p>
+      <p>
+        同一天还修了几个同族的：不连续的路线在抓完的档案里显示成「进行中」
+        （应该是「未验证」）；单页路线永远走不完，于是<strong>每份档案都凭空带 6 处假缺口</strong>；
+        「连续性」那一列写的是我们对自己的信心而不是结论。
+        界面上任何一句比事实更强的话，都要当 bug 修。
+      </p>
+
+      <h2>只加了一本想读的书，却在抓游戏</h2>
+      <p>
+        最后一个值得记的：增量跑起来之后，我只在豆瓣上加了一本想读的书，
+        然后触发增量——它开始抓游戏的作品详情页。
+      </p>
+      <p>
+        原因是作品详情页是从标记列表<em>派生</em>的，而派生的时候没有区分
+        「这次增量真的新看到的条目」和「基准档案里已经有的条目」。
+        增量的语义得贯穿到派生出来的活上，不然省下来的那点请求又全花回去了。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-01-first-images.html">← 更新：档案里第一次有了真的图片</a>
+      <a href="/log/2026-07-30-verdicts.html">更早：豆瓣的封禁页也返回 200 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

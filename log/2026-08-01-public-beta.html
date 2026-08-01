@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>公开测试开始：豆备 0.0.1 —— 开发日志</title>
+<meta name="description" content="豆备开放公开测试。能跑什么、不能跑什么，以及为什么在还缺一块的时候就开放。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-01">2026-08-01</time>
+      <h1>公开测试开始：豆备 0.0.1</h1>
+      <p class="summary">能跑什么、不能跑什么，以及为什么在还缺一块的时候就开放测试。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        这个项目的第一行代码是 2020 年 5 月写的。那时候它是个 Go 命令行工具
+        （<a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>），
+        断断续续跑了几年，也真的抓下了一份 782 MB 的档案——本项目后来几乎所有的设计判断，
+        都是拿那批数据验证的。那个仓库上周归档了。
+      </p>
+      <p>
+        现在这一版是重写：从命令行搬进浏览器扩展，7 月 28 日第一次提交，到今天五天。
+        抓取已经对着真实豆瓣跑通了：广播、五类标记列表、作品详情页和封面图，
+        增量抓取，导出与回读校验。112 次提交里 48 个是 <code>fix:</code>，
+        18 个是 <code>feat:</code>——修的比做的多两倍半。这个比例挺说明问题：
+        绝大多数坑不是设计阶段能想出来的，得让它对着真实的豆瓣跑一遍才会露头。
+      </p>
+
+      <h2>为什么现在就开放</h2>
+      <p>
+        因为广播等不起。
+      </p>
+      <p>
+        广播的正文发出去之后<strong>不能编辑</strong>——这一点在真实账号上确认过。
+        这让每一条广播都成了「某句短评在那个时刻长什么样」的带日期快照，
+        是唯一能<em>回溯</em>检测编辑的来源。同时它可以被静默删除：删掉之后，
+        没有任何东西能证明它曾经存在过。抓过就是抓过了，没抓就是永远没有了。
+      </p>
+      <p>
+        对比之下，作品详情页什么时候抓都一样——豆瓣的条目库不会因为你晚一个月就消失。
+        所以优先级是按不可替代程度排的：广播 → 自己写的长文 → 自己上传的图片 →
+        标记列表 → 作品详情页。既然最不可替代的那一段已经能跑了，压着不放没有道理。
+      </p>
+
+      <h2>能跑的</h2>
+      <ul>
+        <li>广播、五类标记列表（书／影视／音乐／游戏／舞台剧）、作品详情页与封面图</li>
+        <li>增量抓取：沿着上一份档案的下界回溯，只抓新增的，并标出改动过的和已经失效的条目</li>
+        <li>连续性证明：每条路线从哪里回溯到哪里、中间有没有缺口，都写进档案</li>
+        <li>崩溃恢复：service worker 被杀掉是常态，恢复之后能接着跑，也不会伪造出一次「跑完了」</li>
+        <li>导出整条链，导出后回读校验一遍</li>
+      </ul>
+
+      <h2>不能跑的</h2>
+      <ul>
+        <li>
+          <strong>用户上传的图片</strong>（相册、日记里的插图）还没抓。
+          目前只有作品封面。这正是「备份必须联网才能看」的病根，是接下来最优先的一块。
+        </li>
+        <li><strong>日记 / 影评 / 相册</strong>这条路线还没接上，需要走豆瓣另一套接口。</li>
+        <li><strong>导出中断要从头来</strong>，没有续导。</li>
+        <li>
+          <strong>还没跑过一次几小时量级的完整全量。</strong>
+          只做过小范围试跑。段轮转、跨越多次 worker 被杀死这些事，在真实规模上还没有实测数据。
+        </li>
+      </ul>
+
+      <div class="callout warn">
+        <p>
+          <strong>所以：请把它当成「多一份备份」，暂时不要当成唯一那一份。</strong>
+          它不会动你豆瓣上的任何数据（没有任何写操作），最坏的情况是这次抓的档案不完整——
+          但这一点它自己会告诉你，不会假装抓全了。
+        </p>
+      </div>
+
+      <h2>怎么装</h2>
+      <p>
+        Chrome 网上应用店还在准备上架，现在请用开发者模式加载：
+      </p>
+      <pre><code>git clone https://github.com/Doubak/doubak-extension.git
+
+# Chrome / Edge:
+#   打开 chrome://extensions
+#   → 打开右上角「开发者模式」
+#   → 「加载已解压的扩展程序」
+#   → 选中刚 clone 下来的目录</code></pre>
+      <p>
+        零依赖、零构建步骤，<strong>仓库里的源码就是浏览器里跑的东西</strong>，
+        不需要 <code>npm install</code>。装完点工具栏图标进面板，
+        先在「调试」页跑一次<strong>演练</strong>（零网络请求），再跑一次小范围试跑，
+        然后再开始正式抓。
+      </p>
+
+      <h2>什么样的反馈最有用</h2>
+      <p>
+        面板的「日志」页可以整份复制出来，里面是抓过的 URL、重试、停机原因和错误。
+        提 <a href="https://github.com/Doubak/doubak-extension/issues">issue</a> 时带上它最有用。
+        特别想知道这几件事：
+      </p>
+      <ul>
+        <li>抓到一半停下来了，停机原因写的是什么</li>
+        <li>覆盖率页上出现了缺口，是哪条路线、哪一页</li>
+        <li>豆瓣声称的数量和实际抓到的数量对不上（这个本身就是有价值的数据，见
+            <a href="/log/2026-07-28-counts-lie.html">这一篇</a>）</li>
+        <li>界面上哪句话让你产生了错误的理解——这个和 bug 一样重要</li>
+      </ul>
+      <p>
+        日志里可能有你的用户名和条目链接，觉得敏感就删掉那部分再贴，不影响定位问题。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-08-01-first-images.html">更早：档案里第一次有了真的图片 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

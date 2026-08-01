@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>豆瓣自己报的数量，不能用来证明抓全了 —— 开发日志</title>
+<meta name="description" content="同一次抓取里，电影的计数是准的，游戏的计数少了 5 个——而且缺口在列表中间。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-07-28">2026-07-28</time>
+      <h1>豆瓣自己报的数量，不能用来证明抓全了</h1>
+      <p class="summary">同一次抓取里，电影的计数是准的，游戏的计数少了 5 个——而且缺口在列表中间。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        原本的设计里有两道安全网：一道是<strong>对账</strong>——豆瓣说有 1157 个，
+        我抓到 1157 个，那就抓全了；另一道是<strong>连续性证明</strong>——
+        从最新一条一路走到最旧一条，中间每一步都接得上。
+      </p>
+      <p>
+        拿一份 782 MB 的真实档案验证时，第一道网塌了。
+      </p>
+
+      <h2>数据</h2>
+      <p>
+        同一次抓取、同一个时刻：
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>列表</th><th>豆瓣声称</th><th>实际渲染出</th><th>差</th></tr></thead>
+          <tbody>
+            <tr><td>电影 / 看过</td><td>1157</td><td>1157</td><td class="ok">0</td></tr>
+            <tr><td>游戏 / 玩过</td><td>293</td><td>288</td><td>−5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        更要命的是缺口的位置：不在末尾，在<strong>列表中间</strong>。
+        第 7、14、17 页各自只渲染出 14、14、13 个条目，而每页的槽位是 15 个。
+        换四次抓取重来，结果可复现，而且缺口数量随时间在增长。
+      </p>
+
+      <h2>为什么这直接毁掉了对账</h2>
+      <p>
+        最合理的解释是：豆瓣的计数有时候在审查层之前算，有时候在之后算。
+        于是同一份档案里，一个类别的计数可信，另一个类别的计数不可信——
+        而<strong>你没有办法在不知道答案的前提下，判断哪个可信。</strong>
+      </p>
+      <p>
+        这就让「声称数 == 抓到数 ⇒ 抓全了」这条推理彻底不成立。它甚至比没有还糟：
+        对上了会给人一个虚假的安心，对不上又不能说明是自己漏抓了。
+      </p>
+
+      <h2>于是只剩一道网，而且要铺满</h2>
+      <p>
+        结论是：<strong>不做对账，只做连续性证明，并且每一条路线都要有。</strong>
+        连续性证明不依赖豆瓣说了什么，它只依赖抓取自己走过的路——
+        从哪条开始、走到哪条为止、中间有没有断。这个性质是自足的。
+      </p>
+      <p>
+        声称数量还是照样记进档案，因为它事后不可重建，而且
+        <strong>「声称 &gt; 抓到」本身就是豆瓣在藏东西的证据</strong>，
+        对档案的使用者是有价值的信息。但它只是记录，不参与任何结论。
+      </p>
+      <p>
+        所以档案格式 <code>bundle/v1</code> 里<strong>刻意没有</strong>
+        <code>completeness</code> 和 <code>reconciled</code> 这两个字段。
+        一个不存在的字段没法被误用——三年后某个下游工具不会读到
+        <code>completeness: true</code> 然后据此做决定，因为根本没有这个东西可读。
+      </p>
+
+      <h2>顺带一提</h2>
+      <p>
+        这也是为什么覆盖率页上写的是「从 X 回溯到 Y，无缺口」而不是「已完整备份」。
+        前者是我们真的知道的事，后者不是。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-07-30-verdicts.html">← 更新：豆瓣的封禁页也返回 200</a>
+      <a href="/log/2026-07-23-why-warc.html">更早：为什么是 WARC 和 JSON Schema →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

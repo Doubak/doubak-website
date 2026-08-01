@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>豆备 Doubak —— 把你的豆瓣备份到自己手里</title>
+<meta name="description" content="豆备是一个浏览器扩展，在你自己的浏览器里把豆瓣页面原样存成标准 WARC 档案。凭据和数据都不离开你的设备，服务器关掉也照样能用。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+<meta property="og:title" content="豆备 Doubak">
+<meta property="og:description" content="在你自己的浏览器里备份豆瓣，存成标准 WARC 档案。数据留在本地。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://doubak.com/">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/" aria-current="page">首页</a>
+      <a href="/log/">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <p class="badge"><span class="dot"></span>公开测试中 · v0.0.1</p>
+    <h1>把你的豆瓣，备份到自己手里</h1>
+    <p class="lede">
+      豆备是一个浏览器扩展。它在<strong>你自己的浏览器、用你自己的 IP 和节奏</strong>抓取豆瓣，
+      把页面原样存成标准 WARC 档案。登录凭据和会话 cookie 不离开你的设备，
+      抓下来的东西也不上传到任何地方。
+    </p>
+    <div class="actions">
+      <!-- TODO(上架): 审核通过后把这个 span 换成
+           <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/…">安装到 Chrome</a> -->
+      <span class="btn btn-soon" aria-disabled="true" title="正在准备上架，暂时请用开发者模式加载">
+        安装到 Chrome · 待上架
+      </span>
+      <a class="btn btn-primary" href="https://github.com/Doubak/doubak-extension#装载到浏览器">
+        现在就用（开发者模式加载）
+      </a>
+      <a class="btn btn-ghost" href="https://github.com/Doubak/doubak-extension">在 GitHub 上看源码</a>
+    </div>
+    <p class="small muted" style="margin-top:1.2em">
+      需要 Chrome 或 Edge。零依赖、零构建步骤——仓库里的源码就是浏览器里跑的东西。
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>为什么要有它</h2>
+    <p class="lead-2">
+      豆瓣没有导出。十几年的标记、评分、短评、广播和日记，只存在于一个你随时可能被登出的账号里；
+      而对于注册手机号已经停用的海外用户，一次短信验证就是永久失去。
+      现有的备份工具大多导出一份 CSV 或抓一份文本——等豆瓣的页面变了、条目被删了、图片挂了，
+      你手里那份东西已经没法还原当时到底看到了什么。
+    </p>
+    <p class="muted">
+      这件事从 2020 年就在做了。
+      <a href="https://github.com/its-my-data/doubak">前一版</a>是个 Go 写的命令行工具，
+      已经归档；现在这一版把它整个重写成浏览器扩展，
+      理由写在<a href="/log/2026-07-23-why-warc.html">这篇日志</a>里。
+    </p>
+  </div>
+</section>
+
+<section class="section section-alt" id="features">
+  <div class="wrap">
+    <h2>它能做什么</h2>
+    <p class="lead-2">
+      抓取是不可逆的一步，别的都不是。所以整条链路被拆开了：
+      先把页面原样存住，怎么解读它可以以后再说——重跑解析器不要钱，请人重爬一次不可能。
+      下面「路线图上的」那几项，都可以在你今天抓下来的档案上跑，不需要你重抓。
+    </p>
+
+    <div class="feature-group">
+      <h3>现在就能用</h3>
+      <ul class="features">
+        <li>
+          <span class="name">本地抓取 <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            在<strong>你自己的浏览器、用你自己的 IP 和节奏</strong>抓，没有服务器参与，也没有账号体系。
+            登录凭据和会话 cookie 不离开设备。遇到验证码它会停下来等你，而不是重试。
+          </p>
+        </li>
+        <li>
+          <span class="name">增量抓取 <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            第二次只抓上次之后新增的部分，沿着上一份档案记下的下界回溯。
+            多份档案连成一条链，完整性是整条链的属性，不是单份的。
+          </p>
+        </li>
+        <li>
+          <span class="name">版本化抓取 <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            同一个页面在链上被抓到过几次就留几份，捕获列表里分得清「本次新增」和「又抓了一次」，
+            并能翻出跨档案的版本历史。至于把两次的差别说成
+            「又看了一遍」还是「改了短评」，那是解析器的事——见下。
+          </p>
+        </li>
+        <li>
+          <span class="name">原样存成 WARC <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            网页存档的国际标准，互联网档案馆用的就是它。原始字节、原始响应头，不做任何清洗。
+            用 <a href="https://replayweb.page/">ReplayWeb.page</a> 或 pywb 可以直接打开重放，
+            不需要豆备本身。
+          </p>
+        </li>
+        <li>
+          <span class="name">连续性证明与覆盖率 <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            每条路线都说得清从哪抓到哪、中间有没有缺口，而不是含糊地说一句「已完成」。
+            豆瓣<em>声称</em>的数量也照记，因为两者对不上本身就是证据。
+          </p>
+        </li>
+        <li>
+          <span class="name">导出到本地文件夹 <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            整条链导出，每份档案各占一个子目录，导出完再回读校验一遍。
+            档案是普通文件，放硬盘、放网盘、刻盘都行。
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="feature-group">
+      <h3>路线图上的</h3>
+      <ul class="features">
+        <li>
+          <span class="name">生成你自己的豆瓣网站 <span class="pill pill-soon">计划中</span></span>
+          <p class="desc">
+            把档案生成一个可搜索、有固定链接的个人存档站点：Markdown + front matter，
+            交给 Hugo / Astro / Eleventy / Jekyll 渲染，现成的主题生态直接能用。
+            重建全程离线，零网络请求。
+          </p>
+        </li>
+        <li>
+          <span class="name">解析成结构化数据 <span class="pill pill-soon">计划中</span></span>
+          <p class="desc">
+            档案 → 结构化记录，纯函数、不联网。每次观察留一份修订，逐字段比对，
+            这样「改了评分」和「改了短评」不会混成同一件事。解析器随时可以重跑。
+          </p>
+        </li>
+        <li>
+          <span class="name">导出到 NeoDB <span class="pill pill-soon">计划中</span></span>
+          <p class="desc">
+            <a href="https://neodb.social/">NeoDB</a> 已经是个好去处，豆备不打算和它竞争，
+            而是站在它上游。要先和 NeoDB 的维护者聊过再动手。
+          </p>
+        </li>
+        <li>
+          <span class="name">导出到别的地方 <span class="pill pill-soon">计划中</span></span>
+          <p class="desc">
+            Letterboxd CSV、Goodreads CSV 等等。存的是无损的超集，
+            这些格式都是向外的有损适配器——绝不反过来按某一家的格式存。
+          </p>
+        </li>
+        <li>
+          <span class="name">从别处导入 <span class="pill pill-soon">计划中</span></span>
+          <p class="desc">
+            IMDb、Letterboxd、Goodreads、Trakt 都有原生导出，所以对它们只需要<em>文件导入</em>，
+            不需要爬虫。扩展是专门针对「豆瓣没有导出」这一件事的答案。
+          </p>
+        </li>
+        <li>
+          <span class="name">外部链接补全 <span class="pill pill-soon">可选</span></span>
+          <p class="desc">
+            补上 TMDB / Wikidata 交叉链接和多语言标题。跑一次、永久缓存，
+            <strong>下游任何东西都不许依赖它</strong>——一个重建时需要联网的存档，
+            等于把这个项目要消灭的依赖又请了回来。
+          </p>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="showcase">
+  <div class="wrap">
+    <h2>样张</h2>
+    <p class="lead-2">
+      一份档案长什么样、生成出来的网站长什么样。
+      样张会用作者自己的豆瓣数据来做——十几年的标记、广播和短评，
+      正好是这个工具要处理的真实规模。
+    </p>
+
+    <!-- 下面这些数字来自前代命令行工具抓下的真实档案，也是本项目所有设计判断的验证数据源。
+         新版扩展的样张还在做，做好之后把 .frame 换成 <img src="/assets/shots/xxx.png" alt="…">。 -->
+    <ul class="stats">
+      <li><span class="n">782 MB</span><span class="k">一份真实档案的体积</span></li>
+      <li><span class="n">7,353</span><span class="k">个页面</span></li>
+      <li><span class="n">20</span><span class="k">个批次</span></li>
+      <li><span class="n">2022–2024</span><span class="k">跨越的时间</span></li>
+    </ul>
+
+    <div class="shots">
+      <figure class="shot">
+        <div class="frame">截图待补<br>（档案目录与 index.ndjson）</div>
+        <figcaption>
+          <strong>档案长什么样</strong>
+          一个 manifest、几段 WARC、一份可以用 <code>jq</code> 直接查的 index。
+          十四年后不需要豆备也读得懂。
+        </figcaption>
+      </figure>
+      <figure class="shot">
+        <div class="frame">截图待补<br>（覆盖率与版本历史）</div>
+        <figcaption>
+          <strong>抓到了多少</strong>
+          每条路线的连续性证明、缺口，以及同一个条目在链上的历次版本。
+        </figcaption>
+      </figure>
+      <figure class="shot">
+        <div class="frame">截图待补<br>（生成出来的个人站点）</div>
+        <figcaption>
+          <strong>网站长什么样</strong>
+          由档案生成的个人存档站点：可搜索、固定链接、完全离线可重建。
+          等站点生成器做出来再补。
+        </figcaption>
+      </figure>
+    </div>
+
+    <p class="small muted" style="margin-top:1.6em">
+      上面这份 782 MB 的档案是用<a href="https://github.com/its-my-data/doubak">前代命令行工具</a>抓的，
+      2022 年 12 月到 2024 年 8 月、20 个批次、单一账号。
+      本项目的绝大多数设计判断都是拿它验证的——包括
+      <a href="/log/2026-07-28-counts-lie.html">「豆瓣自己报的数量不能用来证明抓全了」</a>这一条。
+    </p>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <h2>不让你的账号出事</h2>
+    <p class="lead-2">
+      被封号是不可接受的结果，不是可以容忍的风险。所以这件事是靠结构解决的，不是靠「小心一点」。
+    </p>
+    <ul>
+      <li><strong>信任边界就是你的设备。</strong>服务端抓取被评估过并否决了——那会让这个项目本身变成威胁模型，
+          还会造出一个所有用户共享的全局抓取预算。</li>
+      <li><strong>看内容，不看状态码。</strong>豆瓣的封禁页也返回 HTTP 200。
+          每个响应都要过一遍判定（正常／被封／验证码／掉登录／已删除／软 404），判不出来的一律算失败。</li>
+      <li><strong>遇到验证码是暂停，不是错误。</strong>插件会停下来通知你，
+          你在正常标签页里解完（它和你共用同一个会话），它再用一个廉价探针确认一下，然后放慢速度继续。
+          在软封禁上重试，正是把限流升级成封号的经典做法。</li>
+      <li><strong>会话过期是停机条件</strong>，不是可重试的错误。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>它刻意不抓什么</h2>
+    <p class="lead-2">
+      备份的是<em>你</em>的东西。别人的内容不在范围里——这既是隐私边界，也是一条工程边界：
+      每一条社交关系都是无界的入口。
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>不抓</th><th>为什么</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>别人在你广播下的回复</td>
+            <td>属于社交外围。实测广播列表页只带回复的容器和计数，不带内容，所以今天也没有顺手抓到第三方内容。</td>
+          </tr>
+          <tr>
+            <td>关注／粉丝／黑名单</td>
+            <td>同上。关注列表指向的用户又有自己的关注列表，这个入口没有边界。</td>
+          </tr>
+          <tr>
+            <td>豆邮</td>
+            <td>一个豆瓣信箱里很大一部分是全站系统广播，不可替代的那一小部分埋在可替代的噪音里。</td>
+          </tr>
+          <tr>
+            <td>别人的头像、CSS／JS／字体</td>
+            <td>不是你的数据，也不影响档案离线可读。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">
+      如果以后要把档案发布成个人网站，第三方内容默认排除，发布前有一次「到底哪些会公开」的预演。
+    </p>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <h2>现在能跑到什么程度</h2>
+    <div class="callout warn">
+      <p>
+        <strong>这是公开测试版。</strong>抓取已经对着真实豆瓣跑通了，
+        但还没有做过一次几小时量级的完整全量抓取，图片也只抓了作品封面。
+        请把它当成「多一份备份」，暂时不要当成唯一那一份。
+      </p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>路线</th><th>状态</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>广播</td><td class="ok">✅ 能跑</td><td>优先级最高：发出去就不能编辑，且删掉不留痕迹</td></tr>
+          <tr><td>标记列表（书／影视／音乐／游戏／舞台剧）</td><td class="ok">✅ 能跑</td><td>看过／在看／想看，含标记日期与短评</td></tr>
+          <tr><td>作品详情页</td><td class="ok">✅ 能跑</td><td>由标记列表派生，含封面图；单独成段，不想要一条命令就能删</td></tr>
+          <tr><td>增量抓取</td><td class="ok">✅ 能跑</td><td>沿链回溯，标出改动与已失效的条目</td></tr>
+          <tr><td>导出与回读校验</td><td class="ok">✅ 能跑</td><td>整条链导出，每份各占一个子目录</td></tr>
+          <tr><td>日记 / 影评 / 相册</td><td class="todo">⬜ 未做</td><td>需要走另一套接口，URL 还没核对</td></tr>
+          <tr><td>用户上传的图片</td><td class="todo">⬜ 未做</td><td>目前只抓了作品封面；这是「备份必须联网才能看」的病根</td></tr>
+          <tr><td>中断续导</td><td class="todo">⬜ 未做</td><td>导出被打断要从头来</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><a href="https://github.com/Doubak/doubak-extension#现状">在 README 里看完整的现状表 →</a></p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>最近的开发日志</h2>
+    <ul class="log-list">
+      <li>
+        <time datetime="2026-08-01">2026-08-01</time>
+        <h3><a href="/log/2026-08-01-public-beta.html">公开测试开始：豆备 0.0.1</a></h3>
+        <p>能跑什么、不能跑什么，以及为什么在这个时间点就开放测试。</p>
+      </li>
+      <li>
+        <time datetime="2026-08-01">2026-08-01</time>
+        <h3><a href="/log/2026-08-01-first-images.html">档案里第一次有了真的图片</a></h3>
+        <p>封面图进档案，bundle 格式随之升到 1.1：surface 多了一个 asset。</p>
+      </li>
+      <li>
+        <time datetime="2026-07-31">2026-07-31</time>
+        <h3><a href="/log/2026-07-31-incremental.html">一堆档案不等于一条链</a></h3>
+        <p>增量抓取上线，以及一个把四次独立全量误接成一条链的 bug。</p>
+      </li>
+    </ul>
+    <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <h2>项目由几个仓库组成</h2>
+    <p class="lead-2">
+      每一块都能单独看、单独审、单独换掉。
+      档案格式独立成一个仓库并单独版本化，因为它是唯一一个改错了就没法补救的东西。
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>仓库</th><th>做什么</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
+            <td>浏览器扩展。抓取，产出 bundle 档案。整个项目的入口都在这里。</td>
+            <td class="ok">公开测试</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
+            <td>档案格式的规范文本与 JSON Schema。整个项目的基石。</td>
+            <td class="ok">bundle 1.1</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/Doubak/doubak-data-parser">doubak-data-parser</a></td>
+            <td>bundle → 结构化数据。纯函数，不联网。</td>
+            <td class="todo">待开始</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/Doubak/doubak-site-generator">doubak-site-generator</a></td>
+            <td>把档案生成一个可搜索、有固定链接的个人存档站点。</td>
+            <td class="todo">待开始</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">
+      还有 <a href="https://github.com/Doubak/doubak-data-enricher">doubak-data-enricher</a>（可选的外部链接补全）与
+      <a href="https://github.com/Doubak/doubak-neodb-adapter">doubak-neodb-adapter</a>（导出到 NeoDB，需要先和 NeoDB 维护者谈）。
+      下游全部可以晚几年再写，因为抓取已经完成了。
+      2020 年那一版 <a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>（Go 命令行）已归档，
+      但它抓下来的档案没有白费——本项目的实测结论几乎都来自那批数据。
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-cols">
+      <div>
+        <h4>项目</h4>
+        <ul>
+          <li><a href="https://github.com/Doubak">GitHub 组织</a></li>
+          <li><a href="https://github.com/Doubak/doubak-extension">浏览器扩展</a></li>
+          <li><a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式规范</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>文档</h4>
+        <ul>
+          <li><a href="https://github.com/Doubak/doubak-extension/blob/main/DESIGN.md">设计文档</a></li>
+          <li><a href="https://github.com/Doubak/doubak-extension/blob/main/docs/permissions.md">权限审计</a></li>
+          <li><a href="/log/">开发日志</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>反馈</h4>
+        <ul>
+          <li><a href="https://github.com/Doubak/doubak-extension/issues">提 issue</a></li>
+          <li><a href="https://github.com/Doubak/doubak-extension/blob/main/LICENSE">Apache-2.0 许可证</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系，也未获其授权或认可。</p>
+      <p>本站是纯静态页面：不加载任何第三方资源，没有统计脚本，不设 cookie。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

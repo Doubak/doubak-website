@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!--
+  新增一篇开发日志：
+
+  1. 复制这个文件成 log/YYYY-MM-DD-slug.html
+  2. 替换下面所有 {{...}} 占位
+  3. 在 log/index.html 顶部加一条，在首页「最近的开发日志」里加一条（只留最近三条）
+  4. 把上一篇的 post-nav 右侧补上指向这篇的链接
+
+  这个文件本身不会被链接到，但它会被 GitHub Pages 原样发布出去，别写敏感内容。
+-->
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{标题}} —— 开发日志</title>
+<meta name="description" content="{{一句话摘要}}">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="{{YYYY-MM-DD}}">{{YYYY-MM-DD}}</time>
+      <h1>{{标题}}</h1>
+      <p class="summary">{{一句话摘要}}</p>
+    </div>
+
+    <div class="post-body">
+      <p>{{正文}}</p>
+
+      <!-- 可用的块：
+        <h2>小标题</h2>
+        <ul><li>…</li></ul>
+        <blockquote><p>…</p></blockquote>
+        <pre><code>…</code></pre>
+        <div class="callout"><p>…</p></div>
+        <div class="callout warn"><p><strong>注意</strong>…</p></div>
+        <div class="table-wrap"><table>…</table></div>
+        表格里的状态用 <td class="ok">✅ …</td> / <td class="todo">⬜ …</td>
+      -->
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/{{更新的一篇}}.html">← 更新：{{标题}}</a>
+      <a href="/log/{{更早的一篇}}.html">更早：{{标题}} →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>开发日志 —— 豆备 Doubak</title>
+<meta name="description" content="豆备的开发日志：做了什么、为什么这么做，以及踩过的坑。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>开发日志</h1>
+    <p class="lede">
+      做了什么、为什么这么做，以及撞上的坑。
+      更细的改动记录在 <a href="https://github.com/Doubak/doubak-extension/commits/">Git 提交历史</a> 里。
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <ul class="log-list">
+      <li>
+        <time datetime="2026-08-01">2026-08-01</time>
+        <h3><a href="/log/2026-08-01-public-beta.html">公开测试开始：豆备 0.0.1</a></h3>
+        <p>能跑什么、不能跑什么，以及为什么在还缺一块的时候就开放测试。</p>
+      </li>
+      <li>
+        <time datetime="2026-08-01">2026-08-01</time>
+        <h3><a href="/log/2026-08-01-first-images.html">档案里第一次有了真的图片</a></h3>
+        <p>作品封面进档案，bundle 格式随之升到 1.1：surface 多了一个 asset。</p>
+      </li>
+      <li>
+        <time datetime="2026-07-31">2026-07-31</time>
+        <h3><a href="/log/2026-07-31-incremental.html">一堆档案不等于一条链</a></h3>
+        <p>增量抓取上线，以及一个把四次独立全量误接成一条链、把完整性说成「已验证」的 bug。</p>
+      </li>
+      <li>
+        <time datetime="2026-07-30">2026-07-30</time>
+        <h3><a href="/log/2026-07-30-verdicts.html">豆瓣的封禁页也返回 200</a></h3>
+        <p>拿 6341 个真实页面校准判定器，以及豆瓣把「我的广播」改名成「我的动态」那天。</p>
+      </li>
+      <li>
+        <time datetime="2026-07-28">2026-07-28</time>
+        <h3><a href="/log/2026-07-28-counts-lie.html">豆瓣自己报的数量，不能用来证明抓全了</a></h3>
+        <p>同一次抓取里，电影的计数是准的，游戏的计数少了 5 个——而且缺口在列表中间。</p>
+      </li>
+      <li>
+        <time datetime="2026-07-23">2026-07-23</time>
+        <h3><a href="/log/2026-07-23-why-warc.html">为什么是 WARC 和 JSON Schema，而不是 protobuf</a></h3>
+        <p>上一版这个项目用 Go + Bazel + protobuf 写的。这一版全部推翻了，理由是 2040 年。</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

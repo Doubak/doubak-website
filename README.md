@@ -1,2 +1,81 @@
 # website
-The official website for Doubak! - 豆备的官方网站
+
+The official website for Doubak! — 豆备的官方网站 · <https://doubak.com>
+
+Plain static HTML and one stylesheet. **No build step, no dependencies, no CI.**
+What is in this repo is exactly what is served — same principle as
+[`doubak-extension`](https://github.com/Doubak/doubak-extension), for the same reason:
+this project's whole thesis is auditability, and a site nobody can audit without
+running a toolchain undercuts it.
+
+Site content is in Chinese; this README is the one English file, per project convention.
+
+## Layout
+
+```
+index.html            landing page
+404.html              not-found page (GitHub Pages serves this automatically)
+log/index.html        dev log index
+log/YYYY-MM-DD-*.html dev log entries
+log/_template.html    copy this to start a new entry
+css/main.css          the entire stylesheet
+assets/favicon.svg    logo / favicon
+CNAME                 doubak.com
+.nojekyll             serve files as-is; do not run Jekyll
+```
+
+## Local preview
+
+Any static file server works. Pages use absolute URLs (`/css/main.css`), so serve them
+rather than opening `file://`:
+
+```sh
+python3 -m http.server 8000    # then http://localhost:8000
+```
+
+## Adding a dev log entry
+
+1. Copy `log/_template.html` to `log/YYYY-MM-DD-slug.html` and fill in the `{{...}}` placeholders.
+2. Add an entry at the top of the list in `log/index.html`.
+3. Add it to the "最近的开发日志" section on `index.html`, keeping only the newest three.
+4. Point the previous entry's `.post-nav` at the new one.
+
+There is no generator, so steps 2–4 are manual by design — the trade for having no
+toolchain. At six entries this costs about a minute.
+
+## Deploying
+
+GitHub Pages serves `main` from the repository root.
+
+- **Settings → Pages → Source:** Deploy from a branch, `main` / `/ (root)`.
+- **Custom domain:** `doubak.com` — the `CNAME` file in this repo is what sets it.
+  Enable "Enforce HTTPS" once the certificate is issued.
+- **DNS**, at the registrar for `doubak.com`:
+
+  | Type | Name | Value |
+  |---|---|---|
+  | A | `@` | `185.199.108.153` |
+  | A | `@` | `185.199.109.153` |
+  | A | `@` | `185.199.110.153` |
+  | A | `@` | `185.199.111.153` |
+  | CNAME | `www` | `doubak.github.io` |
+
+  (Or a single `ALIAS`/`ANAME` on the apex pointing at `doubak.github.io`, if the
+  registrar supports it. Verify against the
+  [current GitHub Pages addresses](https://docs.github.com/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site)
+  before relying on the table above.)
+
+## Pending
+
+- **The Chrome Web Store button on `index.html` is a placeholder.** It renders as a
+  disabled "待上架" chip. Once the listing is approved, replace it with a real link —
+  the spot is marked with a `TODO(上架)` comment.
+- **The 样张 (showcase) section on `index.html` has no screenshots yet** (`#showcase`).
+  Three `figure.shot` slots are in place, each holding a dashed `.frame` placeholder.
+  To fill one, drop the image in `assets/shots/` and swap the `<div class="frame">…</div>`
+  for `<img src="/assets/shots/name.png" alt="…">`; `.shot img` is already styled.
+  The third slot (rendered personal site) waits on `doubak-site-generator`.
+  The stat row above it uses real numbers from the archive the predecessor tool
+  produced — update them when there are figures from the extension itself.
+- No analytics, no third-party requests, no cookies, no web fonts. Keep it that way;
+  the footer promises it on every page.

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>为什么是 WARC 和 JSON Schema，而不是 protobuf —— 开发日志</title>
+<meta name="description" content="上一版这个项目用 Go + Bazel + protobuf 写的。这一版全部推翻了，理由是 2040 年。">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect width="24" height="24" rx="6" fill="#2e963d"/>
+        <ellipse cx="9" cy="10.5" rx="3.6" ry="4.6" transform="rotate(-20 9 10.5)" fill="#fff"/>
+        <ellipse cx="15.2" cy="14" rx="3.6" ry="4.6" transform="rotate(-20 15.2 14)" fill="#fff" opacity=".72"/>
+      </svg>
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-07-23">2026-07-23</time>
+      <h1>为什么是 WARC 和 JSON Schema，而不是 protobuf</h1>
+      <p class="summary">上一版这个项目用 Go + Bazel + protobuf 写的。这一版全部推翻了，理由是 2040 年。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        这个项目 2020 年 5 月就开始了。
+        前一版是 <a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>：
+        Go 写的命令行工具，Bazel 构建，数据存 protobuf。它能用，也真的抓下了几百 MB 的档案。
+        技术上没什么问题。
+      </p>
+      <p>
+        推翻它的是一个问题：<strong>2040 年，一个跟这个项目毫无关系的人拿到这份档案，
+        他能读懂吗？</strong>
+      </p>
+
+      <h2>protobuf 的字节，离开 .proto 就是垃圾</h2>
+      <p>
+        protobuf 的编码是纯二进制，字段名不在数据里，只有字段编号。
+        没有对应版本的 <code>.proto</code> 文件，那就是一坨不透明的字节——
+        你甚至看不出里面有几个字段。而档案的生命周期比任何一个代码仓库都长。
+      </p>
+      <p>
+        NDJSON 不一样：一行一条记录，字段名就写在数据里，
+        十四年后拿 <code>jq</code>、拿 <code>grep</code>、拿任何一个文本编辑器都能读。
+        慢一点、大一点，但它不需要任何配套物就能被理解。对一个存档格式来说，
+        这个性质压倒性能。
+      </p>
+      <p>
+        所以规则是：<strong>从 schema 生成代码，绝不反过来。</strong>
+        schema 是规范文本的一部分，代码只是它的一个实现。
+      </p>
+
+      <h2>还有一个更直接的原因</h2>
+      <p>
+        扩展跑在 Manifest V3 上，而 MV3 的内容安全策略禁止 <code>unsafe-eval</code>。
+        protobuf.js 的动态模式正好需要它。也就是说，就算不谈 2040 年，
+        这条路在浏览器里本来也走不通。
+      </p>
+
+      <h2>WARC 保持原味</h2>
+      <p>
+        页面本身存成 WARC，一个 1996 年就开始用、2009 年成为 ISO 标准的格式，
+        互联网档案馆存了几千亿个页面用的就是它。关键决定是<strong>不往 WARC 里塞私货</strong>：
+        不自定义记录类型，不加豆备专有的头。
+      </p>
+      <p>
+        这样 <a href="https://replayweb.page/">ReplayWeb.page</a>、pywb 这些现成工具
+        可以原封不动地打开一份豆备档案，不需要知道豆备是什么。
+        所有豆备特有的元数据——抓取意图、判定结果、覆盖率、连续性证明——
+        都放在旁边的 <code>index.ndjson</code> 里。
+      </p>
+      <p>
+        代价是档案里有冗余（WARC 里有一份，index 里有一份摘要），
+        换来的是<strong>任何一方单独存在都有意义</strong>：
+        只有 WARC，你还能重放；只有 index，你还知道抓了什么。
+      </p>
+
+      <h2>零依赖，同一个理由</h2>
+      <p>
+        扩展本身也是零运行时依赖、零开发依赖、零构建步骤——
+        用原生 ES 模块，类型写在 JSDoc 里，测试用 Node 自带的 <code>node:test</code>。
+      </p>
+      <p>
+        三个理由叠在一起：这个项目的整个论点就是可审计和长寿；
+        扩展会碰到用户的登录会话，<strong>每一个依赖都是供应链攻击面</strong>；
+        以及——那些看起来需要库的事情，其实浏览器原生都有。
+        gzip 是 <code>CompressionStream</code>，摘要是 <code>crypto.subtle</code>，
+        而一条 WARC 记录说穿了就是几行文本头加一段负载。
+      </p>
+      <p>
+        结果是：<strong>仓库里的源码就是浏览器里跑的东西。</strong>
+        想审计它的人不需要先信任一条构建流水线。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-07-28-counts-lie.html">← 更新：豆瓣自己报的数量不能用来证明抓全了</a>
+      <span></span>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
