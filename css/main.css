@@ -159,7 +159,8 @@ hr {
   margin-right: auto;
 }
 .brand:hover { text-decoration: none; opacity: .88; }
-.brand svg { display: block; }
+/* 图标自带圆角瓦片（rx=6），不要再套一层 border-radius */
+.brand .brand-mark { display: block; width: 24px; height: 24px; }
 .brand .en {
   color: #9fd3ad;
   font-weight: 400;

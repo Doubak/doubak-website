@@ -19,10 +19,16 @@ log/index.html        dev log index
 log/YYYY-MM-DD-*.html dev log entries
 log/_template.html    copy this to start a new entry
 css/main.css          the entire stylesheet
-assets/favicon.svg    logo / favicon
+assets/logos/         logo master set — SVG, PNG, .ico, and gen_logo.py
+favicon.ico           copy of assets/logos/favicon.ico, for /favicon.ico requests
 CNAME                 doubak.com
 .nojekyll             serve files as-is; do not run Jekyll
 ```
+
+`assets/logos/` is the source of truth for the mark across the whole project —
+`doubak-extension/icons/` holds byte copies of `icon-{16,32,48,128}.png`. Update
+here first, then re-copy there. See `assets/logos/README.md` for which file goes
+where, and regenerate with `rsvg-convert`, never cairosvg.
 
 ## Local preview
 
