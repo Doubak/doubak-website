@@ -365,9 +365,13 @@
     <h2>现在能跑到什么程度</h2>
     <div class="callout warn">
       <p>
-        <strong>这是公开测试版。</strong>抓取已经对着真实豆瓣跑通了，
-        但还没有做过一次几小时量级的完整全量抓取，图片也只抓了作品封面。
-        请把它当成「多一份备份」，暂时不要当成唯一那一份。
+        <strong>这是公开测试版。</strong>抓取已经对着真实豆瓣跑通了：
+        一次 4 小时 16 分的全量抓取，5880 条捕获，其中 2925 个作品详情页、2918 张封面，
+        零失败；八份成链的档案全部通过规范校验。
+        <br><br>
+        但<strong>只有一个账号跑过</strong>。这个账号没有相册、日记也只有三篇——很多分支从来没被
+        真实数据碰过。已知的坑几乎都是换一种跑法才暴露的（中途重载扩展、开着「重抓
+        作品详情页」），所以请把它当成「多一份备份」，暂时不要当成唯一那一份。
       </p>
     </div>
     <div class="table-wrap">
@@ -381,8 +385,10 @@
           <tr><td>作品详情页</td><td class="ok">✅ 能跑</td><td>由标记列表派生，含封面图；单独成段，不想要一条命令就能删</td></tr>
           <tr><td>增量抓取</td><td class="ok">✅ 能跑</td><td>沿链回溯，标出改动与已失效的条目</td></tr>
           <tr><td>导出与回读校验</td><td class="ok">✅ 能跑</td><td>整条链导出，每份各占一个子目录</td></tr>
-          <tr><td>日记 / 影评 / 相册</td><td class="todo">⬜ 未做</td><td>需要走另一套接口，URL 还没核对</td></tr>
-          <tr><td>用户上传的图片</td><td class="todo">⬜ 未做</td><td>目前只抓了作品封面；这是「备份必须联网才能看」的病根</td></tr>
+          <tr><td>日记 / 影评书评</td><td class="ok">✅ 能跑</td><td>列表页上只有截断的摘要，所以正文页单独抓一遍；两种日记 URL 形状都认</td></tr>
+          <tr><td>用户上传的图片</td><td class="ok">✅ 能跑</td><td>广播附图与日记正文内嵌图，只取本人上传的原图——转发进来的是别人的，不存</td></tr>
+          <tr><td>豆列</td><td class="todo">⬜ 未做</td><td>和长文同一档，只是还没排上</td></tr>
+          <tr><td>相册</td><td class="todo">⬜ 未做</td><td>实测这个账号一个相册都没有，暂时没有样本可量</td></tr>
           <tr><td>中断续导</td><td class="todo">⬜ 未做</td><td>导出被打断要从头来</td></tr>
         </tbody>
       </table>
@@ -434,12 +440,12 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
             <td>档案格式的规范文本与 JSON Schema。整个项目的基石。</td>
-            <td class="ok">bundle 1.1</td>
+            <td class="ok">bundle 1.2</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-parser">doubak-data-parser</a></td>
             <td>bundle → 结构化数据。纯函数，不联网。</td>
-            <td class="todo">待开始</td>
+            <td class="ok">能跑了</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-site-generator">doubak-site-generator</a></td>

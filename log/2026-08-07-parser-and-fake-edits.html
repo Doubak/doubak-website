@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>解析器能跑了，以及两个只有换种跑法才会露出来的 bug —— 开发日志</title>
+<meta name="description" content="豆瓣改演员表被记成用户编辑、页脚浏览计数变成编辑历史——两个不报错的 bug，以及为什么「判不出来」不该显示成「被限制」。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-07">2026-08-07</time>
+      <h1>解析器能跑了，以及两个只有换种跑法才会露出来的 bug</h1>
+    </div>
+
+    <p>
+      这一周把<a href="https://github.com/Doubak/doubak-data-parser">解析器</a>写出来了：
+      读一堆档案，产出结构化的标记、作品、广播、长文。八份成链的真实档案跑完 1.8 秒，零告警。
+    </p>
+
+    <p>
+      但更值得写的是它<strong>跑起来之后立刻撞到的两件事</strong>——两件都不是「代码写错了」，
+      而是「我从太小的样本里推出了一个封闭的结论」。
+    </p>
+
+    <h2>豆瓣改了演员表，被记成「你编辑了这条标记」</h2>
+
+    <p>
+      第一次跑出来有 6 条标记有多个版本，而真实的状态迁移只有 3 次。多出来的三条长这样：
+    </p>
+
+    <pre><code>37314835   变了的字段: ['raw_meta']
+   前: 2027(美国) / 贾法尔·杰克逊 / …
+   后: 2027(未定) / 贾法尔·杰克逊 / …</code></pre>
+
+    <p>
+      上映日期从「2027(美国)」变成「2027(未定)」——<strong>豆瓣改的，不是用户改的</strong>。
+      而它被记进了「标记」这张表，也就是专门存用户自己写的东西的那张。
+    </p>
+
+    <p>
+      修法是把那一行元信息挪到作品表去。挪完之后多版本的标记从 6 条降到 3 条，
+      正好是三次真实的「想看 → 看过」。
+    </p>
+
+    <h2>浏览计数变成了编辑历史</h2>
+
+    <p>
+      日记正文的抽取只钉了左端，右端写成「到下一个 div」，结果溢出到页脚，把这个吞了进去：
+    </p>
+
+    <pre><code>正文长度: [2788, 2788, 2788]
+第一处不同在第 1622 字:
+  A: "1740人浏览"
+  B: "1741人浏览"</code></pre>
+
+    <p>
+      于是同一篇日记在三次抓取里产出了三个版本，看起来像作者在 24 小时内改了两次。
+    </p>
+
+    <p>
+      这是这套系统最坏的一种错：<strong>凭空捏造编辑历史，而且不会报错</strong>。
+      这个项目存在的全部理由就是「这条什么时候改的」，一个溢出的正则足以让那个答案全是噪音。
+    </p>
+
+    <h2>为什么这类错特别难发现</h2>
+
+    <p>
+      两件事都有同一个形状：<strong>产出看起来完全正常</strong>。没有异常、没有报错，
+      只是多了几条不存在的编辑记录。如果不是拿六次抓取的真实数据横着比一遍，它们可以安安静静躺很多年。
+    </p>
+
+    <p>
+      所以现在每条结论都要求能指回具体的字节：每个版本记着看到过它的每一次捕获，
+      每次捕获指回 WARC 里的偏移量。想质疑某条结论，可以一路走到原始页面。
+    </p>
+
+    <h2>顺带：「判不出来」不等于「被限制」</h2>
+
+    <p>
+      抓取时遇到一种响应：页面拿到了、登录状态也正常，但一个内容区块都认不出来。
+      格式里当时没有「判不出来」这个取值，只能退而写成「被限制」——
+      于是界面上显示「被限制」，用户照着去重试，白费。
+    </p>
+
+    <p>
+      这两件事的处置正好相反：<strong>被限制该等一等再抓，判不出来该改抽取器，重抓一百次也一样。</strong>
+      所以格式升到 bundle/1.2，加了一个取值，并且配上原因——光有「判不出来」只是把问题换了个说法，
+      真正有用的是「这次该怎么办」。
+    </p>
+
+    <p>
+      现在解析器能一次扫完所有档案，回答一个别处回答不了的问题：
+    </p>
+
+    <pre><code>可离线救回 2 条（页面已在档案里，改抽取器重跑即可，不必重抓）：
+   note.item  2</code></pre>
+
+    <p>
+      <strong>知道欠了多少，而且知道不用求人重抓</strong>——这正是当初把「保存」和「解读」
+      分成两步换来的东西。
+    </p>
+
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
