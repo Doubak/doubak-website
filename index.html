@@ -417,7 +417,71 @@
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section section-alt" id="contribute">
+  <div class="wrap">
+    <h2>最缺的是别人的数据</h2>
+    <p class="lead-2">
+      到今天为止，这条链路只在<strong>一个账号</strong>上完整跑过。那个账号没有相册、
+      只有三篇日记、一个豆列也没有。很多分支从来没被真实数据碰过——
+      而豆瓣十几年里的页面结构差异，是坐在屋里想不出来的：
+      这个项目已经<strong>四次</strong>从太小的样本里推出过错的结论
+      （<a href="/log/2026-08-06-own-photos.html">最近这次</a>是漏了一个图床域名）。
+    </p>
+    <p class="lead-2">
+      所以如果你愿意帮忙，按你能接受的程度挑一档就好。
+      <strong>第一档最有用，而且几乎没有隐私成本</strong>——绝大多数 bug 光靠它就能定位。
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <h3><span class="kicker">01</span> 日志与覆盖率</h3>
+        <p>
+          面板「日志」页可以整份复制出来：抓过哪些 URL、重试、停机原因、错误。
+          <strong>里面没有你的短评、日记正文和图片。</strong>
+          覆盖率页那张表同样有用——尤其是「豆瓣声称 100 条、实际抓到 95 条」这种对不上的情况。
+        </p>
+      </div>
+      <div class="card">
+        <h3><span class="kicker">02</span> 某一条路线的少量页面</h3>
+        <p>
+          如果你有<strong>相册、豆列</strong>，或者很老的广播（2010 年前后的），
+          那正是一个样本都没有的地方——这两条路线至今没做，就是因为手上的账号里根本没有。
+          几页就够，不用给全部。
+        </p>
+      </div>
+      <div class="card">
+        <h3><span class="kicker">03</span> 一整份档案</h3>
+        <p>
+          最有用，也最私密。<strong>发之前请先知道它装着什么</strong>：你的短评、
+          日记与影评全文、自己上传的图片原图、你的用户名，以及那些页面上的一切。
+          档案是普通文件，段可以整段删掉（<code>catalog-*</code> 是作品详情页，删了不影响其他）。
+        </p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:1.8em">
+      <p><strong>怎么发，以及会被怎么处理</strong></p>
+      <ul>
+        <li><strong>能公开说的问题走 <a href="https://github.com/Doubak/doubak-extension/issues">GitHub issue</a></strong>——
+            首选，因为撞上同一个问题的人能看到。</li>
+        <li><strong>涉及你自己数据的走邮件：<a href="mailto:admin@doubak.com">admin@doubak.com</a></strong></li>
+        <li>收到的数据只用来修 bug 和补样本，<strong>不公开、不转给第三方</strong>；
+            你随时可以要求删掉，说一声就行。</li>
+        <li><strong>永远不要发登录凭据。</strong>档案里没有 cookie，扩展也不会把它写进去。
+            如果有人以任何名义找你要豆瓣的 cookie 或密码，那不是我们。</li>
+      </ul>
+    </div>
+
+    <p class="small muted">
+      还有一件不用交出任何数据、但一样有用的事：
+      <strong>告诉我们界面上哪句话让你产生了错误的理解。</strong>
+      这个项目里「说得比事实更强」一直是当 bug 修的——
+      <a href="/log/2026-07-31-incremental.html">把四次独立抓取说成一条完整的链</a>就是这么发现的。
+    </p>
+  </div>
+</section>
+
+<section class="section">
   <div class="wrap">
     <h2>最近的开发日志</h2>
     <ul class="log-list">
@@ -441,7 +505,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap">
     <h2>项目由几个仓库组成</h2>
     <p class="lead-2">
@@ -515,6 +579,8 @@
         <h4>反馈</h4>
         <ul>
           <li><a href="https://github.com/Doubak/doubak-extension/issues">提 issue</a></li>
+          <li><a href="mailto:admin@doubak.com">admin@doubak.com</a></li>
+          <li><a href="#contribute">帮忙测试</a></li>
           <li><a href="https://github.com/Doubak/doubak-extension/blob/main/LICENSE">Apache-2.0 许可证</a></li>
         </ul>
       </div>
