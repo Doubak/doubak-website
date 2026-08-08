@@ -48,10 +48,11 @@
       每一段都是独立的一块，可以单独审、单独换掉、也可以只用其中一段。
     </p>
     <p class="lede">
-      链路的第一步现在能用了——一个浏览器扩展，在<strong>你自己的浏览器、用你自己的 IP 和节奏</strong>抓取豆瓣，
-      把页面原样存成标准 WARC 档案。登录凭据和会话 cookie 不离开你的设备，
-      抓下来的东西也不上传到任何地方。连每部作品的详情页一起抓，
-      所以这份档案以后能生成一个<strong>完全离线、可以留一辈子的静态豆瓣</strong>。
+      <strong>从豆瓣到一个能打开的网站，这条路现在整条通了。</strong>
+      扩展在你自己的浏览器、用你自己的 IP 和节奏抓，页面原样存成标准 WARC；
+      解析器把档案变成结构化数据；生成器把它变成一个可搜索、有固定链接、
+      <strong>完全离线也能看</strong>的个人存档站点。凭据和数据全程不离开你的设备。
+      长什么样不用想象——<a href="https://sample.doubak.com">sample.doubak.com</a> 就是这么来的。
     </p>
     <div class="actions">
       <!-- TODO(上架): 审核通过后把这个 span 换成
@@ -62,7 +63,7 @@
       <a class="btn btn-primary" href="https://github.com/Doubak/doubak-extension#装载到浏览器">
         现在就用（开发者模式加载）
       </a>
-      <a class="btn btn-ghost" href="https://github.com/Doubak/doubak-extension">在 GitHub 上看源码</a>
+      <a class="btn btn-ghost" href="https://sample.doubak.com">看生成出来的样张</a>
     </div>
     <p class="small muted" style="margin-top:1.2em">
       需要 Chrome 或 Edge。零依赖、零构建步骤——仓库里的源码就是浏览器里跑的东西。
@@ -97,7 +98,9 @@
     <p class="lead-2">
       抓取是<strong>唯一不可逆</strong>的一步，别的都不是。所以整条链路被拆开成独立的几段：
       先把页面原样存住，怎么解读它可以以后再说——重跑解析器不要钱，请人重爬一次不可能。
-      后面几段今天还没写，但它们将来是跑在<strong>你今天抓下来的那份档案</strong>上的，
+      <strong>从抓取到能打开的网页，这条路现在整条通了</strong>，
+      成果就是 <a href="https://sample.doubak.com">sample.doubak.com</a>。
+      往外导出的那几个口子还没做，但它们将来也是跑在你今天抓下来的那份档案上的，
       不需要你重抓一次。
     </p>
 
@@ -114,18 +117,18 @@
       </li>
       <li>
         <span class="step-k">03</span>
-        <h3>解析 <span class="pill pill-soon">计划中</span></h3>
-        <p>档案 → 条目、评分、短评、时间。纯函数、不联网，改错了重跑一遍就行。</p>
+        <h3>解析 <span class="pill pill-now">已可用</span></h3>
+        <p>档案 → 条目、评分、短评、时间。纯函数、不联网，改错了重跑一遍就行。八份真实档案 1.8 秒跑完。</p>
       </li>
       <li>
         <span class="step-k">04</span>
-        <h3>结构化数据 <span class="pill pill-soon">计划中</span></h3>
-        <p>每次观察留一份修订的无损超集。你写的东西和豆瓣的条目库分开存。</p>
+        <h3>结构化数据 <span class="pill pill-now">已可用</span></h3>
+        <p>四个 NDJSON，<code>jq</code> 直接查。每次观察留一份修订，你写的东西和豆瓣的条目库分开存。</p>
       </li>
       <li>
         <span class="step-k">05</span>
-        <h3>出口 <span class="pill pill-soon">计划中</span></h3>
-        <p>你自己的静态豆瓣站点，或导出到 NeoDB、Letterboxd、Goodreads。</p>
+        <h3>出口 <span class="pill pill-part">一半</span></h3>
+        <p>静态站点已经能生成了；导出到 NeoDB、Letterboxd、Goodreads 还没做。</p>
       </li>
     </ol>
 
@@ -157,8 +160,8 @@
           <span class="name">版本化抓取 <span class="pill pill-now">已可用</span></span>
           <p class="desc">
             同一个页面在链上被抓到过几次就留几份，捕获列表里分得清「本次新增」和「又抓了一次」，
-            并能翻出跨档案的版本历史。至于把两次的差别说成
-            「又看了一遍」还是「改了短评」，那是解析器的事——见下。
+            并能翻出跨档案的版本历史。至于把两次的差别<em>说清</em>是「又看了一遍」还是「改了短评」，
+            那是解析器逐字段比对的活，现在也能用了（见下一组）。
           </p>
         </li>
         <li>
@@ -197,26 +200,41 @@
     </div>
 
     <div class="feature-group">
-      <h3>后面几段 —— 路线图上的</h3>
+      <h3>解析与生成这一段 —— 也能用了</h3>
       <ul class="features">
         <li>
-          <span class="name">生成你自己的豆瓣网站 <span class="pill pill-soon">计划中</span></span>
+          <span class="name">解析成结构化数据 <span class="pill pill-now">已可用</span></span>
           <p class="desc">
-            把档案生成一个可搜索、有固定链接的个人存档站点：Markdown + front matter，
-            交给 Hugo / Astro / Eleventy / Jekyll 渲染，现成的主题生态直接能用。
-            <strong>重建全程离线、零网络请求</strong>——这条底线之所以守得住，
-            正是因为作品详情页在抓的时候就一起存下来了。
-            一份静态网站没有服务器、没有数据库、也没有会过期的接口，
-            扔在任何一个能放文件的地方，就是能留一辈子的那份豆瓣。
+            档案 → 四个 NDJSON（标记 / 作品 / 广播 / 长文），纯函数、不联网，<code>jq</code> 直接查。
+            每次观察留一份修订，逐字段比对，所以「改了评分」和「改了短评」不会混成同一件事。
+            <strong>喂一个装着全部档案的目录就行，不用你挑哪条链</strong>——
+            实测合并的结果恰好是并集，挑任何一条都会丢东西。
           </p>
         </li>
         <li>
-          <span class="name">解析成结构化数据 <span class="pill pill-soon">计划中</span></span>
+          <span class="name">生成你自己的豆瓣网站 <span class="pill pill-now">已可用</span></span>
           <p class="desc">
-            档案 → 结构化记录，纯函数、不联网。每次观察留一份修订，逐字段比对，
-            这样「改了评分」和「改了短评」不会混成同一件事。解析器随时可以重跑。
+            一条命令从档案生成一个可搜索、有固定链接的个人存档站点，
+            成品就是 <a href="https://sample.doubak.com">sample.doubak.com</a>。
+            <strong>重建全程离线、零网络请求</strong>，双击 <code>index.html</code> 就能看，不用起服务器。
+            真正的产物是 Markdown + YAML front matter，Hugo / Astro / Eleventy / Jekyll 都能接，
+            自带的那个骨架只有五个文件，删掉换主题就行。
           </p>
         </li>
+        <li>
+          <span class="name">发布成一个网站 <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            <code>npm run deploy</code> 把成品铺进一个仓库，GitHub Pages 直接就能发。
+            发布前有一次<strong>预演</strong>，明确列出哪些内容会变成公开的——
+            第三方内容默认排除，而且旧文件会被清干净，不留下「链接还在、数据已经没了」的幽灵页。
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <div class="feature-group">
+      <h3>还没做的 —— 路线图上的</h3>
+      <ul class="features">
         <li>
           <span class="name">导出到 NeoDB <span class="pill pill-soon">计划中</span></span>
           <p class="desc">
@@ -398,19 +416,19 @@
     <h2>最近的开发日志</h2>
     <ul class="log-list">
       <li>
-        <time datetime="2026-08-01">2026-08-01</time>
-        <h3><a href="/log/2026-08-01-public-beta.html">公开测试开始：豆备 0.0.1</a></h3>
-        <p>能跑什么、不能跑什么，以及为什么在这个时间点就开放测试。</p>
+        <time datetime="2026-08-08">2026-08-08</time>
+        <h3><a href="/log/2026-08-08-site-generator.html">双击 index.html，那就是你的豆瓣</a></h3>
+        <p>站点生成器做完了，sample.doubak.com 上线。以及一个把用户自己写的字悄悄吃掉的 bug。</p>
       </li>
       <li>
-        <time datetime="2026-08-01">2026-08-01</time>
-        <h3><a href="/log/2026-08-01-first-images.html">档案里第一次有了真的图片</a></h3>
-        <p>封面图进档案，bundle 格式随之升到 1.1：surface 多了一个 asset。</p>
+        <time datetime="2026-08-07">2026-08-07</time>
+        <h3><a href="/log/2026-08-07-parser-and-fake-edits.html">解析器能跑了，以及两个只有换种跑法才会露出来的 bug</a></h3>
+        <p>豆瓣改演员表被记成「你编辑了这条标记」，页脚的浏览计数变成了编辑历史——两个都不报错。</p>
       </li>
       <li>
-        <time datetime="2026-07-31">2026-07-31</time>
-        <h3><a href="/log/2026-07-31-incremental.html">一堆档案不等于一条链</a></h3>
-        <p>增量抓取上线，以及一个把四次独立全量误接成一条链的 bug。</p>
+        <time datetime="2026-08-07">2026-08-07</time>
+        <h3><a href="/log/2026-08-07-photos-backlog.html">照片永远不会在增量抓取里出现</a></h3>
+        <p>补抓那一趟：重读 176 个已存页面，抓下 121 张图，零个页面请求。</p>
       </li>
     </ul>
     <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>

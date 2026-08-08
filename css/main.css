@@ -473,6 +473,12 @@ hr {
   border-color: var(--line);
   background: var(--bg-alt);
 }
+/* 一半做完了：不能说「已可用」，也不该说「计划中」 */
+.pill-part {
+  color: var(--amber);
+  border-color: color-mix(in srgb, var(--amber) 42%, transparent);
+  background: var(--amber-bg);
+}
 
 /* ---------- 样张 ---------- */
 

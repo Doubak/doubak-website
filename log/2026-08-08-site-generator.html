@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>双击 index.html，那就是你的豆瓣 —— 开发日志</title>
+<meta name="description" content="站点生成器做完了，sample.doubak.com 上线。以及一个把用户自己写的字悄悄吃掉的 bug。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-08">2026-08-08</time>
+      <h1>双击 index.html，那就是你的豆瓣</h1>
+      <p class="summary">站点生成器做完了，<a href="https://sample.doubak.com">sample.doubak.com</a> 上线。以及一个把用户自己写的字悄悄吃掉的 bug。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        整条链路今天第一次从头通到尾：抓取 → 档案 → 解析 → 一个能打开的网站。
+        成品放在 <a href="https://sample.doubak.com">sample.doubak.com</a>，
+        用的是作者自己的豆瓣数据——2940 条标记、3394 条广播、4694 个页面、
+        2921 张封面加 124 张自己上传的图，一共 150 MB。
+      </p>
+      <p>
+        整个仓库下下来，双击 <code>index.html</code> 就能翻，<strong>不用起服务器，也不用联网</strong>。
+        页面里没有一个 <code>src</code> 指向站外——封面和图片的字节都从档案里导了出来。
+        这一条是整个项目的验收线：一份要豆瓣还在才能看的备份，不叫备份。
+      </p>
+
+      <h2>Markdown 才是产物，HTML 只是它的一个消费者</h2>
+      <p>
+        生成器输出的是 <strong>Markdown + YAML front matter</strong>，然后交给现成的静态站生成器渲染。
+        <code>npm run md</code> 出的那棵树里没有任何 Hugo 专属的东西（有一个测试专门守这条），
+        换 Astro / Eleventy / Jekyll 都能接。自带的 Hugo 骨架只有五个文件，
+        <strong>之所以只有五个，就是为了让它能被删掉</strong>——删了换任何一个现成主题，
+        每一个主题生态都变成它的模板库。
+      </p>
+      <p>
+        Hugo 本身是按固定版本下载官方二进制、对着仓库里写死的 SHA-256 校验，
+        <strong>不是一个 npm 依赖</strong>。因为 <code>hugo-bin</code> 会带来几百个间接包，
+        而一个「重建需要几百个包」的存档站点，跟它自己的前提是矛盾的。
+      </p>
+
+      <h2>然后是那个真正要紧的 bug</h2>
+      <p>
+        用户写的短评、日记正文，是要放进 Markdown 页面正文的。而豆瓣的短评里满是
+        Markdown 的活跃字符。拿 2831 条本人写的文本量了一遍：<strong>62 条渲染出来和原文不一样，
+        其中两条直接丢内容</strong>。
+      </p>
+      <pre><code>_(:з」∠)_            →  &lt;em&gt;(:з」∠)&lt;/em&gt;   下划线被吃掉（24 处）
+From &lt;May December&gt;  →  From                片名整个消失</code></pre>
+      <p>
+        第二条是要命的那种：页面上<strong>什么都不剩</strong>，没有任何痕迹说明这里曾经有字。
+        一个会悄悄改写你写过的东西的存档，比没有存档更糟——因为它看起来是可信的。
+      </p>
+      <p>
+        修法是转义，不是打开 <code>unsafe = true</code>——那等于在一个要发到 GitHub Pages 的站点上
+        执行来自用户文本的 HTML。转义规则拿真实的 Hugo 验了 18 个用例，逐字节对回去。
+        其中有一条我一开始推错了，被构建当场纠正：
+        <strong>有序列表要转义的是那个点，不是数字</strong>——CommonMark 不认转义的数字。
+      </p>
+
+      <h2>永远不要把链接规则写死在 Markdown 里</h2>
+      <p>
+        交叉链接写成 <code>../movie/123.md</code>——一个指向<em>文件</em>的路径，
+        最终 URL 长什么样交给静态站生成器决定。
+        第一版写的是 <code>[标题](/movie/123/)</code>，结果一打开
+        <code>uglyURLs</code> 就全断，在 <code>file://</code> 下每个链接都跳到目录列表。
+      </p>
+      <p>
+        还有一条同族的：<code>relativeURLs</code> 和 <code>uglyURLs</code> <strong>必须一起开</strong>。
+        当时只开了前一个，然后我写下「双击 index.html 可以用」——页面确实打开了，
+        而里面每一个链接都是坏的。
+        <strong>验证导航要把链接解析到文件，不是看页面渲染出来没有。</strong>
+      </p>
+
+      <h2>发布前先演一遍</h2>
+      <p>
+        <code>npm run deploy</code> 把成品铺进一个仓库根目录，GitHub Pages 直接能发。
+        它做两件容易被忽略的事：
+      </p>
+      <ul>
+        <li>
+          <strong>预演。</strong>明确列出哪些内容会变成公开的。别人的名字和短评在广播、
+          日记回复里到处都是，对这个受众里的一部分人来说，有些还是政治敏感的——
+          所以第三方内容默认排除，而且发布前你能先看清楚。
+        </li>
+        <li>
+          <strong>把旧文件清干净</strong>（只保留 <code>CNAME</code> / <code>LICENSE</code> /
+          <code>README</code> / <code>.git</code>）。留下来的旧页面是幽灵页：
+          有固定链接、打得开、看起来像真的，而数据里早就没有它了。
+        </li>
+      </ul>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-08-07-parser-and-fake-edits.html">更早：解析器能跑了，以及两个只有换种跑法才会露出来的 bug →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

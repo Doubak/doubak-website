@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照片永远不会在增量抓取里出现 —— 开发日志</title>
+<meta name="description" content="增量只看水位线以上，而照片是从广播页面派生的。于是水位线以下的照片永远不会被抓到——这不是 bug，是结构。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-07">2026-08-07</time>
+      <h1>照片永远不会在增量抓取里出现</h1>
+      <p class="summary">增量只看水位线以上，而照片是从广播页面派生出来的。于是水位线以下的照片永远抓不到——这不是 bug，是结构。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        抓自己上传的图这条路线上线之后，跑一次增量：一张图都没有。
+      </p>
+      <p>
+        原因不是代码写错了。图片的 URL 是从广播页面里<em>派生</em>出来的，
+        而增量抓取只重新取水位线<strong>以上</strong>的页面——那是它省时间的全部办法。
+        所以在这条路线存在<em>之前</em>发的每一张图，都躺在水位线底下，
+        而增量永远不会再去读那些页面。<strong>不做别的事的话，它们就永远不会进档案。</strong>
+      </p>
+      <p>
+        这类问题的形状值得记一下：它不是「某次抓取失败了」，它是
+        <strong>「按这个设计，这批数据没有任何路径能被抓到」</strong>。
+        重试、重跑、多等一天，都不会让它出现。
+      </p>
+
+      <h2>不用重抓页面，因为页面已经在档案里了</h2>
+      <p>
+        解法来自这个项目一开始就在守的那条线：原始页面是存下来的。
+        那些广播页面躺在<em>旧档案</em>里，图片的 URL 就在它们的 HTML 里面。
+        所以不需要再问豆瓣要一次——只要把已经存下来的页面重新读一遍、
+        重新算一遍图片 URL，然后只去取那些图片的字节。
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>这一趟做了什么</th><th>实测</th></tr></thead>
+          <tbody>
+            <tr><td>重新读取已存下来的广播页面</td><td>176 个</td></tr>
+            <tr><td>抓下来的图片</td><td>121 张</td></tr>
+            <tr><td><strong>向豆瓣发出的页面请求</strong></td><td class="ok"><strong>0</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        这些新捕获的 <code>parent_capture_id</code> 指向的是<strong>另一份、更早的档案</strong>里的捕获。
+        规范 §6.2.1 明确允许这件事，而它同时还是一个标记：
+        这个捕获是<em>算出来的</em>，不是从一个活页面上读下来的。
+      </p>
+
+      <h2>它每次抓取都跑，这是故意的</h2>
+      <p>
+        这一步没有做成「补抓模式」，也没有单独的命令——它在<strong>每一次</strong>抓取里都跑一遍。
+        这么定是因为它换来一个很值钱的性质：
+      </p>
+      <blockquote>
+        <p>抽取器写错了，是可以事后救回来的。改掉抽取器，下一次抓取自动补上前面几次漏掉的东西。</p>
+      </blockquote>
+      <p>
+        没有「重新扫描」这个开关，用户也不需要知道自己该不该按它。
+        这就是「派生数据随时可以扔掉重算」这句话真正兑现的地方——
+        它平时听起来像句架构口号，直到你需要它的那一天。
+      </p>
+      <p>
+        顺带说一句这条性质的边界：它救得回来的是<strong>页面已经在档案里</strong>的那些。
+        如果一个页面当初根本没抓，那就没得救，只能重抓。
+        这也是为什么「先把页面原样存住，怎么解读它以后再说」这个顺序不能倒过来。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-07-parser-and-fake-edits.html">← 更新：解析器能跑了</a>
+      <a href="/log/2026-08-06-own-photos.html">更早：最不可替代的那批字节 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

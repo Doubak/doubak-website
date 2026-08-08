@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>最不可替代的那批字节：自己上传的图 —— 开发日志</title>
+<meta name="description" content="广播附图有三种写法，一个都猜不出来；以及第四次犯同一个错——从手上的样本推出一个封闭集合。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-06">2026-08-06</time>
+      <h1>最不可替代的那批字节：自己上传的图</h1>
+      <p class="summary">广播附图有三种写法，一个都猜不出来；以及第四次犯同一个错——从手上的样本推出一个封闭集合。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        一部电影的封面，豆瓣没了也还能从别处找到。<strong>你自己拍的那张照片不能。</strong>
+        所以整份档案里最不可替代的就是这批字节：广播里的附图、日记正文里的插图。
+        这一趟抓下来 121 张本人上传的原图，26.3 MB，全是 JPEG，中位数 104 KB。
+      </p>
+
+      <h2>同一件事，豆瓣有三种写法</h2>
+      <p>
+        广播附图的结构在十几年里变过，而旧广播的旧写法就一直留在页面上：
+      </p>
+      <ol>
+        <li>一段 <code>var photos</code> 的 JSON，里面有 <code>image.raw.url</code></li>
+        <li>同样的 JSON，但<strong>只有</strong> <code>image.large.url</code>，没有 raw</li>
+        <li>更早的写法：一个 <code>data-raw-src</code> 属性</li>
+      </ol>
+      <p>
+        三种都在真实页面里同时存在。<strong>一种都不是想出来的，全是量出来的</strong>——
+        这也是这个项目对选择器的规矩：每一个锚点都要注明它是对着什么量出来的。
+      </p>
+
+      <h2>那个作品缩略图不是你的图</h2>
+      <p>
+        第一个坑：容器的标记是 <code>pics-wrapper</code> / <code>attachments-pic</code>，
+        <strong>不是</strong> <code>group-pic</code>。后者是标记类广播旁边那张<em>作品封面缩略图</em>
+        （包在 <code>recommed-pics</code> 里，<code>target_type</code> 是 <code>ilmen</code>）——
+        那是豆瓣的数据，不是你上传的东西。
+      </p>
+      <p>
+        把它算进去的后果：光第一份档案就冒出几十条假的「结构变了」告警。
+        告警多到一定程度就等于没有告警，所以这类误报要当真 bug 修。
+      </p>
+
+      <h2>第四次犯同一个错</h2>
+      <p>
+        第二个坑：图片的域名我写成了 <code>img\d*.doubanio.com</code>。
+        漏掉了 <code>qnmob3.doubanio.com</code>——它是真的，而且就在同一个页面里。
+      </p>
+      <p>
+        <strong>从手上的样本推出一个封闭集合，是这个项目反复翻车的地方，这是第四次。</strong>
+        前三次分别是：日记只有一种 URL 形状（其实两种）、个人主页一定会显示各个分类区块
+        （其实用户可以自己藏）、以及豆瓣的计数可以用来对账
+        （<a href="/log/2026-07-28-counts-lie.html">其实不行</a>）。
+        每一次的形状都一样：<em>n 很小，结论很确定。</em>
+      </p>
+
+      <h2>别人的图不抓，而且要抓得住这条界线</h2>
+      <p>
+        自己的广播时间线里混着 30 张<strong>转发进来的、别人上传的</strong>图。
+        它们不在备份范围里——备份的是你的东西。所以每个抽取器都要限定在条目容器内，
+        广播还要按 <code>data-uid</code> 和账号自己的 userId 比一遍。
+      </p>
+      <p>
+        更微妙的是下游：<strong>解析器判断「哪些图算数」的条件，必须和扩展的一字不差。</strong>
+        而且两边错的方向不对称——
+      </p>
+      <ul>
+        <li>解析器<strong>松</strong>了：结构化数据里会引用抓取器从来没取过的字节，也就是一个死链。</li>
+        <li>解析器<strong>严</strong>了：档案里明明躺着的字节被静默丢掉，页面上什么都不剩。</li>
+      </ul>
+      <p>
+        所以有一个测试直接断言两个集合相等：结构化数据引用的图片，
+        与档案里 <code>asset.status_photo</code> 的行数，<strong>124 == 124</strong>。
+        这种「两处独立实现必须一致」的地方，不能靠记性，得靠断言。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-07-photos-backlog.html">← 更新：照片永远不会在增量抓取里出现</a>
+      <a href="/log/2026-08-01-public-beta.html">更早：公开测试开始 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
