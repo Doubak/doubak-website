@@ -30,6 +30,20 @@ CNAME                 doubak.com
 here first, then re-copy there. See `assets/logos/README.md` for which file goes
 where, and regenerate with `rsvg-convert`, never cairosvg.
 
+Which SVG this site uses where — the display master only in the one big spot,
+everything small gets a small-size tier:
+
+| Where | File |
+|---|---|
+| Hero lockup on `index.html`, 64px | `doubak-icon.svg` (display master, has 豆) |
+| Header brand mark, every page, 24px | `doubak-icon-mid.svg` |
+| `<link rel="icon">` SVG favicon, every page | `doubak-icon-small.svg` |
+| `/favicon.ico` fallback | `favicon.ico` (16+32+48) |
+| `apple-touch-icon`, `og:image` | `icon-180.png`, `icon-512.png` — already display-tier |
+
+Changing any of these means touching all 14 HTML files, since each carries its
+own `<head>`. Sweep with grep, not by hand.
+
 ## Local preview
 
 Any static file server works. Pages use absolute URLs (`/css/main.css`), so serve them

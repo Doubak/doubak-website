@@ -214,8 +214,9 @@ hr {
   padding: 56px 0 48px;
 }
 
-/* 首屏的品牌锁定组合。图标取 mid 档（24–96px）—— 带「豆」字的那版按
-   assets/logos/README.md 要 128px 以上笔画才不碎 */
+/* 首屏的品牌锁定组合。全站唯一的大图标，取 display 档（doubak-icon.svg，
+   带「豆」字的那版）。注意 assets/logos/README.md 把这一档标成「128px 以上」，
+   这里只有 64px——要「豆」看得清就得把下面的尺寸一起放大 */
 .wordmark {
   display: flex;
   align-items: center;
