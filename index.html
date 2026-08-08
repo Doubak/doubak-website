@@ -25,6 +25,7 @@
     </a>
     <nav class="site-nav">
       <a href="/" aria-current="page">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
       <a href="/log/">开发日志</a>
       <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
       <a href="https://github.com/Doubak">GitHub</a>
@@ -254,50 +255,43 @@
   <div class="wrap">
     <h2>样张</h2>
     <p class="lead-2">
-      一份档案长什么样、生成出来的网站长什么样。
-      样张会用作者自己的豆瓣数据来做——十几年的标记、广播和短评，
-      正好是这个工具要处理的真实规模。
+      生成出来的网站长什么样，不用想象 ——
+      <a href="https://sample.doubak.com"><strong>sample.doubak.com</strong></a>
+      就是拿作者自己的豆瓣数据跑完整条流水线生成的，十几年的标记、广播和短评。
     </p>
 
-    <!-- 下面这些数字来自前代命令行工具抓下的真实档案，也是本项目所有设计判断的验证数据源。
-         新版扩展的样张还在做，做好之后把 .frame 换成 <img src="/assets/shots/xxx.png" alt="…">。 -->
     <ul class="stats">
-      <li><span class="n">782 MB</span><span class="k">一份真实档案的体积</span></li>
-      <li><span class="n">7,353</span><span class="k">个页面</span></li>
-      <li><span class="n">20</span><span class="k">个批次</span></li>
-      <li><span class="n">2022–2024</span><span class="k">跨越的时间</span></li>
+      <li><span class="n">2,940</span><span class="k">条标记</span></li>
+      <li><span class="n">3,394</span><span class="k">条广播</span></li>
+      <li><span class="n">3,045</span><span class="k">张图片，全部本地</span></li>
+      <li><span class="n">0</span><span class="k">个外部请求</span></li>
     </ul>
 
-    <div class="shots">
-      <figure class="shot">
-        <div class="frame">截图待补<br>（档案目录与 index.ndjson）</div>
-        <figcaption>
-          <strong>档案长什么样</strong>
-          一个 manifest、几段 WARC、一份可以用 <code>jq</code> 直接查的 index。
-          十四年后不需要豆备也读得懂。
-        </figcaption>
-      </figure>
-      <figure class="shot">
-        <div class="frame">截图待补<br>（覆盖率与版本历史）</div>
-        <figcaption>
-          <strong>抓到了多少</strong>
-          每条路线的连续性证明、缺口，以及同一个条目在链上的历次版本。
-        </figcaption>
-      </figure>
-      <figure class="shot">
-        <div class="frame">截图待补<br>（生成出来的个人站点）</div>
-        <figcaption>
-          <strong>网站长什么样</strong>
-          由档案生成的个人存档站点：可搜索、固定链接、完全离线可重建。
-          等站点生成器做出来再补。
-        </figcaption>
-      </figure>
+    <div class="actions" style="margin:1.4em 0">
+      <a class="btn btn-primary" href="https://sample.doubak.com">看看生成出来的站点</a>
+      <a class="btn btn-ghost" href="https://github.com/Doubak/doubak-site-generator-sample">它的仓库</a>
     </div>
 
+    <p class="muted">
+      最后那个 0 是重点：页面里没有一个 <code>src</code> 指向站外。
+      封面和自己上传的图都从档案里导了出来 ——
+      <strong>一份要联网、而且要豆瓣还在才能看的备份，不叫备份。</strong>
+      整个仓库下下来双击 <code>index.html</code> 就能浏览，不需要服务器。
+    </p>
+
+    <p class="muted">
+      站点用的是生成器自带的那个最小骨架（五个文件）。真正的产物是
+      <strong>Markdown + YAML front matter</strong>，
+      所以换任何一个现成的 Hugo 主题只要删掉 <code>layouts/</code>，
+      换 Astro / Eleventy / Jekyll 也行 —— 每一个现成的主题生态都是它的模板库。
+    </p>
+
     <p class="small muted" style="margin-top:1.6em">
-      上面这份 782 MB 的档案是用<a href="https://github.com/its-my-data/doubak">前代命令行工具</a>抓的，
-      2022 年 12 月到 2024 年 8 月、20 个批次、单一账号。
-      本项目的绝大多数设计判断都是拿它验证的——包括
+      样张不含任何第三方内容：抓取时就不抓别人的回复、关注列表与豆邮，
+      转发进来的别人的广播按 <code>data-uid</code> 过滤掉，别人上传的图也不抓。
+      <br>
+      本项目早期的设计判断是拿<a href="https://github.com/its-my-data/doubak">前代命令行工具</a>抓的一份
+      782 MB 档案验证的（2022–2024，20 个批次），包括
       <a href="/log/2026-07-28-counts-lie.html">「豆瓣自己报的数量不能用来证明抓全了」</a>这一条。
     </p>
   </div>
@@ -390,6 +384,8 @@
           <tr><td>豆列</td><td class="todo">⬜ 未做</td><td>和长文同一档，只是还没排上</td></tr>
           <tr><td>相册</td><td class="todo">⬜ 未做</td><td>实测这个账号一个相册都没有，暂时没有样本可量</td></tr>
           <tr><td>中断续导</td><td class="todo">⬜ 未做</td><td>导出被打断要从头来</td></tr>
+          <tr><td>解析成结构化数据</td><td class="ok">✅ 能跑</td><td>档案 → canonical：标记、作品、广播、长文，带修订历史</td></tr>
+          <tr><td>生成静态网站</td><td class="ok">✅ 能跑</td><td>canonical → Markdown + 图片 → HTML，见<a href="https://sample.doubak.com">样张</a></td></tr>
         </tbody>
       </table>
     </div>
