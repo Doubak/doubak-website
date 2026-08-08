@@ -445,8 +445,13 @@
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-site-generator">doubak-site-generator</a></td>
-            <td>把档案生成一个可搜索、有固定链接的个人存档站点。</td>
-            <td class="todo">待开始</td>
+            <td>结构化数据 → Markdown + 图片 → 有固定链接的个人存档站点。</td>
+            <td class="ok">能跑了</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/Doubak/doubak-site-generator-sample">doubak-site-generator-sample</a></td>
+            <td>用作者自己的数据跑完整条流水线生成的样张，就是 <a href="https://sample.doubak.com">sample.doubak.com</a>。</td>
+            <td class="ok">在线</td>
           </tr>
         </tbody>
       </table>
@@ -454,7 +459,7 @@
     <p class="small muted">
       还有 <a href="https://github.com/Doubak/doubak-data-enricher">doubak-data-enricher</a>（可选的外部链接补全）与
       <a href="https://github.com/Doubak/doubak-neodb-adapter">doubak-neodb-adapter</a>（导出到 NeoDB，需要先和 NeoDB 维护者谈）。
-      下游全部可以晚几年再写，因为抓取已经完成了。
+      下游全部可以晚几年再写，因为抓取已经完成了 —— 解析器是一个对已抓页面的纯函数，什么时候写都来得及。
       2020 年那一版 <a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>（Go 命令行）已归档，
       但它抓下来的档案没有白费——本项目的实测结论几乎都来自那批数据。
     </p>
