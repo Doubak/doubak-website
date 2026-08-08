@@ -214,6 +214,40 @@ hr {
   padding: 56px 0 48px;
 }
 
+/* 首屏的品牌锁定组合。图标取 mid 档（24–96px）—— 带「豆」字的那版按
+   assets/logos/README.md 要 128px 以上笔画才不碎 */
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 1.7em;
+}
+.wordmark img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  flex: none;
+}
+.wordmark .zh {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -.01em;
+}
+.wordmark .latin {
+  font-weight: 500;
+  color: var(--green-link);
+  letter-spacing: .01em;
+}
+.wordmark .full {
+  display: block;
+  margin-top: .25em;
+  font-size: .86rem;
+  color: var(--text-dim);
+  letter-spacing: .03em;
+}
+
 .hero h1 {
   font-size: 2.3rem;
   margin-bottom: .35em;
@@ -717,6 +751,10 @@ tbody tr:last-child td { border-bottom: 0; }
 @media (max-width: 720px) {
   .hero { padding: 40px 0 36px; }
   .hero h1 { font-size: 1.8rem; }
+  .wordmark { gap: 12px; margin-bottom: 1.4em; }
+  .wordmark img { width: 48px; height: 48px; }
+  .wordmark .zh { font-size: 1.28rem; }
+  .wordmark .full { font-size: .8rem; }
   .hero .lede { font-size: 1rem; }
   .section { padding: 40px 0; }
   .site-head .wrap { padding-top: 8px; padding-bottom: 8px; }
