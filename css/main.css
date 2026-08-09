@@ -770,3 +770,8 @@ tbody tr:last-child td { border-bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* 隐私政策页的正文列表。站上原本只有 .features / .log-list / .stats 这几种
+   带布局的列表，而这里要的就是一个普通项目符号列表，只是行距松一点。 */
+.section ul:not([class]) { padding-left: 1.4em; margin: 0 0 1.2em; }
+.section ul:not([class]) li { margin-bottom: .5em; }
