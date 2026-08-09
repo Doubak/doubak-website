@@ -1,0 +1,19 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 一条 http:// 外链在 https 页面上会被当作混合内容拦掉或降级，
+      # 而它长得和正常链接一模一样——不点开根本看不出来。
+      - name: 检查链接协议
+        run: python3 tools/check-links.py .
