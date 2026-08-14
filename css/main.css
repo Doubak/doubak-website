@@ -318,7 +318,9 @@ hr {
 }
 .btn-ghost:hover { border-color: var(--green); color: var(--green-link); }
 
-/* 尚未上架的占位按钮：看得见，但点不动，也不假装能点 */
+/* 尚未上架的占位按钮：看得见，但点不动，也不假装能点。
+   首页已经不用它了（2026-08-15 上架），留着是因为 Edge / Firefox 那两个商店还没上，
+   到时候还是这一种状态。 */
 .btn-soon {
   background: var(--bg-alt);
   color: var(--text-faint);
@@ -326,6 +328,16 @@ hr {
   cursor: not-allowed;
 }
 .btn-soon:hover { filter: none; }
+
+/* 开发日志里的「后来怎样了」。旧文不改，另起一段说明后续 ——
+   把旧文改成现在的样子，等于把「当时不知道」这件事从记录里抹掉。 */
+.note-later {
+  border-left: 3px solid var(--green);
+  background: var(--bg-alt);
+  padding: .7em 1em;
+  margin: 1.2em 0;
+  font-size: .92rem;
+}
 
 .actions .note {
   font-size: .84rem;

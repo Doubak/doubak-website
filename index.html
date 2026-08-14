@@ -61,22 +61,24 @@
       长什么样不用想象——<a href="https://sample.doubak.com">sample.doubak.com</a> 就是这么来的。
     </p>
     <div class="actions">
-      <!-- TODO(上架): 审核通过后把这个 span 换成
-           <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/…">安装到 Chrome</a> -->
-      <span class="btn btn-soon" aria-disabled="true" title="正在准备上架，暂时请用开发者模式加载">
-        安装到 Chrome · 待上架
-      </span>
+      <!-- 只写扩展 ID、不带名字那一段（`/detail/豆备-doubak/<id>`）：带名字的那种在
+           改名之后就失效了，而只有 ID 的这个永远跳得过去。 -->
+      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">
+        安装到 Chrome
+      </a>
       <!-- 指 /releases/latest 而不是某个具体版本：这个地址永远跟着最新的 release 走，
            不会在下一次发版之后变成一个指向旧版的死角。 -->
-      <a class="btn btn-primary" href="https://github.com/Doubak/doubak-extension/releases/latest">
-        下载最新版
+      <a class="btn btn-ghost" href="https://github.com/Doubak/doubak-extension/releases/latest">
+        或下载 zip 自行加载
       </a>
       <a class="btn btn-ghost" href="https://sample.doubak.com">看生成出来的样张</a>
     </div>
     <p class="small muted" style="margin-top:1.2em">
-      需要 Chrome 或 Edge。下载到的 <code>.zip</code> 是应用商店的提交格式，
-      <strong>Chrome 不能直接装 zip</strong>——先解压，再用开发者模式的「加载已解压的扩展程序」
-      选那个文件夹。<a href="https://github.com/Doubak/doubak-extension#装载到浏览器">三步，这里有说明</a>。
+      需要 Chrome 或 Edge。Edge 也能从 Chrome 应用商店安装。
+      不想走商店的话，<a href="https://github.com/Doubak/doubak-extension/releases/latest">release</a>
+      里那份 <code>.zip</code> 是同一个包——注意它是商店的提交格式，
+      <strong>Chrome 不能直接装 zip</strong>，要先解压再用开发者模式的「加载已解压的扩展程序」。
+      <a href="https://github.com/Doubak/doubak-extension#装载到浏览器">说明在这里</a>。
     </p>
     <p class="small muted">
       零依赖、零构建步骤——仓库里的源码就是浏览器里跑的东西。
