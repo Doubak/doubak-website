@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>两个整整齐齐的零 —— 开发日志</title>
+<meta name="description" content="音乐 84 条标记 0 条短评，舞台剧 5 条也是 0 条。一句告警都没有——因为「没写短评」本来就是合法的。以及一个把片名当成用户短评的 bug，它产出的是像样的中文。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-09">2026-08-09</time>
+      <h1>两个整整齐齐的零</h1>
+      <p class="summary">音乐 84 条标记里 0 条抽到了短评，舞台剧 5 条也是 0 条。一句告警都没有——因为「这条本来就没写短评」是合法的。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        这一批修的都是同一个形状的 bug：<strong>产出看起来完全正常</strong>。
+        没有异常、没有报错，只是有些字不在里面了。
+      </p>
+
+      <h2>一个选择器只属于一种媒介</h2>
+
+      <p>
+        影视的短评在 <code>&lt;span class="comment"&gt;</code> 里。三种媒介共用了这个选择器，
+        于是：
+      </p>
+
+      <pre><code>影视   &lt;li&gt;&lt;span class="comment"&gt;这讲的是个啥…&lt;/span&gt;&lt;/li&gt;
+音乐   &lt;li&gt;
+         欢乐
+       &lt;/li&gt;
+舞台剧 &lt;li&gt;团建选了看舞台剧/音乐剧的项目…&lt;/li&gt;</code></pre>
+
+      <p>
+        音乐和舞台剧的短评裸在 <code>&lt;li&gt;</code> 里，没有任何 class。
+        <strong>音乐 84 条标记 0 条有短评，舞台剧 5 条 0 条</strong>——两个整整齐齐的零。
+        它不报错，因为「这条标记没写短评」本来就是最常见的形态。
+      </p>
+
+      <p>
+        这已经是<strong>第二次</strong>撞上「每种媒介一套，这不是可以统一的东西」
+        （上一次是游戏的评分与短评），所以这回不再按 class 找，改成按位置找：
+        操作栏 <code>&lt;li class="clearfix opt-ln"&gt;</code> 前面那个 <code>&lt;li&gt;</code>。
+        实测短评 2027 → 2109（舞台剧 0→4，音乐 0→78）。
+      </p>
+
+      <h2>改的过程中，端到端那条断言从 3 跳到 4</h2>
+
+      <p>
+        项目里有一条端到端断言，钉住「有多版本的标记有几条」。改抽取器的时候它从 3 变成 4，
+        逼出了两个只会静默出错的坑。
+      </p>
+
+      <h3>「(N 有用)」和短评住在同一个 <code>&lt;li&gt;</code> 里</h3>
+
+      <p>
+        <code>&lt;span class="pl"&gt;(5 有用)&lt;/span&gt;</code> 是<strong>豆瓣的计数器，不是用户写的字</strong>。
+        实测同一条标记两次抓取之间从 <code>(5 有用)</code> 变成了 <code>(1 有用)</code>，短评一个字没动。
+        把它算进短评，就会凭空多出一条「用户编辑了这条标记」的记录——
+        与之前那次「1740人浏览」混进日记正文是同一个错。
+      </p>
+
+      <h3>只有标题的条目，把片名当成了用户短评</h3>
+
+      <p>
+        有些标记只有一个标题，没有评分、日期、标签、短评。这种条目上，
+        兜底逻辑取到的是作品自己的名字，于是 8 部电影的「短评」变成了：
+      </p>
+
+      <pre><code>V字仇杀队
+铁西区第一部分：工厂</code></pre>
+
+      <p>
+        <strong>它产出的是像样的中文。</strong> 这才是最危险的地方——扫一眼档案，
+        那看起来完全像是有人真的写过这么一句。
+        判据漏在于只检查了 <code>&lt;li&gt;</code> 的内容，而那个能识别它的 class
+        正好写在开标签上，已经被切掉了。
+      </p>
+
+      <p>
+        修完之后影视仍是 1506 条短评（没动），修订总数仍是 2943（没有伪造出任何编辑）。
+      </p>
+
+      <h2>顺带：页面上那些 <code>&amp;#34;</code></h2>
+
+      <p>
+        <a href="https://sample.doubak.com">样张站点</a>上肉眼可见 <code>&amp;#34;</code>、<code>&amp;#39;</code>。
+        追下去发现两边各自都没做错事：
+      </p>
+
+      <ul>
+        <li>站点生成器按规矩把用户文本里的 <code>&amp;</code> 转义成 <code>&amp;amp;</code>——不转义会丢字；</li>
+        <li>解析器留下了一个没解开的 <code>&amp;#34;</code>。</li>
+      </ul>
+
+      <p>
+        于是 <code>&amp;#34;</code> → <code>&amp;amp;#34;</code> → <strong>原样印在页面上</strong>。
+        <strong>解析器漏解一次，下游就会忠实地把它展示出来。</strong>
+      </p>
+
+      <p>
+        根因不是某一处漏了，而是<strong>四个抽取器各写各的解码表</strong>：一个认八种、
+        一个认六种、一个认五种，而标题与短评的来源——最要紧的那个——<strong>一种都不认</strong>。
+        收敛成一份实现之后，实测未解开的实体 <strong>196 → 1</strong>，
+        而剩下那一处是对的（原文就是 <code>HITMAN&amp;amp;amp;trade;</code>，解一次得到字面的 <code>&amp;amp;trade;</code>）。
+      </p>
+
+      <p>
+        两条规矩，旧的四张表全都写错了：
+      </p>
+
+      <ul>
+        <li>
+          <strong>一遍扫完，不要链式 replace。</strong> 四份实现都把 <code>&amp;amp;</code> 排在最前面解，
+          于是 <code>&amp;amp;lt;</code> 先变成 <code>&amp;lt;</code>、再变成 <code>&lt;</code>。
+          而它的原文是字面的四个字符 <code>&amp;lt;</code>——正好是一条讨论 HTML 转义的短评会写出来的东西，
+          吃掉之后还原不回去。
+        </li>
+        <li>
+          <strong>认不出来的原样留着。</strong> 越界码位、没见过的实体，一律不猜。
+          猜错是不可逆的，留着则是可以 grep 出来的。同理 <code>&amp;nbsp;</code> 解成不换行空格而不是普通空格：
+          页面上写的就是不换行空格，改掉属于静默改写。
+        </li>
+      </ul>
+
+      <h2>还有：长文的正文粘成了一坨</h2>
+
+      <p>
+        日记正文要变成 Markdown，所以结构必须在剥标签之后活下来。三处都是静默的：
+      </p>
+
+      <ul>
+        <li><strong>点列表变成一坨。</strong> 五个 <code>&lt;li&gt;</code> 只剥标签就粘成了一长串。</li>
+        <li><strong>段落粘连。</strong> <code>&lt;/p&gt;</code> 只给一个换行，CommonMark 当作段内软换行——三段在页面上并成了一段。</li>
+        <li><strong>正文末尾挂着豆瓣的版权声明。</strong> 「科技 生活 本文版权归 ⋯ 所有」跟在用户日记后面。</li>
+      </ul>
+
+      <p>
+        往里收一层到 <code>&lt;div class="note"&gt;</code> 就解决了，但<strong>认不出就退回整段，绝不返回 null</strong>——
+        手上只有 2 篇带这个容器，n=2 推不出一个封闭集合。
+        这个项目在「从手上的样本推出封闭集合」上已经栽过四次了。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-09-aliases.html">← 更新：又名是搜索里最值钱的一栏</a>
+      <a href="/log/2026-08-09-one-version.html">更早：一按「开始抓取」就报错 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

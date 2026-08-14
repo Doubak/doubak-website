@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1.0.0，以及上架 —— 开发日志</title>
+<meta name="description" content="扩展发了 1.0.0 并上架 Chrome 应用商店，装法从「clone 整个仓库」变成点一下。以及第一个外部贡献，和四条在浏览器里从来就没成立过的测试。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-14">2026-08-14</time>
+      <h1>1.0.0，以及上架</h1>
+      <p class="summary">扩展发了 1.0.0 并上架 Chrome 应用商店。装法从「clone 整个仓库」变成点一下。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        <a href="https://github.com/Doubak/doubak-extension">扩展</a>这周发了 1.0.0，
+        并且<strong>已经在 Chrome 应用商店上架</strong>。
+        在这之前装它要 clone 整个仓库、自己「加载已解压的扩展程序」；
+        现在商店排第一，GitHub Releases 排第二。
+      </p>
+
+      <p>
+        1.0.0 不代表功能齐了，代表<strong>它已经完整地跑完过好几遍</strong>：
+        抓取、断点恢复、增量、导出、导入、再解析、再生成站点。
+        中间那几天修的都是把这条链路走顺——以及三次修完之后才露出来的形态。
+      </p>
+
+      <h2>第一个外部贡献</h2>
+
+      <p>
+        有人报了一个卡死：抓取停在半路，之后一段都跑不起来。他连修法一起提了过来。
+        修完之后立刻冒出这个 bug 的<strong>下一种形态</strong>：
+        卡住的那个异步任务并没有被取消，它醒过来会和接管它的那一段重叠——
+        以前之所以看不到，是因为以前一段都跑不起来。
+      </p>
+
+      <p>
+        所以补了两层：被顶掉的那一圈跑到边界自己退出（并且说一声，
+        <strong>悄悄退出等于没发生过</strong>），同一时刻只许有一批在跑。
+        两层都不打断进行中的那一批——打断会丢掉已经抓下来、还没记账的进度。
+      </p>
+
+      <h2>收尾和还在跑的那一批撞上了</h2>
+
+      <p>
+        同一批里最值得记的一个：收尾（封段、算校验和、写 manifest）
+        与还在跑的那一批可以重叠，而重叠的后果不是控制台里一条报错：
+      </p>
+
+      <pre><code>manifest 说 902 字节 / 1 条
+文件实际 4181 字节 / index 5 行</code></pre>
+
+      <p>
+        校验和是按封段那一刻算的，所以<strong>这份档案通不过自己的校验</strong>，
+        而多出来的那 4 条捕获对任何遵循规范的读取方都不存在。
+        用户那边看到的只是一句莫名其妙的 JavaScript 报错。
+      </p>
+
+      <p>
+        修法是一道闸门：收尾先关门，等在跑的那一批落地，再封段。
+        失败也要开闸——收尾会因为「还有抓不下来的条目」而拒绝，
+        而那之后用户正是要去重试它们，闸门关着的话这次抓取再也推不动，
+        且界面上看不出原因。
+      </p>
+
+      <h2>四条测试在浏览器里从来就没成立过</h2>
+
+      <p>
+        CI 在 Node 从 24.18.0 升到 24.19.0 之后红了四条。看着像是 Node 弄坏了测试，
+        <strong>其实反过来</strong>。
+      </p>
+
+      <p>
+        WHATWG 的规范写着「压缩数据结束之后还有输入就抛错」，
+        Chrome、Firefox、Safari 一直都抛；Node 是唯一不抛的那个，
+        24.19.0 把这条补齐了。也就是说那四条断言<strong>在浏览器里从来没成立过</strong>——
+        而这个扩展只跑在浏览器里，是 Node 一直宽松才让它们绿着。
+      </p>
+
+      <p>
+        生产代码不受影响，而且是结构性的不受影响：它从来只解压单条记录。
+        但断言不能删——「整个段落能一口气解压」是真性质，
+        <code>zcat</code>、pywb、ReplayWeb.page 全靠它。
+        那属于 gzip 的规范，不属于浏览器那个 API。所以：整段解压换用真正支持它的解压器，
+        单条仍然走浏览器的 API（那才是读取器真实的用法），
+        再补一条「喂整段一定抛」把这个约束钉住。
+      </p>
+
+      <p>
+        最后那条要看运行时有没有实现规范，所以<strong>探能力，不看版本号</strong>：
+        旧 Node 上带原因跳过，而不是让整个套件红——那等于把一条测试的口味
+        变成 Node ≥ 24.19 的安装门槛，而 README 承诺的是 ≥ 20。
+      </p>
+
+      <h2>发版之后，没有任何东西会提醒你</h2>
+
+      <p>
+        上架带来一件新的、只能靠人记住的事：<strong>商店里的包不会跟着 GitHub 的
+        release 自己走</strong>，得手动再传一次。忘了传的后果是站点说 v1.0.3、
+        用户装到 v1.0.2，<strong>而两边都是绿的</strong>。
+      </p>
+
+      <p>
+        官网首页那个版本徽标也是同一类——它不在扩展仓库里，没有任何 CI 会因为它过期而红。
+        所以这两条都写进了发版流程文档：跨系统的步骤，只能记在同一处。
+      </p>
+
+      <p>
+        顺带清掉三句悄悄过期的话，都不是刚坏的：README 顶上还写着「但还缺图片抓取」，
+        而同一份 README 一百行之后就把图片抓取列成做完了——那是访客读到的第一句话。
+        「74 个运行时真正需要的文件」实测已经是 89 个。界面文档里两条早就做完的
+        「还欠什么」，删掉而不是打勾——留着只会让人以为它还没做。
+      </p>
+
+      <p class="muted">
+        测试：71 个测试文件、1609 个测试，零安装即可跑。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-15-doulists.html">← 更新：豆列，以及一份豆列被别的豆列停掉了</a>
+      <a href="/log/2026-08-12-import.html">更早：「导出之后可以放心删掉」 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

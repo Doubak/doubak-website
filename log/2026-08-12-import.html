@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>「导出之后可以放心删掉」——这句话得等到导入做完才诚实 —— 开发日志</title>
+<meta name="description" content="一直劝用户导出之后可以删掉浏览器里那一份。而在导入做出来之前，删掉的代价是下一次增量退回全量：几小时，还要把几千个详情页重抓一遍。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-12">2026-08-12</time>
+      <h1>「导出之后可以放心删掉」——这句话得等到导入做完才诚实</h1>
+      <p class="summary">档案导出到硬盘之后，扩展里那一份就可以删了。但在导入做出来之前，删掉意味着下一次增量退回全量。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        界面上一直写着：导出之后，可以安全地删掉浏览器里那一份。
+        <strong>这句话只有在它回得来的时候才诚实。</strong>
+        否则下一次增量抓取找不到基准，只能退回全量——几小时，
+        还要把几千个作品详情页从头再抓一遍。
+      </p>
+
+      <p>
+        所以这周把导入做出来了：选中之前导出的那个目录，把它搬回扩展里。
+      </p>
+
+      <h2>它必须成为第二条能写档案的路径</h2>
+
+      <p>
+        项目里原本有一条硬规矩：<strong>只有一条路径能写档案存储</strong>。
+        导入没法遵守它——窗口是唯一同时拿得到目录选择器和存储的上下文，
+        而字节传不过扩展内部的消息通道（那里只认 JSON）。
+      </p>
+
+      <p>
+        于是回头问那条规矩到底在保护什么。答案是：<strong>已有档案的偏移量</strong>。
+        索引里记的是「第几个字节起、多长」，任何一次覆写都会让整份档案对不上号。
+      </p>
+
+      <p>
+        所以导入用的 Worker 只被允许<strong>新建文件</strong>，碰不到任何已经在那儿的字节，
+        而且判据是去问存储「这个文件此刻在不在」，不是听调用方声称。
+        这比「只许往空目录里写」更准，也更有用——<strong>补齐上次没导完的那半份</strong>
+        天然合法（缺的文件是新建的），而后者会把这种情况一起挡掉，
+        逼用户先手工删掉半份档案。
+      </p>
+
+      <h2>认 bundle_id，不认目录名</h2>
+
+      <p>
+        用户会改名，会把它放进「备份/2026-08/」，解压两遍会得到「xxx (1)」。
+        真相在 <code>manifest.json</code> 和索引文件名里，而这几处<strong>必须互相对得上</strong>。
+      </p>
+
+      <p>
+        这条检查第一版写错了，错得很值得记：实现只取了第一个索引文件，
+        而排序之后先出现的那个<strong>恰好</strong>与 manifest 对得上——
+        于是「三处必须一致」全票通过，另一份档案的段文件跟着一起导了进来。
+        必须收全部索引文件再比。
+      </p>
+
+      <h2>每一种「不导」都有自己的名字</h2>
+
+      <p>
+        已经有了 / 补齐 / 重复 / 编号撞了 / 别的账号 / 不能导 / 正在抓——
+        七种情况，七句话。合成一句「跳过」等于什么都没说。
+      </p>
+
+      <p>
+        拒绝的代价是零，源文件还好好躺在盘上；而导进来一份残缺档案的代价是
+        <strong>一份看起来完全正常的坏档案</strong>：能选中、能导出、能被解析器读，
+        只是索引里的偏移量指向不存在的字节。
+      </p>
+
+      <h2>顺带修掉两个线上的 bug，它们都是同一件事的后果</h2>
+
+      <p>
+        上周把面板从一个 3034 行的文件拆成了一层壳加十个模块。
+        拆开之后才看得见三处原来看不见的耦合——在一个文件里，
+        「模块级变量」看起来只是变量，分开了才知道<strong>谁在动谁的东西</strong>，
+        实测有两处真的构成了环。
+      </p>
+
+      <p>
+        而这次发现的两个 bug，正是那种「只有真的跑一遍才会露出来」的：
+      </p>
+
+      <ul>
+        <li>
+          <code>setStorageUsage(summarizeBundles)({...})</code>——括号位置错了，
+          存储页一打开就抛。任何静态检查都看不出来（它是「调用一次调用的结果」，
+          没有名字缺失），而那几个面板模块此前一次都没被真的执行过。
+        </li>
+        <li>
+          「删除这一份」直接抛 ReferenceError：用了一个没 import 的名字。
+          本来就有一条测试专门防这个，却漏了——<strong>它只扫调用位置</strong>
+          （<code>foo(</code>），而 <code>if (!currentBundleId)</code> 不是调用。
+          现在扫全部引用位置，为此把那个正则剥离器换成了真正的字符扫描器。
+        </li>
+      </ul>
+
+      <p>
+        存储页也并进了档案页。两页列的是同一批档案，只换了几列；
+        两份列表意味着两处各自记得失效、各自扫一遍目录，
+        而用户还得在两页之间对「刚才看的是哪一份」。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-14-v1-and-store.html">← 更新：1.0.0，以及上架</a>
+      <a href="/log/2026-08-10-rated-broadcasts.html">更早：打了分的广播，正文一律没抓到 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

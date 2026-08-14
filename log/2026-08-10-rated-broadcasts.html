@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>打了分的广播，正文一律没抓到 —— 开发日志</title>
+<meta name="description" content="2200 条有正文的广播只抽到了 789 条，漏掉的 1411 条每一条都带评分。它一句告警都没有，是从页面上肉眼看出来的。以及：广播里那颗星，是豆瓣自己都不保留的评分变化史。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-10">2026-08-10</time>
+      <h1>打了分的广播，正文一律没抓到</h1>
+      <p class="summary">2200 条有正文的广播只抽到了 789 条。漏掉的 1411 条，<strong>每一条</strong>都带评分——不是零星漏网，是一整类。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        带评分的广播，<code>&lt;blockquote&gt;</code> 和正文 <code>&lt;p&gt;</code> 之间夹着一颗星：
+      </p>
+
+      <pre><code>&lt;blockquote&gt;
+  &lt;span class="rating-stars"&gt;★★★★★&lt;/span&gt;
+  &lt;p&gt;7月2号首发玩起了，非常不错！&lt;/p&gt;
+&lt;/blockquote&gt;</code></pre>
+
+      <p>
+        而抽取用的正则要求这两者紧挨着。于是<strong>凡是打了分的广播，正文一律为空</strong>。
+        实测 2200 条有正文的广播只抽到 789 条，漏掉 1411 条——占 64%。
+      </p>
+
+      <h2>为什么它能藏这么久</h2>
+
+      <p>
+        因为 <code>text: null</code> 和「这条广播本来就没写字」长得一模一样，
+        <strong>而后者本来就是大多数</strong>——77% 的广播是纯标记动作，本来就没有正文。
+        所以连比例上都看不出异常：一个正常的空值率，掩护着一整类丢失。
+      </p>
+
+      <p>
+        它是从生成出来的<a href="https://sample.doubak.com/broadcast/">页面上肉眼发现的</a>——
+        「看过 X」那一行下面本该有一段话。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>注意</strong>一个字段合法地大部分时候都为空时，
+          <strong>它的空值率就检测不了它自己的 bug</strong>。
+          只能拿它跟别的东西交叉着看（这里是「带评分的广播里有多少条没正文」），
+          或者去看真实的输出。
+        </p>
+      </div>
+
+      <p>
+        广播是这份档案里最不可替代的东西：发布即冻结、可以被静默删除，
+        也是首次抓取之前那些编辑的唯一证据。丢掉它 64% 的正文是相当严重的一种损失。
+      </p>
+
+      <p>
+        <strong>而字节一直都在 WARC 里。</strong> 改一处重跑，有正文的广播 806 → 2200，
+        没有重新抓过豆瓣一次。这正是当初把「保存」和「解读」分成两步换来的东西。
+      </p>
+
+      <h2>那颗星本身，是豆瓣自己都不保留的历史</h2>
+
+      <p>
+        找到那个 <code>&lt;span&gt;</code> 之后顺手把它存了下来：3401 条广播里 1447 条带评分，
+        此前全部丢掉。
+      </p>
+
+      <p>
+        <strong>它和标记页上那个分不是一回事。</strong>
+        标记只留最新的那个——改一次覆盖一次，豆瓣不留历史；
+        而广播<strong>发布即冻结</strong>，所以那是「那一天我给了几颗星」。
+      </p>
+
+      <p>
+        把同一部作品的几条广播排开，就是一份评分变化史。
+        实测这份档案里 <strong>17 部作品的分变过</strong>。其中一部读起来是这样的：
+      </p>
+
+      <blockquote>
+        <p>想看 → 在看 ★★★★★ → 看过 ★★★★☆</p>
+      </blockquote>
+
+      <p>
+        用户在最后那条广播里解释了为什么降一星。而豆瓣今天只显示 4 星，
+        中间那段没有任何地方能查到——除了这份档案。
+      </p>
+
+      <ul>
+        <li><strong>数星星，不解析文案</strong>：页面上是实体符号，不是数字。</li>
+        <li><strong>没打分写 null，不写 0</strong>：0 星和没打分是两件不同的事。</li>
+      </ul>
+
+      <p>
+        同一批还补上了广播卡片上的作品名（<code>target_title</code>），
+        包括被删条目上的那个占位符——豆瓣把它显示成「未知作品」，
+        而<strong>占位符不是内容</strong>，不能当成作品名存进档案。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-12-import.html">← 更新：「导出之后可以放心删掉」</a>
+      <a href="/log/2026-08-09-aliases.html">更早：又名是搜索里最值钱的一栏 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

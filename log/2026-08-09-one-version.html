@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一按「开始抓取」就报错：那个 API 在这里根本不存在 —— 开发日志</title>
+<meta name="description" content="档案里写着「这是哪份代码抓的」。那个数字曾经有三份互不认识的副本，全都写死成 0.0.1；而收敛它的那一版，收敛到了一个 offscreen document 里不存在的 API 上。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-09">2026-08-09</time>
+      <h1>一按「开始抓取」就报错：那个 API 在这里根本不存在</h1>
+      <p class="summary">每份档案里都写着「这是哪份代码抓的」。那个数字曾经有三份互不认识的副本，全都写死成 0.0.1；而修好它的那一版，一按「开始抓取」就抛错。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        扩展这周升到 0.9.0。听上去只是改个数字，实际上是把一个已经错了很久、
+        而且<strong>错法是永久的</strong>的东西收了口。
+      </p>
+
+      <h2>那个数字不是给人看的</h2>
+
+      <p>
+        每份档案的 <code>manifest.json</code> 里有一个 <code>producer.version</code>，
+        每个数据段的 WARC 头里也有一份。它只回答一个问题：<strong>这些字节是哪份代码抓下来的</strong>。
+        抓取是整条链路上唯一不可逆的一步——解析可以重跑，站点可以重建，
+        但没人能请一千个用户回去重抓一遍。所以写进档案的东西错了就是永久错。
+      </p>
+
+      <p>
+        而这个数字当时有三份副本，互相不认识：
+      </p>
+
+      <ul>
+        <li><code>manifest.json</code> / <code>package.json</code>——权威的那份，Chrome 与应用商店认它</li>
+        <li><code>crawl/runner.js</code> 开工路径里写死的 <code>'0.0.1'</code></li>
+        <li><code>bundle/bundle-writer.js</code> 的默认参数，同样写死 <code>'0.0.1'</code></li>
+      </ul>
+
+      <p>
+        更糟的是<strong>崩溃恢复那条路径根本没传过这个字段</strong>，全靠上面那个默认值兜着。
+        而 MV3 的后台随时会被浏览器回收，一场几小时的抓取必然跨越好几次——
+        也就是说那不是异常路径，那是常态。恢复之后写下的每一个段，头里都躺着那个字面量。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>注意</strong>已经导出的八份档案一律自称 0.0.1，这部分追不回来了。
+          一个对不上的版本号比没有更糟：<strong>它看起来像证据</strong>。
+        </p>
+      </div>
+
+      <h2>修法很短：读不到就抛，绝不编一个</h2>
+
+      <p>
+        版本号只从 <code>manifest.json</code> 来，读不到就抛错。这条听起来很硬，
+        但对着「写进不可逆的档案」这个用途，猜一个数字比停下来更坏。
+        <code>BundleWriter</code> 的 <code>producer</code> 也从「有默认值」改成必传，缺就抛。
+      </p>
+
+      <h2>然后一按「开始抓取」就炸了</h2>
+
+      <p>
+        第一版是 <code>chrome.runtime.getManifest().version</code>。在面板里试是好的，
+        测试也全绿。装上之后按下按钮，直接抛「拿不到 manifest.json 里的版本号」，
+        全量增量都一样——那句「宁可抛错也不编一个」如约抛了错，只是抛在了每一次抓取上。
+      </p>
+
+      <p>
+        原因是<strong>真正写档案的那条路径不跑在面板里</strong>。面板是普通扩展页面，
+        扩展 API 全都有；而抓取跑在一个 offscreen document 里，那里
+        <strong>只暴露 <code>chrome.runtime</code> 的消息 API</strong>（Chrome 的原话是
+        “only the chrome.runtime messaging APIs are exposed to the offscreen document”）。
+        <code>getManifest</code> 不在其中。
+      </p>
+
+      <p>
+        三个上下文的能力不一样，而<strong>出问题的那个恰恰是测试进不去的那个</strong>：
+        <code>node:test</code> 里压根没有 <code>chrome</code>，那一行从来没被执行过。
+      </p>
+
+      <h2>表早就写着，但没有任何东西执行它</h2>
+
+      <p>
+        最难受的是，<code>offscreen.js</code> 开头就有一张「这里能用哪些 chrome API」的表，
+        规则写得清清楚楚，写了好几个月。表是对的，只是<strong>没有任何东西执行它</strong>。
+      </p>
+
+      <p>
+        所以现在有一条测试顺着 offscreen 的 import 图走一遍，把每一个
+        <code>chrome.&lt;命名空间&gt;.&lt;成员&gt;</code> 的调用点对照白名单查过去。
+        这类事只能静态地查——读代码，而不是跑代码，因为会出错的那个上下文跑不起来。
+      </p>
+
+      <p>
+        它还得防自己空转：那条测试要求 import 图里至少收得到 20 个模块，
+        否则哪天正则被改坏、一个模块都没扫到，它会自动变绿。
+        <strong>第一版就差点这样</strong>——它只收到了一个模块，而且照样通过。
+      </p>
+
+      <p>
+        版本号本身则退回去直接 <code>fetch</code> manifest.json 这个文件。
+        这反而比问 chrome 更贴合「只有一个来源」：那就是同一个文件；
+        而读扩展自己的资源在三个上下文里都成立，不需要任何扩展 API。
+      </p>
+
+      <h2>守着它的那条测试，第一版也挡不住它要防的 bug</h2>
+
+      <p>
+        新加的测试原本写的是「<code>src/</code> 里不许出现<em>当前</em>版本号」。看着挺对，
+        但真实发生过的是<strong>写死了一个过期的版本</strong>：manifest 涨到 0.9.0 之后，
+        那三份 <code>'0.0.1'</code> 与它不再相等——按那条判据反而全都合规。
+      </p>
+
+      <p>
+        改成不比对具体数值，只问「代码里还有没有形如 <code>x.y.z</code> 的字符串字面量」。
+        注释不算，讲清这次的来龙去脉恰恰需要把 <code>'0.0.1'</code> 写出来。
+        然后反向验证一遍：给 runner 加一个 <code>?? '0.0.1'</code> 的兜底，立刻红。
+      </p>
+
+      <p>
+        测试写完要拿它防的那个 bug 试一次，否则你只知道它是绿的，
+        不知道它能不能变红——这一条这周吃了两次亏。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-09-silent-zeros.html">← 更新：两个整整齐齐的零</a>
+      <a href="/log/2026-08-08-site-generator.html">更早：双击 index.html，那就是你的豆瓣 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

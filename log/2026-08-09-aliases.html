@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>又名是搜索里最值钱的一栏 —— 开发日志</title>
+<meta name="description" content="记得《重返沉默之丘》而不记得《寂静岭2》的人，没有又名就什么都搜不到。而把值按裸斜杠切开，会在档案里存下 176 个不存在的片名。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-09">2026-08-09</time>
+      <h1>又名是搜索里最值钱的一栏</h1>
+      <p class="summary">记得《重返沉默之丘》而不记得《寂静岭2》的人，没有又名就什么都搜不到。而把它按裸斜杠切开，会在档案里存下 176 个不存在的片名。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        作品详情页是这份档案里最占地方的东西——按字节算是 <strong>90.3%</strong>，
+        一度差点被砍掉。留下来的理由只有一个：那一整块带标签的信息只有详情页上有，
+        而其中最值钱的是<strong>又名</strong>。
+      </p>
+
+      <h2>为什么是又名</h2>
+
+      <p>
+        实测：2940 个作品里 <strong>2011 个有又名</strong>（电影 94%、音乐 49%；
+        书、游戏、舞台剧的页面上根本没有这一行）。
+        它装的是台译、港译和原文名。
+      </p>
+
+      <p>
+        一个记得《重返沉默之丘》但不记得《寂静岭2》的人，在没有又名的档案里搜不到任何东西。
+        所以它在搜索里<strong>与标题同权重</strong>，而且命中的是又名时要<strong>把又名显示出来</strong>——
+        否则用户会以为搜错了。
+      </p>
+
+      <div class="callout">
+        <p>
+          <code>null</code> 和 <code>[]</code> 必须分开：前者是「没读过详情页」，
+          后者是「读了，这页就是没有」。合成一个之后，「还欠多少」这个问题就答不出来了。
+        </p>
+      </div>
+
+      <h2>整块 <code>#info</code> 原样收进来</h2>
+
+      <p>
+        作品记录里现在多了一个 <code>info</code>，键就用豆瓣自己的标签：
+      </p>
+
+      <pre><code>{"导演": ["克里斯托夫·甘斯"], "制片国家/地区": ["法国", "日本"]}</code></pre>
+
+      <p>
+        不翻译、不归一化、不搞一套跨媒介的统一分类。解析器的产出会被当作
+        「页面当时就是这么说的」，做主张是下游的事。
+        实测覆盖：电影 2094/2102、书 145/145、音乐 84/84；游戏和舞台剧是 0，
+        它们的页面上没有这一块。
+      </p>
+
+      <h2>三条判据，每一条错了都不报错</h2>
+
+      <h3>① 按 div 嵌套深度截，不能截固定长度</h3>
+
+      <p>
+        <code>span.pl</code> 在页面别处还用来标评论区的用户名。截过头，
+        就会把<strong>几十个陌生人的 id 当成字段名</strong>存进档案主人的数据里。
+        截到第一个 <code>&lt;/div&gt;</code> 也不行。
+      </p>
+
+      <h3>② 单引号双引号都要认</h3>
+
+      <p>
+        导演、编剧、主演用的是 <code>class='pl'</code>，其余字段用 <code>class="pl"</code>。
+        只认双引号的话，恰好把最有价值的三个字段整个漏掉——而且是安安静静地漏掉。
+      </p>
+
+      <h3>③ 值按 <code>&nbsp;/&nbsp;</code> 切，不能按裸斜杠切</h3>
+
+      <p>
+        这条是纠正上一版。裸斜杠会把这些切开：
+      </p>
+
+      <pre><code>犯罪101(港/台)          → 「犯罪101(港」 + 「台)」
+2026-01-23(美国/中国大陆) → 两半</code></pre>
+
+      <p>
+        <code>(港/台)</code> 是中文里「港台译名相同」的标准写法。
+        实测 4022 张有又名的页面上，裸切比正确切法多出 <strong>176 条</strong>，
+        <strong>而这 176 条全是切坏的片名——它们每一个看上去都很正常。</strong>
+      </p>
+
+      <p>
+        这类错误的可怕之处不在于数量，而在于它<strong>产出的是合法形态的数据</strong>：
+        一个片名字段里装着一个像片名的字符串，任何校验都拦不住，
+        只有把它跟真实页面对着看才会发现那不是一部电影。
+      </p>
+
+      <h2>顺序也是一条判据</h2>
+
+      <p>
+        修完这些之后还剩一个问题：2102 部电影里只有 44 部拿到了又名，
+        而抽样说应该是 94%。
+      </p>
+
+      <p>
+        原因是<strong>详情页只能补充列表页已经建好的作品记录</strong>，
+        而抓取总是先抓列表页、后抓详情页——两件事被写在了同一遍扫描里，
+        于是绝大多数详情页在被读到的时候，对应的作品还不存在。
+        规范里早就写着「详情页必须先全读完」，它不抛异常，只是安静地丢掉大部分数据。
+      </p>
+
+      <p>
+        顺带还挖出一个性能上的老朋友：段文件的缓存<strong>每处理完一次捕获就被清掉</strong>，
+        下一条又把同一个 159 MB 的段重新解压一遍。571 个列表页时勉强能忍，
+        2925 个详情页时就是十分钟还没跑完——改成只在换档案时才清，6 秒。
+        <strong>这是同一个 bug 第二次出现</strong>（站点生成器那边是 8 分钟 vs 1.5 秒）。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-10-rated-broadcasts.html">← 更新：打了分的广播，正文一律没抓到</a>
+      <a href="/log/2026-08-09-silent-zeros.html">更早：两个整整齐齐的零 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

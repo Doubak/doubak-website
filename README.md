@@ -41,7 +41,7 @@ everything small gets a small-size tier:
 | `/favicon.ico` fallback | `favicon.ico` (16+32+48) |
 | `apple-touch-icon`, `og:image` | `icon-180.png`, `icon-512.png` — already display-tier |
 
-Changing any of these means touching all 14 HTML files, since each carries its
+Changing any of these means touching all 22 HTML files, since each carries its
 own `<head>`. Sweep with grep, not by hand.
 
 ## Local preview
