@@ -46,7 +46,7 @@
         <span class="full">豆瓣备份器 · Douban Backup</span>
       </div>
     </div>
-    <p class="badge"><span class="dot"></span>扩展 v1.0.0 已发布</p>
+    <p class="badge"><span class="dot"></span>扩展 v1.0.1 已发布</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
       这不是一个工具，而是一整条数据链路：把豆瓣抓下来、存成十几年后还打得开的档案、
@@ -66,13 +66,20 @@
       <span class="btn btn-soon" aria-disabled="true" title="正在准备上架，暂时请用开发者模式加载">
         安装到 Chrome · 待上架
       </span>
-      <a class="btn btn-primary" href="https://github.com/Doubak/doubak-extension#装载到浏览器">
-        现在就用（开发者模式加载）
+      <!-- 指 /releases/latest 而不是某个具体版本：这个地址永远跟着最新的 release 走，
+           不会在下一次发版之后变成一个指向旧版的死角。 -->
+      <a class="btn btn-primary" href="https://github.com/Doubak/doubak-extension/releases/latest">
+        下载最新版
       </a>
       <a class="btn btn-ghost" href="https://sample.doubak.com">看生成出来的样张</a>
     </div>
     <p class="small muted" style="margin-top:1.2em">
-      需要 Chrome 或 Edge。零依赖、零构建步骤——仓库里的源码就是浏览器里跑的东西。
+      需要 Chrome 或 Edge。下载到的 <code>.zip</code> 是应用商店的提交格式，
+      <strong>Chrome 不能直接装 zip</strong>——先解压，再用开发者模式的「加载已解压的扩展程序」
+      选那个文件夹。<a href="https://github.com/Doubak/doubak-extension#装载到浏览器">三步，这里有说明</a>。
+    </p>
+    <p class="small muted">
+      零依赖、零构建步骤——仓库里的源码就是浏览器里跑的东西。
     </p>
   </div>
 </section>
@@ -519,7 +526,7 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
             <td>浏览器扩展。抓取，产出 bundle 档案。整个项目的入口都在这里。</td>
-            <td class="ok">v1.0.0</td>
+            <td class="ok">v1.0.1</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
