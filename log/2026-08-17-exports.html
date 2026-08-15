@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>走的时候不用求谁 —— 开发日志</title>
+<meta name="description" content="导出到 NeoDB、Letterboxd、Goodreads 做完了。原先写着「要先和 NeoDB 维护者谈」——那是把 API 当成唯一入口时的判断。三家的列都是读导入器源码定的，读出来两件文档上没有的事。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-17">2026-08-17</time>
+      <h1>走的时候不用求谁</h1>
+      <p class="summary">导出到 NeoDB、Letterboxd、Goodreads 做完了。原先写着「要先和 NeoDB 的维护者谈」——那是把 API 当成唯一入口时的判断。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        「你的数据是你的」这句话，只有在你真能把它带走的时候才成立。
+        在这之前，档案能变成一个网站，但要搬去别的平台，还是得自己写脚本。
+      </p>
+
+      <p>
+        现在是一条命令：
+      </p>
+
+      <pre><code>node bin/export.js &lt;结构化数据目录&gt; &lt;输出目录&gt;</code></pre>
+
+      <p>
+        产出 NeoDB 的导入包、Letterboxd 的两个 CSV、Goodreads 的一个 CSV，
+        外加一份写着这一次真实条数和各家上传入口的说明。<strong>全程不联网。</strong>
+      </p>
+
+      <h2>NeoDB 那条路本来就没锁</h2>
+
+      <p>
+        这个仓库原来叫 <code>doubak-neodb-adapter</code>，README 上写着
+        「需要 NeoDB 维护者提供协助」。这句话挂了几个月，而它成立的前提是
+        <strong>API 是唯一入口</strong>。
+      </p>
+
+      <p>
+        不是。NeoDB 还收一种用户自己上传的 zip
+        （<a href="https://github.com/neodb-social/neodb/blob/main/neodb/journal/importers/csv.py"><code>journal/importers/csv.py</code></a>）：
+        不用 OAuth、不用申请 key、没有速率限制、<strong>不需要任何人批准</strong>。
+      </p>
+
+      <p>
+        而且——这一点才是决定性的——<strong>它没有给这个项目新添一个活的外部依赖</strong>。
+        整个豆备的前提是「丢掉全部派生数据、离线重建」。一个要联网才能产出的导出器，
+        等于把刚拆掉的依赖又装回去。产出是几个文件，你什么时候上传、上不上传，
+        都不影响你的档案。
+      </p>
+
+      <p class="small muted">
+        跟 NeoDB 的维护者打招呼仍然值得做，但那是礼貌和交换信息，不是前置条件。
+      </p>
+
+      <h2>三家的列，是读导入器的源码定的</h2>
+
+      <p>
+        三个平台的导入格式都没有正式规格。照着页面上的说明猜，会踩到两件
+        <strong>按「看起来对」的写法就静默出错</strong>的事：
+      </p>
+
+      <p>
+        <strong>NeoDB 的书评表，表头里有两个 <code>title</code>。</strong>
+        看着像笔误，其实不是：它用 Python 的 <code>csv.DictReader</code> 读，
+        重复的键<em>后一个赢</em>，所以取出来的是第 5 列的<strong>书评标题</strong>；
+        第 1 列的作品名压根不参与匹配。把它「修好」成一个 <code>title</code>，
+        书评会全部变成无标题——而且导进去之前看不出来。
+      </p>
+
+      <p>
+        <strong>文件名里的分类不参与匹配。</strong>
+        <code>movie_mark.csv</code> 里的电影和 <code>tv_mark.csv</code> 里的剧集，
+        进了导入器之后走的是同一条路：条目是靠链接定位的，
+        导入器从没看过这一行来自哪个文件。<strong>但文件名必须是它认的那七个之一</strong>，
+        否则整张表根本不会被读，也不报错。
+      </p>
+
+      <h2>豆瓣的「电影」里，三成是剧集</h2>
+
+      <p>
+        实测：2107 个「电影」条目里，<strong>638 个是剧集</strong>。
+        豆瓣把两者放在同一种条目下，档案忠实照抄；三个目标平台没有一个是这么分的。
+      </p>
+
+      <p>
+        判据是详情页里有没有「集数 / 首播 / 季数」这三行（实测覆盖 624 / 637 / 271，
+        并起来 638）——豆瓣的电影模板从不出现它们。
+      </p>
+
+      <p>
+        有意思的是<strong>分错的代价两边完全不一样</strong>：
+      </p>
+
+      <ul>
+        <li>NeoDB 那边没有代价，分错桶照样匹配得上（见上）。</li>
+        <li>
+          Letterboxd 只收电影。一部剧集当电影送过去，最好的结果是匹配不上，
+          <strong>最坏的结果是匹配到一部同名电影</strong>——
+          于是你的观影记录里凭空多出一部你没看过的片子。
+        </li>
+      </ul>
+
+      <p>
+        所以处理方式也不一样：<strong>没读到详情页、分不出是哪一种的，Letterboxd 一条都不送</strong>，
+        改列进一份待核对的清单。代价是详情页一张都没抓过的人会导出一个空文件——
+        但那件事是真的，报告里会把条数说出来，而不是给他一份看起来正常、实则一半是假的观影记录。
+      </p>
+
+      <h2>每多送一行，都是替你宣称一件没发生的事</h2>
+
+      <p>
+        写这三个适配器的时候，反复撞上的是同一类判断，而且每次「省事的做法」都是在编事实：
+      </p>
+
+      <p>
+        <strong>Letterboxd 的「看过」和「想看」是两个文件、两次上传。</strong>
+        合成一个当然更省事，但那样 508 部想看的片子会变成 508 条
+        「看过，但没写日期」的记录。
+      </p>
+
+      <p>
+        <strong>Goodreads 的「读完日期」只有「读过」才写。</strong>
+        豆瓣的日期是<em>你标记那一天</em>，不是读完那一天——想读的那 82 本也带着日期。
+        全写进去，就是宣称你读完了 82 本没读过的书。
+      </p>
+
+      <p>
+        <strong>没打分写空，不写 0。</strong>
+        「没打分」和「打了 0 分」是两件事，而豆瓣从来就没有 0 星。
+      </p>
+
+      <h2>能带走多少，一条条数给你看</h2>
+
+      <p>
+        三家能收下的东西差得很远。同一份档案（2945 条标记）：
+      </p>
+
+      <pre><code>NeoDB       2945 条  电影 1468 · 剧集 639 · 游戏 604 · 图书 145 · 音乐 84 · 舞台剧 5
+Letterboxd  1460 部  只收电影；剧集 639、非影视 838 一条不收
+Goodreads    145 本  只收书</code></pre>
+
+      <p>
+        所以「导不出去的是什么、有多少」跟「导出去的是什么」一样，是正式产出。
+        一句「导出成功」等于什么也没说：
+      </p>
+
+      <pre><code>⚠ 8 条没读到详情页，分不清是电影还是剧集，没有导出
+⚠ 34 部没有 IMDb 号，见 letterboxd-needs-check.csv
+⚠ 4 条的标签里有逗号，Letterboxd 会按逗号拆成多个标签
+· 豆列 6 份没有导出：NeoDB 的 CSV 导入里没有「收藏单」这一档</code></pre>
+
+      <p>
+        匹配基本全靠 IMDb 号和 ISBN——两个英文平台的库里没有中文条目，
+        「重返寂静岭」匹配不到任何东西，「Return to Silent Hill」能。
+        实测电影有 IMDb 号的 1423/1465，图书有 ISBN 的 <strong>145/145</strong>。
+      </p>
+
+      <p>
+        <strong>导演那一列故意不写。</strong> Letterboxd 允许拿标题+年份+导演做模糊匹配，
+        但档案里的导演名是中文，跟它库里的英文名对不上。
+        给一个对不上的导演名比不给更糟——它会把本来靠标题能猜中的那几条也否掉。
+      </p>
+
+      <h2>但别把这几个 CSV 当成你的档案</h2>
+
+      <p>
+        档案里一条标记记的是<strong>一串观测</strong>：哪个版本的解析器、在什么时候、看见了什么。
+        三个平台都只收「现在是什么样」，一条记录一行。所以导出做的事只有一件：
+        取最后一次，其余全部丢掉。
+      </p>
+
+      <p>
+        这份档案里有 <strong>7 条标记改过</strong>，导出的是最后那一次。
+        7 这个数字小到你不会自己发现——<strong>正因为小，才必须打出来。</strong>
+      </p>
+
+      <p>
+        方向只能是这一个。反过来——拿 NeoDB 的形状当储存格式——
+        等于把版本历史、每个字段的摘要、回指原始页面的指针一次性删干净，而且不可逆。
+      </p>
+
+      <h2>还有一件事没做，说清楚比含糊过去好</h2>
+
+      <p>
+        <strong>没有做过一次真实的往返验证。</strong>
+        这里能证明产出符合从导入器源码里读出来的格式，
+        <strong>不能证明三个平台真的收</strong>。在有人拿一小批实际导进去之前，
+        诚实的说法是「符合已记录的格式」，不是「能用」。
+      </p>
+
+      <p>
+        另外，豆列还导不进 NeoDB 的收藏单——它的 CSV 导入里没有这一档。
+        照着猜一个格式出来，不如先明说这一路没做。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-08-16-see-your-own-data.html">更早：抓完之后，先让你看见自己的东西 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

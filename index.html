@@ -162,8 +162,8 @@
       </li>
       <li>
         <span class="step-k">05</span>
-        <h3>出口 <span class="pill pill-part">一半</span></h3>
-        <p>静态站点已经能生成了；导出到 NeoDB、Letterboxd、Goodreads 还没做。</p>
+        <h3>出口 <span class="pill pill-now">已可用</span></h3>
+        <p>生成静态站点，或者导出成 NeoDB、Letterboxd、Goodreads 的导入文件。走的时候不用求谁。</p>
       </li>
     </ol>
 
@@ -264,6 +264,16 @@
             第三方内容默认排除，而且旧文件会被清干净，不留下「链接还在、数据已经没了」的幽灵页。
           </p>
         </li>
+        <li>
+          <span class="name">导出到 NeoDB / Letterboxd / Goodreads <span class="pill pill-now">已可用</span></span>
+          <p class="desc">
+            一条命令产出三家的导入文件，<strong>不联网</strong>——上不上传、什么时候传，都不影响你的档案。
+            <a href="https://neodb.social/">NeoDB</a> 收得最全（实测 2945 条标记全部能带走，
+            连短评、标签、评分和书评一起）；Letterboxd 只收电影、Goodreads 只收书，
+            所以那两家<strong>能带走多少、带不走什么，会一条条数给你看</strong>。
+            <strong>反过来绝不成立：档案永远存无损的超集</strong>，这三个都是向外的有损适配器。
+          </p>
+        </li>
       </ul>
     </div>
 
@@ -271,17 +281,11 @@
       <h3>还没做的 —— 路线图上的</h3>
       <ul class="features">
         <li>
-          <span class="name">导出到 NeoDB <span class="pill pill-soon">计划中</span></span>
+          <span class="name">豆列导进 NeoDB 的收藏单 <span class="pill pill-soon">计划中</span></span>
           <p class="desc">
-            <a href="https://neodb.social/">NeoDB</a> 已经是个好去处，豆备不打算和它竞争，
-            而是站在它上游。要先和 NeoDB 的维护者聊过再动手。
-          </p>
-        </li>
-        <li>
-          <span class="name">导出到别的地方 <span class="pill pill-soon">计划中</span></span>
-          <p class="desc">
-            Letterboxd CSV、Goodreads CSV 等等。存的是无损的超集，
-            这些格式都是向外的有损适配器——绝不反过来按某一家的格式存。
+            标记、短评、书评影评都能导进 NeoDB 了，<strong>豆列还不行</strong>——
+            它的 CSV 导入里没有「收藏单」这一档。照着猜一个格式出来，
+            不如先明说这一路没做。
           </p>
         </li>
         <li>
@@ -516,6 +520,11 @@
     <h2>最近的开发日志</h2>
     <ul class="log-list">
       <li>
+        <time datetime="2026-08-17">2026-08-17</time>
+        <h3><a href="/log/2026-08-17-exports.html">走的时候不用求谁</a></h3>
+        <p>导出到 NeoDB、Letterboxd、Goodreads 做完了。原先写着「要先和 NeoDB 维护者谈」——那是把 API 当成<strong>唯一入口</strong>时的判断。</p>
+      </li>
+      <li>
         <time datetime="2026-08-16">2026-08-16</time>
         <h3><a href="/log/2026-08-16-see-your-own-data.html">抓完之后，先让你看见自己的东西</a></h3>
         <p>扩展 1.2.0：档案页多了「查看内容」。抽取器是从解析器仓库整份抄过来的，不是另写一份——那 220 行适配代码买的是<strong>只有一份实现</strong>。</p>
@@ -524,11 +533,6 @@
         <time datetime="2026-08-15">2026-08-15</time>
         <h3><a href="/log/2026-08-15-from-the-future.html">验一验：能不能读将来的档案</a></h3>
         <p>规范给读者立过两条义务，而在此之前没有任何东西验证过它们。以及过程中两次写出了<strong>恒真的断言</strong>。</p>
-      </li>
-      <li>
-        <time datetime="2026-08-15">2026-08-15</time>
-        <h3><a href="/log/2026-08-15-doulist-pages.html">私密的那一份，目录页上也得带锁</a></h3>
-        <p>豆列渲染进站点。以及一份名单抄在三个入口里，加东西时漏改两处——不报错，只是少了几十页。</p>
       </li>
     </ul>
     <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>
@@ -571,12 +575,16 @@
             <td>用作者自己的数据跑完整条流水线生成的样张，就是 <a href="https://sample.doubak.com">sample.doubak.com</a>。</td>
             <td class="ok">在线</td>
           </tr>
+          <tr>
+            <td><a href="https://github.com/Doubak/doubak-export-adapters">doubak-export-adapters</a></td>
+            <td>结构化数据 → NeoDB / Letterboxd / Goodreads 的导入文件。纯函数，不联网。</td>
+            <td class="ok">能跑了</td>
+          </tr>
         </tbody>
       </table>
     </div>
     <p class="small muted">
-      还有 <a href="https://github.com/Doubak/doubak-data-enricher">doubak-data-enricher</a>（可选的外部链接补全）与
-      <a href="https://github.com/Doubak/doubak-neodb-adapter">doubak-neodb-adapter</a>（导出到 NeoDB，需要先和 NeoDB 维护者谈）。
+      还有 <a href="https://github.com/Doubak/doubak-data-enricher">doubak-data-enricher</a>（可选的外部链接补全）。
       下游全部可以晚几年再写，因为抓取已经完成了 —— 解析器是一个对已抓页面的纯函数，什么时候写都来得及。
       2020 年那一版 <a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>（Go 命令行）已归档，
       但它抓下来的档案没有白费——本项目的实测结论几乎都来自那批数据。
