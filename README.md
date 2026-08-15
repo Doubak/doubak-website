@@ -41,7 +41,7 @@ everything small gets a small-size tier:
 | `/favicon.ico` fallback | `favicon.ico` (16+32+48) |
 | `apple-touch-icon`, `og:image` | `icon-180.png`, `icon-512.png` — already display-tier |
 
-Changing any of these means touching all 22 HTML files, since each carries its
+Changing any of these means touching all 26 HTML files, since each carries its
 own `<head>`. Sweep with grep, not by hand.
 
 ## Local preview
@@ -61,7 +61,8 @@ python3 -m http.server 8000    # then http://localhost:8000
 4. Point the previous entry's `.post-nav` at the new one.
 
 There is no generator, so steps 2–4 are manual by design — the trade for having no
-toolchain. At six entries this costs about a minute.
+toolchain. The cost is per entry added, not per entry that exists — steps 2–4 touch
+four files no matter how long the log gets. At 21 entries it is still about a minute.
 
 ## Deploying
 

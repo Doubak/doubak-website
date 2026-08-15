@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>上架当晚，别人替我逮到了两个 bug —— 开发日志</title>
+<meta name="description" content="1.0.0 发出去几个小时，头两个 issue 就来了。两个都不崩：一个多发了几个注定落空的请求，一个把诊断信息存进日志之后改了口。以及第二天早上的第三处——界面在一件与数据安全有关的事情上说了假话。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-14">2026-08-14</time>
+      <h1>上架当晚，别人替我逮到了两个 bug</h1>
+      <p class="summary">1.0.0 发出去几个小时，头两个 issue 就来了，都是 <a href="https://github.com/Colafornia">@Colafornia</a> 报的。两个都不崩——一个多发了几次注定落空的请求，一个把诊断信息存进日志之后改了口。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        这两个我自己撞不上，原因很朴素：我一直对着自己那个两千九百多条标记的账号在测。
+        <strong>报进来的第一个，是一条只有 8 个条目的游戏列表。</strong>
+      </p>
+
+      <h2>#5：8 条的列表，请求了 start=15 / 30 / 45</h2>
+
+      <p>
+        成因是两件事共用了一个阈值。停滞检测的判据是「连续 3 页无进展」，
+        而<em>空页</em>也走这条——于是三页全空、到第三页才收手。
+        对一个「每个请求都要算账」的工具来说，那是三次注定拿不到任何东西的请求。
+      </p>
+
+      <p>
+        修法不是把 3 改小，是<strong>把两件事分开</strong>，因为它们的证据强度不一样：
+      </p>
+
+      <ul>
+        <li>
+          <strong>「整页都是重复」是正常现象。</strong>豆瓣的列表是头部插入的，
+          新条目会把旧条目往后面的页推，所以一整页重复什么都说明不了，
+          要连着 3 页才敢下结论。
+        </li>
+        <li>
+          <strong>「整页一条都没有」在列表中段说不通。</strong>
+          实测过的审查抑制是<em>部分</em>的——游戏／玩过声称 293 条、渲染 288 条，
+          第 7、14、17 页渲染 14/14/13 条，从没见过整页为空。
+        </li>
+      </ul>
+
+      <p>
+        那为什么空页阈值不是 1、见空即停？因为「从没见过」是从<strong>一个账号</strong>上看到的，
+        而这个仓库在「从手上的样本推出一个封闭集合」这件事上已经错过四次。
+        取 2：一页空还继续走，连着两页空才收——多花一个请求，
+        换掉「万一中段真有整页为空就静默截断」那个不可恢复的结果。
+      </p>
+
+      <p>
+        实测：8 条的列表 4 个请求 → 3 个；60 条的正常列表一个请求都没少。
+      </p>
+
+      <p>
+        还有一处容易漏的：<strong>空页计数必须跟着断点存盘走。</strong>
+        不存的话，每次恢复都归零，而一场抓取要死很多次——「连着两页空」永远凑不满。
+        跟 <code>seenIds</code> 是同一个道理，那次踩过。
+      </p>
+
+      <h2>#6：同一条诊断，存进日志之后改了口</h2>
+
+      <p>
+        <code>extractor_stale</code> 是「豆瓣是不是改版了」的第一个信号，
+        是整套日志里最不该含糊的一条。而它实时看和存过之后看，说的不是一件事：
+      </p>
+
+      <pre><code>实时        这一页看得见 15 个条目，却一个条目都抽不出来
+存过之后    这一页看得见 undefined 个条目，却一个时间都抽不出来</code></pre>
+
+      <p>
+        成因是 <code>formatEntry</code> 是个字段白名单，而这条事件用到的两个字段都不在上面。
+        <code>undefined</code> 只是难看，<strong>「时间」才是要命的那个</strong>：
+        原事件说的是 id 抽不出来，而缺失的字段一空，
+        那个三元判断就倒向了「时间」。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>一条印着错误结论的诊断，比没有诊断更糟——它看起来像证据。</strong>
+        </p>
+      </div>
+
+      <p>
+        两头都改：白名单补上那两个字段；
+        而更要紧的是让 <code>eventNote</code> 在字段缺失时<strong>不许猜</strong>，
+        宁可说得笼统。判据也换了地方——不是「补上字段就算修好」，
+        而是<strong>「实时的那句话，与存过之后念出来的，必须一模一样」</strong>。
+        白名单漏字段是不报错的，下一个加事件类型的人照样会漏；现在会红。
+      </p>
+
+      <h2>第二天早上，第三处：导完之后那句话还挂在那儿</h2>
+
+      <p>
+        这一个是档案主人自己报的，形状和上面两个是一族：
+      </p>
+
+      <pre><code>17 份 · 462.9 MB · ⚠ 其中 1 份没有导出记录，浏览器里这一份可能是唯一的副本</code></pre>
+
+      <p>
+        ——而这一份，刚刚导出去。成因是两条导出路径做法不一样：
+        整条链那条会去刷新用量和当前页，<strong>单份那条只记了一笔就完了</strong>。
+      </p>
+
+      <p>
+        这不是显示滞后的问题。用户刚把档案导到硬盘上，界面却仍然说它可能是唯一的副本——
+        在一件与数据安全直接有关的事情上说了假话，而且方向正是最容易让人白导第二遍的那个。
+      </p>
+
+      <p>
+        修法不是在那一处补两行。把「记一笔」和「让界面跟上」合成一个
+        <code>noteExported()</code>，两条路径都只走它——
+        <strong>下一个写导出路径的人不会有机会忘记刷新</strong>，
+        而那正是这次出问题的方式。
+      </p>
+
+      <p>
+        顺带把那条「只在校验通过时才记已导出」的测试，
+        从「检查那一处调用」改成「<strong>每一个调用点都要有那道闸</strong>」——
+        原来只查了一处，而问题恰恰出在另一处。
+      </p>
+
+      <h2>值得记下来的不是这三个 bug</h2>
+
+      <p>
+        是它们为什么由别人发现。三条全都需要<strong>一个和我的账号不一样的账号</strong>，
+        或者<strong>一次和我的习惯不一样的操作</strong>：
+        8 个条目的列表、一条抽取器失效的日志被翻回去看、单独导出一份而不是整条链。
+      </p>
+
+      <p>
+        这个项目的每一条选择器、每一个阈值都是对着<em>一个</em>真实账号量出来的，
+        这是它到今天为止最大的方法论优势，也是它最确定的盲区。
+        <strong>装的人多一个，样本就多一个。</strong>
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-15-doulists.html">← 更新：豆列：值钱的不是清单，是你写在每条上的那句话</a>
+      <a href="/log/2026-08-14-v1-and-store.html">更早：1.0.0，以及上架 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

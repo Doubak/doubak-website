@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>私密的那一份，目录页上也得带锁 —— 开发日志</title>
+<meta name="description" content="豆列渲染进站点。一份私密豆列渲染得跟公开的一模一样，等于把用户在豆瓣上明确做过的那个选择从档案里抹掉——而这份站点是可以发布出去的。以及一份名单抄了三处、加东西时漏改两处。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-15">2026-08-15</time>
+      <h1>私密的那一份，目录页上也得带锁</h1>
+      <p class="summary">豆列渲染进<a href="https://sample.doubak.com/doulist/">站点</a>了。一份私密豆列渲染得跟公开的一模一样，等于把用户在豆瓣上明确做过的那个选择从档案里抹掉——而这份站点是可以发布出去的。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        抓下来是一回事，摆出来是另一回事。每份豆列一页：简介、条目、豆瓣给的评分，
+        以及<strong>用户自己写的评语</strong>。
+      </p>
+
+      <p>
+        评分和评语<strong>分开显示</strong>，不合成一行。合起来读的人分不出哪句话是自己写的——
+        而这份站点上，「哪些字是你的」是唯一真正要紧的区分。评语走引用块。
+      </p>
+
+      <p>
+        条目的链接指向<strong>站外</strong>，这是刻意的：豆列条目的目标页
+        <em>不在档案里</em>（规范里写明了），所以不能套用
+        <code>../movie/123.md</code> 那套站内相对路径——那会指向一个不存在的文件。
+      </p>
+
+      <h2>那把锁</h2>
+
+      <p>
+        豆列有私密的。私密豆列照常渲染（档案主人的决定：先都渲染出来），
+        但标题前挂一把 🔒，正文顶上再说一句。
+      </p>
+
+      <p>
+        理由不是装饰。<strong>一份私密豆列渲染得跟公开的一模一样，
+        等于把用户在豆瓣上明确做过的那个选择从档案里抹掉了</strong>——
+        而这份站点是可以一键发到 GitHub Pages 的。
+      </p>
+
+      <p>
+        判据在 <code>unknown</code> 时<strong>也挂锁</strong>：连 <code>&lt;h1&gt;</code>
+        都没找到，说明抽取器可能坏了。
+        把「不知道」显示成「公开」是这一档上唯一不可逆的错法。
+      </p>
+
+      <p>
+        第一版只在详情页挂锁，这是不够的：<strong>目录页恰恰是别人扫一眼的地方</strong>，
+        而那一页上私密的和公开的画得一模一样。顺带把条目数也放进目录行——
+        一份 45 条的和一份 1 条的，值得一眼看出来。
+      </p>
+
+      <h2>搜索收的是你写的字，不是那份清单</h2>
+
+      <p>
+        一份豆列真正可搜的只有两处：它的简介，和每个条目上的评语
+        （实测 134 个条目里有 62 条）。条目的标题、简介、评分都是豆瓣的目录数据，
+        而作品标题已经由标记那一档收过了。
+      </p>
+
+      <p>
+        在这儿再收一遍的后果很具体：<strong>同一个名字出来两条结果，
+        其中一条点进去是「某份豆列」而不是那部作品。</strong>
+      </p>
+
+      <p>
+        所以是<strong>一条豆列一行</strong>，评语拼在一起。
+        拆成一条条目一行会让 6 份豆列变成 134 行，把别的结果挤下去；
+        而豆列页本来就不长，搜到「哪份豆列里写过这句话」，点进去就找得到。
+      </p>
+
+      <p>
+        <strong>一个字都没写过的豆列不进索引。</strong>
+        那份 25 条、全指向他人影评、0 条评语的纯书签夹里没有任何<em>你的</em>内容，
+        标题从别处也找得到。实测 6 份进了 5 份。
+      </p>
+
+      <p>
+        实测搜「amazon上买了35USD」命中 2 条——豆列里的那条评语，
+        和当年发的那条广播。<strong>同一件事在两处留了痕，两处都在档案里。</strong>
+      </p>
+
+      <h2>然后是那个静默的：一份名单，抄了三处</h2>
+
+      <p>
+        加豆列这一类记录的时候，我只改了 <code>bin/generate.js</code>。
+        <code>bin/site.js</code> 和 <code>bin/deploy.js</code> 各自还写着自己那份四行名单。
+      </p>
+
+      <p>
+        后果不是报错。缺的那一类被读成 <code>[]</code>，生成器照常跑完，
+        <strong>只是少了几十页，而且一路绿灯</strong>。表现是：
+      </p>
+
+      <pre><code>npm run md      有豆列
+npm run site    没有
+npm run deploy  没有   ← 样张站就是用这条铺的</code></pre>
+
+      <p>
+        实测改完之后 deploy 的页数 <strong>4781 → 4789</strong>。
+      </p>
+
+      <p>
+        这个形状上一次出现是 <code>SECTION_ORDER</code>——同样一份清单抄在三个地方，
+        加一个小节要同时改三处。区别是<strong>那次有测试钉着其中两处相等，
+        所以漏改会红</strong>，那次就是这么被逮住的。这次那两处之间没有这样的测试。
+      </p>
+
+      <p>
+        改法是把名单挪进 <code>src/canonical.js</code>，三个入口都从那里取，
+        新增一类记录只改一处；再钉一条测试：<strong>没有哪个入口可以自己再写
+        <code>*.ndjson</code></strong>。钉的是「不许有第二份」，而不是「这三份要一样」——
+        后者只在有人记得加第四处时才管用。
+      </p>
+
+      <p>
+        顺带修掉一处测试盲区：那条「模板引用的 front matter 键，生成器真的会写」的测试，
+        是从固定几个页面构造器里扫的，而它漏了 <code>doulistPage</code>——
+        于是豆列的新键一律被算成「模板引用了生成器不写的键」。
+        <strong>一份靠白名单枚举的检查，白名单本身没人检查。</strong>
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-15-from-the-future.html">← 更新：验一验，能不能读将来的档案</a>
+      <a href="/log/2026-08-15-doulists.html">更早：豆列：值钱的不是清单，是你写在每条上的那句话 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
