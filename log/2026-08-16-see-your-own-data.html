@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>抓完之后，先让你看见自己的东西 —— 开发日志</title>
+<meta name="description" content="扩展 1.2.0：档案页多了「查看内容」，把存下来的页面就地解析成条目。抽取器是从解析器仓库整份抄过来的，不是另写一份——那 220 行适配代码买的是「只有一份实现」。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-16">2026-08-16</time>
+      <h1>抓完之后，先让你看见自己的东西</h1>
+      <p class="summary">扩展 1.2.0：档案页多了「查看内容」，把存下来的页面就地解析成条目。抽取器是从解析器仓库整份抄过来的——那 220 行适配代码买的是「只有一份实现」。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        在这之前，抓完一趟你手上是一堆 WARC。要看清里面到底是什么，得装 Node、
+        clone 两个仓库、跑两条命令——对多数人来说，那就是这条链路的终点。
+      </p>
+
+      <p>
+        面板里本来有「翻看捕获」，但它看的是<strong>生的</strong>那一面：网址、判定、
+        字节数、原始 HTML。它能证明字节在，证明不了那些字节是你的东西。
+        1.2.0 在旁边加了<strong>熟的</strong>那一面——广播、标记、日记影评、豆列，
+        解析成条目显示出来，你写的那几句话单独一块。
+      </p>
+
+      <p>
+        <strong>刻意不做成第二个站点。</strong>
+        <a href="https://sample.doubak.com">站点生成器</a>已经是那个东西——有封面、
+        有固定链接、有搜索。这里是抽查，回答一个问题：
+        <em>抓到的确实是我的东西吗。</em>
+      </p>
+
+      <h2>抄一份抽取器，而不是另写一份</h2>
+
+      <p>
+        把 HTML 变成条目这件事，解析器已经做过一遍，而且是对着真实字节一处处量出来的。
+        在扩展里另写一份浅的，结果是<strong>能力更弱、而且会漂</strong>——
+        两份实现对同一段 HTML 得出不同结论，只是早晚的事。
+      </p>
+
+      <p>
+        这不是假想。<code>&amp;#34;</code> 曾经明晃晃地印在样张站上：当时有<strong>四份</strong>
+        各自演化的 HTML 实体解码表，其中一份干脆没有。合成一份之后，
+        未解码的实体从 196 个降到 1 个，而那 1 个是对的。
+      </p>
+
+      <p>
+        所以走的是既定那条路：解析器的五个纯函数文件<strong>逐字节抄进扩展仓库</strong>，
+        一个脚本负责同步，<code>--check</code> 由测试和 CI 调用，漂了就红。
+        CI 会把解析器仓库一起检出——本地缺仓库时那条检查是「带原因跳过」，
+        而跳过在 CI 里等于没测。
+      </p>
+
+      <p>
+        为此写了多少新代码？数了一下（去掉注释和空行）：
+      </p>
+
+      <pre><code>抄过来的抽取器      401 行
+适配到界面上        221 行  ← 55%
+同步脚本             63 行
+测试                377 行</code></pre>
+
+      <p>
+        那 221 行里，真正在做「把解析结果变成界面要的形状」的只有 68 行：
+        四类各一小段，intent 怎么匹配、调哪个抽取器、标题和正文各取哪个字段。
+        <strong>用 220 行接线，换掉 401 行会漂的重复实现。</strong>
+      </p>
+
+      <h2>然后发现同一条规则本来就有两份</h2>
+
+      <p>
+        写适配层的时候撞上了豆列：一份豆列每页 25 条，实测有 4 页的，
+        所以「一份豆列」跨着好几次捕获。谁来拼、按什么次序拼，是一条规则。
+      </p>
+
+      <p>
+        而我在面板里又写了一遍——解析器里已经有一份。两份实现对同一份豆列
+        可以给出不同的条目次序，而<strong>次序错了看起来完全正常</strong>：
+        还是那些作品，还是那些评语。用户排过的清单，把第 2 页排到第 1 页前面就是改了内容。
+      </p>
+
+      <p>
+        改法是把那条规则提成 <code>mergeDoulistPages</code>，放在产生这些页面的
+        抽取器旁边，扩展那边原样拿过去。<strong>分组不进去</strong>：
+        两个调用方的分组键不一样（解析器按「哪份档案里的哪份豆列」，面板按豆列），
+        而会悄悄出错的是次序，不是分组。
+      </p>
+
+      <h2>三处「看起来是空的」，其实是我在过滤</h2>
+
+      <p>
+        这一页做出来之后，最先冒出来的都不是崩溃，是<strong>看起来正常的空白</strong>。
+      </p>
+
+      <p>
+        <strong>没写评语的豆列，整份显示成两个数字。</strong>
+        我当初只列了带评语的条目，因为「评语才是用户写的」。
+        但一份 59 条、一条评语都没有的收藏夹，在页面上就只剩标题和「59 个条目 · 0 条评语」——
+        看着像没解析出来，可样张站那边明明把条目都渲染了。
+        实测 6 份豆列里有 3 份没有任何评语。
+        前提本来就错了：<strong>选了哪些，本身就是你编的。</strong>
+      </p>
+
+      <p>
+        <strong>广播那一列全是「想看 / 想看 / 想看」。</strong>
+        作品名一直都抽出来了，只是没被用上——于是那一列除了顺序之外什么都没说，
+        而人要认的恰恰是想看的<em>是哪一部</em>。标题换成作品名，动作退到第二行。
+      </p>
+
+      <p>
+        <strong>「豆列（18 页）」被读成 18 条豆列。</strong>
+        那个数是<strong>页数</strong>——真实档案里 173 页广播装着好几千条。
+        页数是索引里现成有的，条数非解析不可知，所以两个数各归各位、各带各的说法：
+        按钮上是「173 页」，清单顶上是「解析了前 30 页（共 173 页），列出 812 条」。
+      </p>
+
+      <h2>另外几处界面上的账</h2>
+
+      <p>
+        <strong>35 张消息卡一点颜色都没有。</strong> 面板里并存着两套语气词
+        （<code>card err</code> 与 <code>card tone-error</code>），而样式表里只有后一套有规则。
+        于是「有 8 条在豆瓣上已经没有了」——正是靠颜色区分轻重的那一句——
+        跟一句普通说明长得一模一样。
+        <strong>两套词并存时这件事看不出来</strong>：每一处单独看都像写对了，
+        只有把类名和样式表放在一起数才数得出来。
+      </p>
+
+      <p>
+        <strong>档案清单不再钉在视口上自己滚。</strong> 它原来是 <code>sticky</code> 加
+        70vh 内滚，最坏的一处是：70vh 之外的行看不见，而它们没有任何迹象说自己存在。
+        「正在抓的那一份沉到十七行底下」那次，用户看到的是「清单没刷新」——
+        清单其实是新的，只是顺序把它藏了。
+      </p>
+
+      <p>
+        <strong>抓不下来的那几十条折起来了，条数留在折叠标题上。</strong>
+        但「豆瓣上已经没有了」的那几条分成单独一块——
+        它们少、且真的没有别处可查，与「判不出来」不是一回事：
+        后者的<em>数量由出错的程度决定</em>，一条路线的规则对不上，几十条一起进来。
+      </p>
+
+      <h2>装的时候记得</h2>
+
+      <p>
+        <a href="https://github.com/Doubak/doubak-extension/releases/latest">Releases</a>
+        上那份 zip 是应用商店的提交格式，
+        <strong>Chrome 不能直接装 zip</strong>——要先解压，再「加载已解压的扩展程序」。
+        从商店装的话不用管这些，但商店里的版本要等审核。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-08-15-doulists.html">更早：豆列：值钱的不是清单，是你写在每条上的那句话 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
