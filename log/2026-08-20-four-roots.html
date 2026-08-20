@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>放错目录的四份档案 —— 开发日志</title>
+<meta name="description" content="四份 7 月的档案一直没被喂进解析器。并进去之后，多出 43 个豆瓣改过名的作品，也让两条绿了几周的断言变红——两条都是断言错了。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-20">2026-08-20</time>
+      <h1>放错目录的四份档案</h1>
+      <p class="summary">四份 7 月 31 日的档案散在下载目录根下，一直没被喂进解析器。并进去之后多出 43 个豆瓣改过名的作品——也让两条绿了几周的断言变红，而两条都是断言错了。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        重新生成一遍站点之前先重新解析。而在数档案份数的时候发现：喂进去的那个目录里
+        有 13 份，另有 <strong>4 份 7 月 31 日的档案散在下载目录根下</strong>，
+        从来没进过。
+      </p>
+
+      <p>
+        它们是不是重复的？把两种都跑一遍对比，答案很干脆：
+        标记一条不多（2945 → 2950 那 5 条来自当天的新抓取），
+        <strong>广播条数一条不变，广播的修订却从 3411 涨到 3480。</strong>
+      </p>
+
+      <h2>69 处差异，全部在同一个字段上</h2>
+
+      <p>
+        广播是<strong>发出去就不能编辑</strong>的——这是整个项目最看重的性质之一：
+        每条广播都是一个带日期的、冻住的快照。那多出来的 69 条修订是什么？
+      </p>
+
+      <p>
+        逐条比对之后，答案漂亮得有点意外：<strong>69 组差异，全部只差
+        <code>target_title</code> 一个字段</strong>，一条都没碰正文、评分、发布时间。
+      </p>
+
+      <pre><code>勇敢者游戏3：开放世界  →  勇敢者的游戏3
+F1：狂飙飞车           →  F1
+小丑2：双重妄想        →  小丑2
+狮子王：木法沙传奇     →  狮子王前传：木法沙
+败犬女主太多了！       →  败北女角太多了！</code></pre>
+
+      <p>
+        43 个作品，豆瓣在这不到一个月里改了它们的名字。多半是片子上映前后
+        官方中文名定下来了。
+      </p>
+
+      <p>
+        <strong>而这正是这个项目存在的理由的一个缩影。</strong>
+        广播的正文是发布那一刻冻住的，
+        但挂在它下面那张作品卡不是——豆瓣是在你打开页面的那一刻现渲染它的。
+        所以 7 月抓到的那一份，是「那天它叫什么」唯一的记录。
+        豆瓣自己不保留这个历史。
+      </p>
+
+      <p class="small muted">
+        顺带查了一件相关的事：那 7 个已经被豆瓣删掉的游戏，
+        <strong>7 月的档案里也没有名字</strong>。首页那句「名字只有在条目还在的时候
+        抓过才留得下」仍然成立。
+      </p>
+
+      <h2>然后两条测试红了，而两条都是测试错了</h2>
+
+      <p>
+        并档案之后跑测试，两条绿了几周的断言变红。查下来<strong>数据都是对的，
+        错的是断言</strong>——而它们错的方向恰好相反，放在一起看很有意思。
+      </p>
+
+      <h3>一条太强</h3>
+
+      <p>
+        <code>广播不可编辑 —— 修订数恒等于记录数</code>。前提听着无懈可击：
+        广播不能编辑，所以同一条广播的每次观测都该一模一样。
+      </p>
+
+      <p>
+        <strong>但那个前提只对一半。</strong> 不能编辑的是<em>用户写的那部分</em>；
+        记录里还有豆瓣的作品名，而它会变——就是上面那 43 个。
+      </p>
+
+      <p>
+        一比一那个写法，会把豆瓣自己的改名当成抽取器故障来报，
+        <strong>而那恰恰是这份档案最想留住的东西</strong>。
+        改成逐字段点名：正文、评分、发布时间、状态……一个都不许变；
+        允许变的只有豆瓣的作品名。这比原来那条更严，也更说得清。
+      </p>
+
+      <h3>一条是会误伤的代理</h3>
+
+      <p>
+        <code>每一次修订都必须推进状态</code>（想看 → 在看 → 看过）。
+        它想抓的是<strong>假修订</strong>：以前真出过两次，短评旁边的「(N 有用)」
+        从 5 变成 1、日记页脚的「1740人浏览」每抓一次涨一点——
+        豆瓣的计数器漏进了用户的字里，于是凭空多出一条「用户改了东西」。
+        那两种都不会让状态动一下，所以「状态必须推进」抓得住它们。
+      </p>
+
+      <p>
+        这次红的是一条 <code>在看 → 在看</code>。查出来是用户自己按豆瓣的习惯，
+        在原短评前面接了一句：
+      </p>
+
+      <pre><code>怎么京阿尼在这也能埋上音乐番的影子！ //看完了两集，真的是奇幻…</code></pre>
+
+      <p>
+        <strong>在看的时候改一句短评，是再正常不过的事。</strong>
+        那条断言把一件正常的事判成了故障。
+      </p>
+
+      <p>
+        换成三条各自说得清的：不许有空修订；每条修订至少要变一个<em>用户自己写的</em>字段
+        （这样只有豆瓣目录数据变了，造不出一条假修订）；状态不许倒退。
+        至于计数器那一类，直接照它的形状挡——更窄，而且不会误伤。
+      </p>
+
+      <h2>代理断言会继承代理和本体之间的每一处差别</h2>
+
+      <p>
+        「状态推进了」本来是替「用户真的改了东西」站岗。这两件事绝大多数时候一致，
+        <strong>等它们分开那天，测试反过来指控用户有 bug。</strong>
+      </p>
+
+      <p>
+        还有一处更难堪的：那条断言的注释<em>先</em>写了一整段
+        「判据不是有几条——档案会长，钉死一个会自然变化的数，测的是档案有没有变，
+        不是解析器对不对」，然后下一行就是 <code>assert.equal(multi.length, 7)</code>。
+        <strong>一条把理由写清楚、然后照旧钉死数字的测试，比没有注释更糟</strong>——
+        它让下一个人以为这个数被想过。
+      </p>
+
+      <h2>它们不是被读出来的，是被喂出来的</h2>
+
+      <p>
+        这两条断言没有一条是靠 review 发现的。它们绿了好几周，
+        因为那几周里喂给它们的数据<strong>恰好不包含反例</strong>。
+      </p>
+
+      <p>
+        让它们现形的不是更仔细地读代码，是<strong>四份放错了目录的档案</strong>。
+      </p>
+
+      <p class="small muted">
+        同一天还删掉了一个不该删的文件：<code>sitemap.xml</code> 是样张仓库那边的 CI
+        生成的，部署脚本把它当上一次的残留清掉了。理由当时看着成立（「那边会重新生成」），
+        但那条链路要等人合并一个 PR，中间有一段真空。
+        规矩改成：<strong>清残留只能清自己上一次铺下去的东西</strong>——
+        别的流程放进仓库的产物，这里既不知道它怎么来的，也不知道它多久能回来。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-20-round-trip.html">← 更新：真导一次才知道</a>
+      <a href="/log/2026-08-17-exports.html">更早：走的时候不用求谁 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

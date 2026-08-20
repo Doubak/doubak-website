@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>真导一次才知道 —— 开发日志</title>
+<meta name="description" content="NeoDB 导出真的导了一次：2945 条记录。读源码读对了的那一处得到了唯一的实证，而一条注定失败的记录暴露出一个不该有的默认行为。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-20">2026-08-20</time>
+      <h1>真导一次才知道</h1>
+      <p class="summary">导出适配器写完之后，能证明的只是「产出符合从导入器源码里读出来的格式」。跟「对方真的收」之间还差一次上传，而那一次抓到了一个不该有的默认行为。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        上一篇写完导出的时候，最后一节叫「还没做的」，第一条是：
+        <strong>没有做过一次真实的往返验证。</strong>
+      </p>
+
+      <p>
+        这不是谦虚。三个平台的导入格式都没有正式规格，每一列都是<strong>读它们导入器的
+        源码</strong>定出来的。读得再仔细，「我理解对了他们的代码」和「他们真的收下了」
+        也是两件事。
+      </p>
+
+      <h2>先切一小份，因为导进去不好撤</h2>
+
+      <p>
+        NeoDB 导进去要一条条删，Letterboxd 的观影记录没有批量撤销，Goodreads 更麻烦。
+        于是有一个很坏的默认路径：想验证一下，就把两千九百多条全传上去，
+        然后发现某一列理解错了。
+      </p>
+
+      <p>
+        所以加了 <code>--sample=N</code>。它<strong>按（分类, 状态）轮着取，不是取前 N 条</strong>——
+        档案是按抓取顺序排的，开头很可能全是电影、全是「看过」，那样的小样
+        验不了图书的 ISBN、验不了「想看」有没有跑进「看过」、
+        验不了舞台剧的链接对方认不认。轮着取保证每一种组合都至少来一条。
+      </p>
+
+      <p>
+        另外加了一个<strong>不联网的自查</strong>：把刚写出来的文件读回来，跟档案逐条逐字段对。
+        它盯的都是「错了不会报错、只会看着正常」的那种——最典型的是 CSV 错位，
+        后面的字段整体挪一格，于是评分变成日期、评语变成标签，
+        <strong>导进去之后看着像数据本来就那样</strong>。
+      </p>
+
+      <h2>那一次导入</h2>
+
+      <p>40 条小样，NeoDB 报回来：</p>
+
+      <pre><code>found 42 records to import
+41 items imported, 0 skipped, 1 failed</code></pre>
+
+      <p>
+        42 = 40 条标记 + 2 篇书评，跟产出的一模一样。
+      </p>
+
+      <p>
+        <strong>最值钱的一条是最容易被忽略的：两篇书评都进去了，而且带着标题。</strong>
+      </p>
+
+      <p>
+        NeoDB 的书评 CSV 表头里有<strong>两个 <code>title</code></strong>。看着像笔误，
+        但读源码可以推出它不是：Python 的 <code>csv.DictReader</code> 遇到重复键是
+        <em>后一个赢</em>，所以取出来的是第 5 列的书评标题，第 1 列的作品名压根不参与匹配。
+        照「看起来对」的写法把重复表头去掉，书评会全部变成无标题。
+      </p>
+
+      <p>
+        <strong>这个判断除了真导一次，没有别的办法能确认。</strong>
+        它现在被确认了。评分（豆瓣 1–5 星 × 2 = NeoDB 的 1–10 分）、
+        短评、标签、标记日期也都逐项对过。
+      </p>
+
+      <h2>那一条失败的，才是这次的收获</h2>
+
+      <p>
+        失败的那条报的是 <code>Could not find item: </code>——<strong>冒号后面是空的</strong>。
+      </p>
+
+      <p>
+        它是一条「作品已被豆瓣删除、档案里连链接都没留下」的记录。NeoDB 是靠链接
+        定位条目的，没有链接就无从找起，所以这一行<strong>注定失败</strong>。
+      </p>
+
+      <p>
+        导出报告其实早就把它标出来了：「⚠ 1 条连豆瓣链接都没有」。所以第一反应是
+        「预测到了，不是 bug」，就想放着。
+      </p>
+
+      <p>
+        <strong>但代价不在那一行本身。</strong> 全量有 7 条这样的记录，
+        意味着每次导入都会固定报 7 个失败——而<strong>一个永远有内容的失败清单，
+        是一个没人会看的失败清单</strong>。真出了别的问题，它就躲在这 7 条后面。
+      </p>
+
+      <p>
+        改成写进 zip 外面的一份核对清单：没有丢掉，只是不该被导入。
+        列用作品 id 而不是标记 id，这样每一条都能直接对上你自己站点里的
+        <code>&lt;分类&gt;/&lt;id&gt;.html</code>——那 7 条正是
+        <a href="/">首页那张卡片</a>说的、豆瓣已经删掉的 7 个游戏。
+      </p>
+
+      <h2>全量：2945 条</h2>
+
+      <p>
+        小样确认之后导全量：<code>found 2945 records</code>——2943 条标记加 2 篇书评，
+        数字对得上。之前小样进去的那些被正确地跳过了，没有变成重复条目。
+      </p>
+
+      <p>
+        全量里也有一条失败，而这一条跟小样那条<strong>性质不同</strong>：
+        它有一个好端端的豆瓣链接，也有 ISBN，只是 NeoDB 自己去豆瓣取那一页的时候没取到。
+      </p>
+
+      <p>
+        这很正常——它在一次导入里要向豆瓣取近三千个页面，被限流几乎是必然的。
+        于是判据得说得更准一点：
+      </p>
+
+      <p>
+        <strong>链接是空的那种失败，是我这边的 bug；链接好端端却失败的，是上游的事。</strong>
+        两千九百多条里出现一条后者，是噪声，不是信号。
+      </p>
+
+      <p>
+        导完的样子在这里：<a href="https://neodb.social/users/doubak/">neodb.social/users/doubak</a>。
+        这是<strong>同一份档案的第三种去处</strong>——
+        <a href="https://sample.doubak.com">自己的站点</a>是一种，
+        原始的 WARC 是另一种，而它们都从同一批字节里出来，
+        谁也不依赖谁。
+      </p>
+
+      <p class="small muted">
+        Letterboxd 和 Goodreads 还没做过这一步。在有人真导一次之前，
+        那两家的说法仍然只能是「符合已记录的格式」，不是「能用」。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-08-20-four-roots.html">更早：放错目录的四份档案 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
