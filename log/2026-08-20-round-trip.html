@@ -135,8 +135,19 @@
 
       <p>
         小样确认之后导全量：<code>found 2945 records</code>——2943 条标记加 2 篇书评，
-        数字对得上。之前小样进去的那些被正确地跳过了，没有变成重复条目。
+        数字对得上。
       </p>
+
+      <figure class="shot">
+        <img src="/assets/screenshots/2026-08-20-neodb-import-full.png"
+             width="1168" height="848" loading="lazy"
+             alt="NeoDB 导入页面的结果：2903 items imported, 41 skipped, 1 failed，失败的一条是 https://book.douban.com/subject/6751637/">
+        <figcaption>
+          <strong>2903 导入 · 41 跳过 · 1 失败</strong>
+          三个数加起来正好是 2945。而<strong>跳过的 41 条，正是小样那次成功导进去的 41 条</strong>——
+          重复上传没有变成重复条目，这一点不用翻页去数，加法就对得上。
+        </figcaption>
+      </figure>
 
       <p>
         全量里也有一条失败，而这一条跟小样那条<strong>性质不同</strong>：
