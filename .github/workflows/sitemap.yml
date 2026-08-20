@@ -9,9 +9,10 @@ name: sitemap
 # 用 GITHUB_TOKEN 推的提交不会再触发 workflow，所以这一步不会把自己叫醒；
 # 上面的 paths-ignore 是第二道保险（也让「只改了 sitemap」的人工提交不白跑一次）。
 #
-# 生成器（cicirello/generate-sitemap）自己就做了两件我们需要的事：
-# 把 index.html 折成目录 URL（/log/index.html → /log/），以及跳过带
-# noindex 的页面。剩下要排除的只有两个不该被收录的文件，见 exclude-paths。
+# 生成器（cicirello/generate-sitemap）自己就做了三件我们需要的事：把 index.html
+# 折成目录 URL（/log/index.html → /log/）、跳过带 noindex 的页面、以及读 robots.txt
+# 里 User-agent: * 的 Disallow。不该收录的两个文件（404、日志模板）就写在 robots.txt
+# 里，这里不用再抄一遍——那份清单是唯一的一份。
 
 on:
   push:
@@ -45,9 +46,6 @@ jobs:
           base-url-path: https://doubak.com/
           # 站里没有 PDF，不用扫。
           include-pdf: false
-          exclude-paths: >
-            /404.html
-            /log/_template.html
 
       - name: 提交并推送
         env:
