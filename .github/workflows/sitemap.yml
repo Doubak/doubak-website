@@ -29,19 +29,22 @@ concurrency:
   group: sitemap
   cancel-in-progress: false
 
+# 两个 action 都钉在 commit SHA 上，不用 @v1 / @v4 这种会移动的 tag：这个 job 手里
+# 有 contents: write 并且直接推 main，tag 一旦被重新指向，指到哪儿它就跑哪儿。
+# 升级时改 SHA，把后面注释里的版本号一起改掉（tag → SHA 用 git ls-remote 查）。
 jobs:
   sitemap:
     runs-on: ubuntu-latest
     steps:
       - name: 检出
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # 每个 <lastmod> 是这个文件的 `git log -1` 时间，浅克隆里取不到。
           fetch-depth: 0
 
       - name: 生成 sitemap
         id: generate
-        uses: cicirello/generate-sitemap@v1
+        uses: cicirello/generate-sitemap@6a56a20238e631d653600cf792c3596722b78259 # v1.10.4
         with:
           base-url-path: https://doubak.com/
           # 站里没有 PDF，不用扫。
