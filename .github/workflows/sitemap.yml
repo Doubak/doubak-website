@@ -1,0 +1,78 @@
+name: sitemap
+
+# 每次 push 到 main 之后重新生成 sitemap.xml，直接提交回 main。
+#
+# 站点是纯静态的、没有生成器，sitemap 却要跟着每一篇新日志走——手写必然会忘，
+# 所以交给这里。生成完直接推，不开 PR：这个文件的内容完全由仓库里的 html 决定，
+# 没有什么可审的。
+#
+# 用 GITHUB_TOKEN 推的提交不会再触发 workflow，所以这一步不会把自己叫醒；
+# 上面的 paths-ignore 是第二道保险（也让「只改了 sitemap」的人工提交不白跑一次）。
+#
+# 生成器（cicirello/generate-sitemap）自己就做了三件我们需要的事：把 index.html
+# 折成目录 URL（/log/index.html → /log/）、跳过带 noindex 的页面、以及读 robots.txt
+# 里 User-agent: * 的 Disallow。不该收录的两个文件（404、日志模板）就写在 robots.txt
+# 里，这里不用再抄一遍——那份清单是唯一的一份。
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'sitemap.xml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 两次 push 挨得很近时，让后一次排队而不是并发去推同一个分支。
+concurrency:
+  group: sitemap
+  cancel-in-progress: false
+
+# 两个 action 都钉在 commit SHA 上，不用 @v1 / @v4 这种会移动的 tag：这个 job 手里
+# 有 contents: write 并且直接推 main，tag 一旦被重新指向，指到哪儿它就跑哪儿。
+# 升级时改 SHA，把后面注释里的版本号一起改掉（tag → SHA 用 git ls-remote 查）。
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          # 每个 <lastmod> 是这个文件的 `git log -1` 时间，浅克隆里取不到。
+          fetch-depth: 0
+
+      - name: 生成 sitemap
+        id: generate
+        uses: cicirello/generate-sitemap@6a56a20238e631d653600cf792c3596722b78259 # v1.10.4
+        with:
+          base-url-path: https://doubak.com/
+          # 站里没有 PDF，不用扫。
+          include-pdf: false
+
+      - name: 提交并推送
+        env:
+          SITEMAP: ${{ steps.generate.outputs.sitemap-path }}
+          BRANCH: ${{ github.ref_name }}
+          URL_COUNT: ${{ steps.generate.outputs.url-count }}
+        run: |
+          set -euo pipefail
+          git add -- "$SITEMAP"
+          if git diff --cached --quiet; then
+            echo "sitemap 没变，不用提交。"
+            exit 0
+          fi
+          # 这是机器人的提交，别算到触发这次运行的人头上。
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "重新生成 sitemap.xml（$URL_COUNT 个 URL）"
+          for attempt in 1 2 3; do
+            if git push origin "HEAD:$BRANCH"; then
+              exit 0
+            fi
+            echo "推送失败（第 $attempt 次），rebase 到 origin/$BRANCH 再试。"
+            sleep $((attempt * 3))
+            git pull --rebase origin "$BRANCH"
+          done
+          echo "试了 3 次都没推上去。" >&2
+          exit 1

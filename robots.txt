@@ -1,0 +1,14 @@
+# 全站都可以抓。这里真正有用的是最后那行 Sitemap：
+# 爬虫不用顺着链接一层层爬，也能拿到完整的页面清单。
+User-agent: *
+Allow: /
+
+# 这两个不是页面。404 是找不到东西时才出现的那一张，_template 是新日志的模板，
+# 里面全是 {{占位}}——被搜出来只会让人莫名其妙。
+#
+# 生成 sitemap 的 action 也读这个文件，所以写在这里的 Disallow 同时把它们挡在
+# sitemap 外面：不该收录的东西只有这一份清单，workflow 里不用再抄一遍。
+Disallow: /404.html
+Disallow: /log/_template.html
+
+Sitemap: https://doubak.com/sitemap.xml
