@@ -277,6 +277,15 @@
             NeoDB 这一路已经真的导进去验过，导完长这样：
             <a href="https://neodb.social/users/doubak/">neodb.social/users/doubak</a>
             ——跟 <a href="https://sample.doubak.com">样张站</a>是同一份档案的两种去处。
+            <br><br>
+            NeoDB 那一档现在默认出它自己的 <strong>NDJSON 归档格式</strong>
+            （旧的 CSV 还在，要显式要）：多带走<strong>豆列</strong>、
+            <strong>不挂作品的日记</strong>、每条记录各自的可见性，
+            以及一条从广播还原出来的<strong>状态时间线</strong>——
+            想看 → 在看 → 看过，每一步带着当天的日期和当天打的星，
+            <strong>豆瓣自己只留最后一次</strong>。
+            <span class="muted">NDJSON 这一路目前只能说「符合从导入器源码里读出来的格式」，
+            还没有真导过一次。</span>
           </p>
         </li>
       </ul>
@@ -286,11 +295,12 @@
       <h3>还没做的 —— 路线图上的</h3>
       <ul class="features">
         <li>
-          <span class="name">豆列导进 NeoDB 的收藏单 <span class="pill pill-soon">计划中</span></span>
+          <span class="name">NDJSON 那一路真导一次 <span class="pill pill-soon">计划中</span></span>
           <p class="desc">
-            标记、短评、书评影评都能导进 NeoDB 了，<strong>豆列还不行</strong>——
-            它的 CSV 导入里没有「收藏单」这一档。照着猜一个格式出来，
-            不如先明说这一路没做。
+            豆列、日记、状态历史现在都写得出来了，但<strong>还没有真的导进去过一次</strong>。
+            上一次换来的教训就是这个：「我理解对了他们的代码」和「他们真的收下了」
+            是两件事，而中间那一次上传抓到过一个不该有的默认行为。
+            在导过之前，这一路的说法只能是「符合已记录的格式」。
           </p>
         </li>
         <li>

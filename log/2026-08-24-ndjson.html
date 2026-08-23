@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>广播里存着一段豆瓣自己都不留的历史 —— 开发日志</title>
+<meta name="description" content="NeoDB 的维护者问能不能出 NDJSON。换过去之后多带走的不只是豆列——3411 条广播里藏着一条豆瓣自己已经不显示的状态时间线。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-24">2026-08-24</time>
+      <h1>广播里存着一段豆瓣自己都不留的历史</h1>
+      <p class="summary">NeoDB 的维护者看了 PR，问了一句「可以生成 NDJSON 吗」。换过去之后多带走的不只是豆列——3411 条广播拼出一条状态时间线，而豆瓣自己已经不显示它了。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        上一篇写的是 NeoDB 那一路真导了一次。那次导的是 CSV。维护者看完 PR 回了一句：
+      </p>
+
+      <blockquote>
+        <p>厉害。可以生成NDJSON吗？旧的CSV格式只是为了兼容NiceDB和Doufen，限制太多了。</p>
+      </blockquote>
+
+      <p>
+        这句话里有一个我原先不知道的事实：那套 CSV <strong>不是 NeoDB 的格式</strong>，
+        是它为了兼容另外两个工具留下的一层壳。而我把导出建在了那层壳上。
+      </p>
+
+      <h2>换格式换来的东西比预想的多</h2>
+
+      <p>
+        原先「还没做的」里第一条写着豆列导不进去——NeoDB 的收藏单只存在于它自己的
+        NDJSON 归档格式里。所以我以为换过去就是把这一条划掉。
+      </p>
+
+      <p>
+        实际上 NDJSON 多装下四样，拿真实的 2950 条标记量过：
+      </p>
+
+      <ul>
+        <li><strong>豆列</strong> —— 6 份、134 条，其中 73 条是能落地的作品条目。</li>
+        <li><strong>不挂作品的日记</strong> —— 5 篇长文里的 3 篇。CSV 的笔记必须挂一个条目，这 3 篇原先是直接丢掉的。</li>
+        <li><strong>每条记录各自的可见性</strong> —— 那一份私密豆列现在能以私密的身份进去。</li>
+        <li><strong>状态历史</strong> —— 3179 条。</li>
+      </ul>
+
+      <p>
+        最后一条是这次真正的发现，而且它不是从 NeoDB 那边来的，是从档案里翻出来的。
+      </p>
+
+      <h2>豆瓣只存现在，广播存着当时</h2>
+
+      <p>
+        豆瓣的标记只有当前状态：你现在是「看过」，打了四星。你什么时候从「想看」
+        变成「在看」的、当时打了几星，它不留。
+      </p>
+
+      <p>
+        但<strong>广播是发出去那一刻就冻住的</strong>。「想看 XXX」是一条，
+        「在看 XXX ★★★★★」是另一条，「看过 XXX ★★★★」是第三条，
+        每一条都带着自己的日期和自己的星。
+      </p>
+
+      <p>
+        3411 条广播里，3179 条能对上档案里的某个作品。它们覆盖 2373 件作品，
+        其中 <strong>678 件的状态变过不止一次</strong>。而 NDJSON 里正好有一种记录
+        叫 <code>ShelfLog</code>，装的就是这个。
+      </p>
+
+      <p>
+        所以这一步不是「把已有的数据换个格式送出去」，是<strong>把一段已经在档案里、
+        但从没有出口的东西送了出去</strong>。这也是这个项目一直在说的那句话的一次兑现：
+        原始页面抓下来了，能不能用得上，是后来才知道的事。
+      </p>
+
+      <p class="small muted">
+        默认是关着的（<code>--shelf-history</code>）。它是全新的一条路，
+        还没有真导过一次——理由跟下面最后一节一样。
+      </p>
+
+      <h2>形状是读源码读出来的，五个坑都是静默的</h2>
+
+      <p>
+        跟上次一样：读导入器的源码，不读它的文档。这一路读出来五个地方，
+        写错了都<strong>照样是合法 JSON、照样解析通过、照样不报错</strong>：
+      </p>
+
+      <ul>
+        <li>
+          <strong><code>ShelfLog</code> 的形状跟其他记录都不一样。</strong>
+          别的记录读 <code>content.withRegardTo</code> / <code>content.status</code> /
+          <code>content.published</code>，只有它读顶层的 <code>item</code> /
+          <code>status</code> / <code>timestamp</code>。
+        </li>
+        <li>
+          <strong><code>ShelfMember</code> 上没有标签这一项。</strong>
+          CSV 是把标签挤在标记那一行里的。照那个想法写，712 个标签会一声不吭地全丢。
+        </li>
+        <li>
+          <strong><code>progress</code> 是三态的。</strong> 键不在 = 不动，
+          <code>null</code> = <strong>清掉用户手工填的阅读进度</strong>，有值 = 恢复。
+          豆瓣不记「读到第几页」，所以这个键必须整个不写——
+          写 <code>null</code> 是去<em>删</em>别人的数据。
+        </li>
+        <li>
+          <strong>舞台剧的广播 <code>target_type</code> 叫 <code>loc</code>，不叫
+          <code>drama</code>。</strong> 12 种取值里根本没有 <code>drama</code>。
+          照着自己这边的字段名去猜键名，那几条会全部漏掉。
+        </li>
+        <li>
+          <strong>豆列里分类 3114、写成 <code>/subject/</code> 的其实是游戏。</strong>
+          NeoDB 只认 <code>www.douban.com/game/&lt;id&gt;/</code>。改写是量出来的：
+          31 条 id 在档案里的条目，30 条是游戏，档案里存的 URL 全是 <code>/game/</code>。
+        </li>
+      </ul>
+
+      <p>
+        前三条现在有一个<strong>静态契约测试</strong>盯着：把导入器源码里
+        「每种记录在哪一层读哪些键」抄成一张表，对着产出断言。
+        真正会出事的环境是一个跑着的 NeoDB，本地任何测试都进不去，
+        所以检查只能是静态的——这跟扩展那边 offscreen 的那个检查是同一类问题。
+      </p>
+
+      <h2>也换来两处倒退，一并说了</h2>
+
+      <ul>
+        <li>
+          <strong>没有 ISBN 兜底。</strong> NDJSON 这条路上，条目只靠 URL 匹配
+          （导入器传给匹配函数的标题和 info 都是空字符串）。CSV 那边
+          <code>info</code> 列里的 <code>isbn:</code> 还能找回一本豆瓣页面已经没了的书。
+          IMDb 有 URL 形式，ISBN 没有。
+        </li>
+        <li>
+          <strong>上传页面上没有可见性选项。</strong> 它检测到 NDJSON 就把那三个单选框
+          藏起来，于是一律按公开导入。所以这个选择被挪进了文件里——
+          <code>--visibility=1</code> 或 <code>2</code>。
+          <strong>文件能表达表单表达不了的东西</strong>，这跟私密豆列是同一条理由。
+        </li>
+      </ul>
+
+      <p>
+        旧的 CSV 那一份没删，改成要显式要（<code>--target=neodb_csv</code>）。
+        它现在只在上面这两件事上比 NDJSON 强，而那两件事都是真的。
+      </p>
+
+      <h2>还没做的，还是那一句</h2>
+
+      <p class="small muted">
+        NDJSON 这一路<strong>还没有真导过一次</strong>。上一篇的结论在这里同样成立：
+        「我理解对了他们的代码」和「他们真的收下了」是两件事。
+        在有人真导一次之前，这一路的说法只能是「符合从导入器源码里读出来的格式」，
+        不是「能用」。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-08-20-round-trip.html">更早：真导一次才知道 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
