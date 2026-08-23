@@ -1,5 +1,7 @@
 # website
 
+[![check](https://github.com/Doubak/doubak-website/actions/workflows/check.yml/badge.svg?branch=main)](https://github.com/Doubak/doubak-website/actions/workflows/check.yml?query=branch%3Amain)
+
 The official website for Doubak! — 豆备的官方网站 · <https://doubak.com>
 
 Plain static HTML and one stylesheet. **No build step, no dependencies.**
