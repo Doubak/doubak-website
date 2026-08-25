@@ -199,6 +199,41 @@ npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
       </p>
     </div>
 
+    <h3>NeoDB 那一路出了问题，可以退回 CSV</h3>
+
+    <p>
+      默认出的是 NeoDB 自己的 <strong>NDJSON</strong> 归档格式。
+      万一它那边收不下——上传页面认不出格式、或者导进去有哪一类记录不对——
+      还有一条走了更久的老路可以退：
+    </p>
+
+    <pre><code>node bin/export.js &lt;canonical 目录&gt; [输出目录] --target=neodb_csv</code></pre>
+
+    <p>
+      产出的是 <code>neodb-import.zip</code>。<strong>上传的地方是同一个</strong>——
+      还是「导入 NeoDB 备份」，那个页面会自己看 zip 里有什么来判断格式，
+      传上去之后「检测到的格式」那一行应该显示 <strong>CSV</strong>。
+      （显示「未知格式」就说明拿错文件了，那个 zip 根本提交不上去。）
+    </p>
+
+    <p>
+      这一路真导进去过一整份档案，长这样：
+      <a href="https://neodb.social/users/doubak/">neodb.social/users/doubak</a>
+      ——跟上面那个
+      <a href="https://neodb.social/users/immewx/">immewx</a>
+      是<strong>同一份档案的两条路</strong>，可以直接对照着看两边差在哪。
+    </p>
+
+    <p>
+      退回去要付的代价说清楚：CSV <strong>结构上装不下</strong>豆列、
+      不挂作品的日记，以及那条状态历史时间线。
+      它有两处反而比 NDJSON 强：一是<strong>可见性那三个单选框只在 CSV 时才出现</strong>
+      （NDJSON 会被页面藏起来，一律按公开导入，要别的可见性得用
+      <code>--visibility=1</code> 或 <code>2</code> 写进文件里）；
+      二是书的 <strong>ISBN 兜底</strong>——NDJSON 只按 URL 匹配，
+      一本豆瓣页面已经没了的书，CSV 还找得回来。
+    </p>
+
     <div class="callout">
       <p>
         <strong>准的是这一份：</strong>
