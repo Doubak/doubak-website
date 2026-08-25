@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>怎么用 —— 豆备 Doubak</title>
+<meta name="description" content="装扩展 → 抓下来 → 解析 → 建站或导出。四步都在你自己的机器上跑，中间不经过任何服务器。每一节都指向对应仓库的 README，那才是唯一真源。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/" aria-current="page">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>怎么用</h1>
+    <p class="lede">
+      四步：<strong>装扩展 → 抓下来 → 解析 → 建站或者导出</strong>。
+      每一步都在你自己的机器上跑，中间不经过任何服务器，断网也能跑完后面三步。
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="callout warn">
+      <p>
+        <strong>这一页是导览，不是文档。</strong>
+        每一节末尾都有一条指向对应仓库 <code>README.md</code> 的链接，
+        <strong>那才是唯一真源</strong>——具体命令、参数、以及所有「实测多少条」的数字，
+        一律以 README 为准。这一页会过时，README 跟着代码一起改。
+      </p>
+    </div>
+
+    <p class="lead-2">
+      只想要一份备份的话，<strong>第 1 步就够了</strong>：装上扩展、抓一次、导出到硬盘，
+      那份档案是完整的，后面三步什么时候做、做不做，都不影响它。
+    </p>
+
+    <ol class="pipeline">
+      <li><strong>扩展</strong>：在你的浏览器里抓豆瓣，存成 WARC 档案（bundle）</li>
+      <li><strong>解析器</strong>：把档案变成结构化数据（canonical）</li>
+      <li><strong>生成器</strong>：变成一个能打开的静态网站</li>
+      <li><strong>导出适配器</strong>：变成 NeoDB / Letterboxd / Goodreads 的导入文件</li>
+    </ol>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <h2>第 1 步 · 抓下来</h2>
+
+    <p>
+      装上浏览器扩展，用你自己的账号、自己的 IP、自己的节奏抓。
+      登录凭据和会话 cookie 不离开你的设备——<strong>没有服务器可以泄露它们，因为根本没有服务器</strong>。
+    </p>
+
+    <p>
+      扩展从 <a href="https://github.com/Doubak/doubak-extension/actions/workflows/package.yml">CI 产物</a>
+      下载，解压之后在浏览器的扩展页面「加载已解压的扩展程序」。
+      抓完在面板里导出，得到一个目录，那就是你的档案。
+    </p>
+
+    <p>
+      第一次抓建议先抓广播——它是<strong>最不可替代</strong>的一路：
+      广播发出去那一刻就冻住了，改不了，而且删掉之后不留任何痕迹。
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>准的是这一份：</strong>
+        <a href="https://github.com/Doubak/doubak-extension/blob/main/README.md">doubak-extension / README.md</a>
+        —— 安装、抓取范围、增量抓取跳过什么、导出被打断了怎么办，都在那里。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>第 2 步 · 解析</h2>
+
+    <p>
+      把一整个目录的 bundle 喂给解析器，它产出 <strong>canonical</strong>——结构化、可读、可 <code>grep</code> 的 NDJSON。
+      这一步是<strong>纯函数，不联网</strong>：同样的档案永远得到同样的结果，
+      随时可以删掉重跑。
+    </p>
+
+    <pre><code>node bin/parse.js &lt;一堆 bundle 的目录&gt; [输出目录]</code></pre>
+
+    <p>
+      喂<strong>整个目录</strong>就好，不用自己挑哪几份。抓了很多次、换过机器、
+      甚至有两条互不相连的链，都直接扔进去——合并的结果正好是它们的并集。
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>准的是这一份：</strong>
+        <a href="https://github.com/Doubak/doubak-data-parser/blob/main/README.md">doubak-data-parser / README.md</a>
+        —— 两条不变量、以及为什么不该自己挑 bundle。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <h2>第 3 步 · 生成自己的网站</h2>
+
+    <p>
+      canonical 加上档案里的图片，变成 <strong>Markdown + YAML front matter</strong>，
+      再交给现成的静态站生成器渲染。长什么样不用想象——
+      <a href="https://sample.doubak.com">样张站</a>就是这么出来的。
+    </p>
+
+    <pre><code>npm run md     # 只出 Markdown + 图片（给任何静态站生成器）
+npm run site   # 再构建成 HTML
+npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
+
+    <p>
+      <strong>Markdown 才是产物，HTML 只是它的一个消费者。</strong>
+      想换 Astro、Eleventy、Jekyll，用 <code>md</code> 就行，产出里没有任何 Hugo 专属的东西。
+    </p>
+
+    <div class="callout warn">
+      <p>
+        <strong>要发到网上之前先看一眼。</strong>
+        广播和日记里到处是别人的名字和评论，
+        <code>deploy</code> 会先给你一个「哪些内容会变成公开的」的预览。
+      </p>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>准的是这一份：</strong>
+        <a href="https://github.com/Doubak/doubak-site-generator/blob/main/README.md">doubak-site-generator / README.md</a>
+        —— Hugo 从哪来、怎么换别的生成器、怎么发到 GitHub Pages。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>第 4 步 · 导出到别处</h2>
+
+    <p>
+      一条命令产出三家的导入文件，<strong>不联网</strong>——
+      上不上传、什么时候传，都不影响你的档案。
+    </p>
+
+    <pre><code>node bin/export.js &lt;canonical 目录&gt; [输出目录]</code></pre>
+
+    <p>
+      <a href="https://neodb.social/">NeoDB</a> 收得最全，而且默认带上一样别处没有的东西：
+      <strong>状态历史</strong>。豆瓣只存「你现在是看过」，
+      但广播是发出去那一刻冻住的，所以 想看 → 在看 → 看过 每一步都还在，
+      带着当天的日期和<strong>当天打的星</strong>——豆瓣自己只留最后一次。
+      不想带就加 <code>--no-shelf-history</code>。
+    </p>
+
+    <p>
+      整份档案导进去长什么样，也是公开的：
+      <a href="https://neodb.social/users/immewx/">neodb.social/users/immewx</a>。
+    </p>
+
+    <p>
+      Letterboxd 只收电影、Goodreads 只收书，所以<strong>能带走多少、带不走什么，
+      报告里会一条条数给你看</strong>。反过来绝不成立：档案永远存无损的超集，
+      这三个都是向外的有损适配器。
+    </p>
+
+    <div class="callout warn">
+      <p>
+        <strong>三家的导入都不好撤。</strong>
+        先用 <code>--sample=20</code> 切一小份传上去看看，确认没问题再导全量。
+      </p>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>准的是这一份：</strong>
+        <a href="https://github.com/Doubak/doubak-export-adapters/blob/main/README.md">doubak-export-adapters / README.md</a>
+        ——三家各自收得下什么、匹配靠什么、以及换格式换来的两处倒退。
+        第一次导之前请看
+        <a href="https://github.com/Doubak/doubak-export-adapters/blob/main/docs/manual-testing.md">docs/manual-testing.md</a>。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="wrap">
+    <h2>档案里到底是什么</h2>
+
+    <p>
+      两种格式，生命周期正好相反：<strong>bundle</strong> 由扩展写出，
+      是不可逆那一步的产物，所以一旦有人抓过就冻住不改；
+      <strong>canonical</strong> 由解析器写出，随便改——重新跑一遍解析器不花什么代价。
+    </p>
+
+    <p>
+      两种都是 WARC 加 NDJSON，没有私有二进制格式。
+      判据是：<strong>2040 年一个不认识这个项目的人，能不能只靠 <code>jq</code> 把它读出来。</strong>
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>准的是这一份：</strong>
+        <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">doubak-data-specs / bundle/v1/SPEC.md</a>
+        ——格式定义、以及配套的校验器和一致性用例。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>出了问题</h2>
+    <p>
+      每个仓库都收 issue，报的时候把命令打出来的<strong>整段报告</strong>带上——
+      里面每个数字都是实测的，比描述有用得多。
+      仓库列表在 <a href="https://github.com/Doubak">github.com/Doubak</a>。
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
