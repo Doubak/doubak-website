@@ -464,8 +464,8 @@
           <tr><td>豆列</td><td class="ok">✅ 能跑</td><td>只抓自己编的。值钱的不是清单，是每个条目上<strong>自己写的评语</strong>——实测 134 个条目里 62 条有。私密豆列在生成的站点上带一把锁</td></tr>
           <tr><td>相册</td><td class="todo">⬜ 未做</td><td>实测这个账号一个相册都没有，暂时没有样本可量</td></tr>
           <tr><td>中断续导</td><td class="ok">✅ 能跑</td><td>导出被打断后再导一次，只补缺的那些；没有进度文件，目的地目录本身就是进度</td></tr>
-          <tr><td>解析成结构化数据</td><td class="ok">✅ 能跑</td><td>档案 → canonical：标记、作品、广播、长文、豆列，带修订历史</td></tr>
-          <tr><td>生成静态网站</td><td class="ok">✅ 能跑</td><td>canonical → Markdown + 图片 → HTML，见<a href="https://sample.doubak.com">样张</a></td></tr>
+          <tr><td>解析成结构化数据</td><td class="ok">✅ 能跑</td><td>原始档案（bundle）→ 结构化数据（canonical）：标记、作品、广播、长文、豆列，带修订历史</td></tr>
+          <tr><td>生成静态网站</td><td class="ok">✅ 能跑</td><td>结构化数据 → Markdown + 图片 → HTML，见<a href="https://sample.doubak.com">样张</a></td></tr>
         </tbody>
       </table>
     </div>
@@ -575,7 +575,7 @@
         <tbody>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
-            <td>浏览器扩展。抓取，产出 bundle 档案。整个项目的入口都在这里。</td>
+            <td>浏览器扩展。抓取，产出原始档案（bundle）。整个项目的入口都在这里。</td>
             <td class="ok">v1.2.0</td>
           </tr>
           <tr>
@@ -585,7 +585,7 @@
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-parser">doubak-data-parser</a></td>
-            <td>bundle → 结构化数据。纯函数，不联网。</td>
+            <td>原始档案 → 结构化数据（canonical）。纯函数，不联网。</td>
             <td class="ok">能跑了</td>
           </tr>
           <tr>

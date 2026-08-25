@@ -60,10 +60,10 @@
     </p>
 
     <ol class="pipeline">
-      <li><strong>扩展</strong>：在你的浏览器里抓豆瓣，存成 WARC 档案（bundle）</li>
-      <li><strong>解析器</strong>：把档案变成结构化数据（canonical）</li>
-      <li><strong>生成器</strong>：变成一个能打开的静态网站</li>
-      <li><strong>导出适配器</strong>：变成 NeoDB / Letterboxd / Goodreads 的导入文件</li>
+      <li><strong>扩展</strong>：在你的浏览器里抓豆瓣，把页面原样存成<strong>原始档案</strong>（bundle）</li>
+      <li><strong>解析器</strong>：原始档案 → <strong>结构化数据</strong>（canonical）</li>
+      <li><strong>生成器</strong>：结构化数据 → 一个能打开的静态网站</li>
+      <li><strong>导出适配器</strong>：结构化数据 → NeoDB / Letterboxd / Goodreads 的导入文件</li>
     </ol>
   </div>
 </section>
@@ -100,12 +100,28 @@
     </ol>
 
     <p>
-      抓完在面板里导出，得到一个目录，那就是你的档案。
+      第一次跑的是<strong>全量抓取</strong>：从头到尾走一遍，能抓的都抓下来。
+      时间取决于账号大小，中途可以停，下次接着来。
+      要是想先试一小段，建议先抓<strong>广播</strong>——它是<strong>最不可替代</strong>的一路：
+      发出去那一刻就冻住了，改不了，而且删掉之后<strong>不留任何痕迹</strong>，
+      没有第二个地方能发现它曾经存在过。
     </p>
 
     <p>
-      第一次抓建议先抓广播——它是<strong>最不可替代</strong>的一路：
-      广播发出去那一刻就冻住了，改不了，而且删掉之后不留任何痕迹。
+      抓完在面板里导出，得到一个目录，那就是你的<strong>原始档案</strong>（bundle）。
+    </p>
+
+    <p>
+      以后再抓用<strong>增量抓取</strong>：它走到上次那条为止就停，
+      广播、已经抓过的作品详情页、还有图片都跳过——判据是
+      <strong>「上游那份东西还会不会变」</strong>，不是「抓过没有」。
+      所以增量很快，可以经常跑。日记和影评是<em>可以编辑</em>的，
+      想连它们一起重抓，用「增量抓取，并重新抓取可以编辑的内容」那个选项。
+    </p>
+
+    <p>
+      每次导出都是一份新的原始档案，<strong>别覆盖旧的</strong>——
+      解析器要的是装着历次档案的<em>整个目录</em>，多一份就多一批观测。
     </p>
 
     <div class="callout">
@@ -123,8 +139,9 @@
     <h2>第 2 步 · 解析</h2>
 
     <p>
-      把一整个目录的 bundle 喂给解析器，它产出 <strong>canonical</strong>——结构化、可读、可 <code>grep</code> 的 NDJSON。
-      这一步是<strong>纯函数，不联网</strong>：同样的档案永远得到同样的结果，
+      把装着一堆<strong>原始档案</strong>（bundle）的目录整个喂给解析器，它产出
+      <strong>结构化数据</strong>（canonical）——可读、可 <code>grep</code> 的 NDJSON。
+      这一步是<strong>纯函数，不联网</strong>：同样的原始档案永远得到同样的结果，
       随时可以删掉重跑。
     </p>
 
@@ -139,7 +156,7 @@
       <p>
         <strong>准的是这一份：</strong>
         <a href="https://github.com/Doubak/doubak-data-parser/blob/main/README.md">doubak-data-parser / README.md</a>
-        —— 两条不变量、以及为什么不该自己挑 bundle。
+        —— 两条不变量、以及为什么不该自己挑原始档案。
       </p>
     </div>
   </div>
@@ -150,7 +167,7 @@
     <h2>第 3 步 · 生成自己的网站</h2>
 
     <p>
-      canonical 加上档案里的图片，变成 <strong>Markdown + YAML front matter</strong>，
+      结构化数据加上原始档案里的图片，变成 <strong>Markdown + YAML front matter</strong>，
       再交给现成的静态站生成器渲染。长什么样不用想象——
       <a href="https://sample.doubak.com">样张站</a>就是这么出来的。
     </p>
@@ -271,9 +288,10 @@ npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
     <h2>档案里到底是什么</h2>
 
     <p>
-      两种格式，生命周期正好相反：<strong>bundle</strong> 由扩展写出，
-      是不可逆那一步的产物，所以一旦有人抓过就冻住不改；
-      <strong>canonical</strong> 由解析器写出，随便改——重新跑一遍解析器不花什么代价。
+      两种格式，生命周期正好相反。<strong>原始档案</strong>（bundle）由扩展写出，
+      是不可逆那一步的产物——没法请谁「再抓一次 2019 年」——所以一旦有人抓过就冻住不改；
+      <strong>结构化数据</strong>（canonical）由解析器写出，随便改，
+      重新跑一遍解析器不花什么代价。
     </p>
 
     <p>
