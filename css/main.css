@@ -636,6 +636,29 @@ tbody tr:last-child td { border-bottom: 0; }
 }
 .callout.warn strong { color: var(--amber); }
 
+/* ---------- 小节：正文里嵌一段自成一体的内容 ---------- */
+
+/*
+ * 「怎么用」里的「备份和恢复」是主线里的一段旁支：读的人要么正需要它、要么
+ * 完全不需要，而夹在同色的正文里两种人都得先读一遍才知道。左边一道线加缩进，
+ * 是让它一眼可跳过——不是为了好看。
+ *
+ * 颜色只用已经定义过的那几个变量。变量名拼错不会报错，也不会退回上一条声明，
+ * 而是直接重置成继承值或初始值——这个项目在别处被它咬过一次（搜索高亮变透明）。
+ */
+.subsection {
+  border-left: 3px solid var(--green-line);
+  background: var(--bg-alt);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 4px 20px 4px 20px;
+  margin: 0 0 1.5em;
+}
+.subsection > :last-child { margin-bottom: 0; }
+.subsection > h3:first-child { margin-top: .8em; }
+/* 里面的提示条本来就有底色，再压在 --bg-alt 上会糊成一片，收一点边界回来。 */
+.subsection .callout { background: var(--surface); }
+.subsection .callout.warn { background: var(--amber-bg); }
+
 /* ---------- 开发日志 ---------- */
 
 .log-list {
