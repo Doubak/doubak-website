@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自己跟自己对账，永远是平的 —— 开发日志</title>
+<meta name="description" content="NDJSON 那一路真导了一次，整份档案 17305 条。本地测试全绿，导进去才看见一个把一件事写成两行的 bug——因为对账的两边都是自己写的。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-25">2026-08-25</time>
+      <h1>自己跟自己对账，永远是平的</h1>
+      <p class="summary">上一篇结尾写着「NDJSON 这一路还没有真导过一次」。现在导过了，整份档案 17305 条记录。本地测试全绿，而导进去第一眼就看见一个把同一件事写成两行的 bug。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        先说结果。整份档案导进 NeoDB 之后长这样，公开的，可以自己点进去看：
+      </p>
+
+      <p>
+        <strong><a href="https://neodb.social/users/immewx/">neodb.social/users/immewx</a></strong>
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>想看 / 想读 / 想玩</th><th>在看 / 在读 / 在玩</th><th>看过 / 读过 / 玩过</th></tr></thead>
+          <tbody><tr><td>1098</td><td>71</td><td>1774</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>电影</th><th>剧集</th><th>游戏</th><th>图书</th><th>音乐</th><th>舞台剧</th></tr></thead>
+          <tbody><tr><td>1473</td><td>638</td><td>598</td><td>145</td><td>84</td><td>5</td></tr></tbody>
+        </table>
+      </div>
+
+      <p>
+        连同 712 个标签、2110 条短评、1788 个评分、6 份豆列、3 篇不挂作品的日记，
+        以及 2519 条从广播还原出来的状态历史——上一篇讲的那一段豆瓣自己已经不显示的时间线。
+      </p>
+
+      <p class="small muted">
+        另一个账号 <a href="https://neodb.social/users/doubak/">neodb.social/users/doubak</a>
+        留着不动，那是 CSV 那一路的干净证据。
+      </p>
+
+      <h2>本地全绿，导进去第一眼就是重复</h2>
+
+      <p>
+        真导之前先切了 40 条试水，导完打开时间线，看到的是这个：
+      </p>
+
+      <pre><code>July 20, 2023  在读  总算添加上来了，这个版本是澳洲出版的
+July 20, 2023  在读  总算添加上来了，这个版本是澳洲出版的</code></pre>
+
+      <p>
+        同一天、同一个状态、同一段字。54 条历史里 38 条如此。
+      </p>
+
+      <p>
+        原因在 NeoDB 这一侧，而且完全合理：<strong>导一条标记，它自己就会顺手记一行历史</strong>
+        （<code>ensure_log_entry()</code>），时间戳用标记那天，内容写标记当前的星和短评。
+        「这本书现在是在读」这件事，它本来就有一行。
+      </p>
+
+      <p>
+        而豆瓣的标记日期<strong>只有日期没有时刻</strong>（实测 2942 条全是零点），
+        广播带的是真实时刻（那天晚上 22:38）。那一行的唯一键里有时间戳，
+        两个时间戳永远不相等，于是同一件事排成两行。
+      </p>
+
+      <p>
+        跨天的时候更难看：零点和当晚 22:38 在别的时区渲染出来是<strong>两个日期</strong>，
+        读起来像隔天又标了一次。
+      </p>
+
+      <h2>去重会是错的修法</h2>
+
+      <p>
+        看到「两行一模一样」，第一反应是去重。但这两行在本地怎么看都不像重复：
+        <strong>时间戳不一样，文字也可能不一样</strong>——一条是标记现在的短评，
+        一条是那天广播里冻住的旧版本。任何一个只看我们自己产出的检查都不会报警。
+      </p>
+
+      <p>
+        它们是同一件事，<strong>只有在知道「还有谁在往这张表里写」之后才看得出来</strong>。
+        所以修法不是删掉一行，是把广播那一条<em>写成标记的时间戳</em>，
+        让它正好落在 NeoDB 已经建好的那一行上，把广播冻住的星和短评补进去。
+      </p>
+
+      <p>
+        跟着来的两个细节都属于「不写反而更安全」：那个字段是<strong>整块覆盖不是合并</strong>，
+        所以只冻住一颗星的广播并上去会把短评抹掉——得拿标记当前的值垫底、广播的值盖在上面；
+        而什么都没冻住的广播（既没星也没字）整条不写，因为 NeoDB 自己那一行比我们的全。
+      </p>
+
+      <h2>为什么本地测试到不了这里</h2>
+
+      <p>
+        这才是这次真正的教训。上传之前有一个校验器，它把要传的文件读回来跟档案逐条逐字段对，
+        一直是绿的。它绿得没有问题——因为<strong>它比的两边都是我们自己写的</strong>。
+        同一个理解偏差会同时出现在产出和检查里，然后两边一致，然后通过。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>自己跟自己对账，永远是平的。</strong>
+          要发现的是「对方收下之后存成了什么样」，而那个答案只有对方有。
+        </p>
+      </div>
+
+      <p>
+        所以加了第二个校验器，问的是另一个问题：
+        <strong>传上去之后，服务器那边真的存成了我们写的样子吗。</strong>
+        NeoDB 自己就能导出，格式一样，下载下来喂给它就行。
+      </p>
+
+      <p>
+        它的判据里真正有分量的一条是<strong>不对称</strong>的：服务器上比我们送的多，是正常的
+        （每条标记都会带出一行），所以不能简单地要求条数相等；
+        要求的是<strong>多出来的每一行都能解释成「某条标记自己那件事」</strong>，
+        解释不了的才报。全量跑下来：
+      </p>
+
+      <pre><code>导入：17305 items imported, 0 skipped, 0 failed
+导出：18560 records exported
+
+18560 − 17305 = 1255 = 1247（标记那天没有广播，NeoDB 自己建的行）
+                     +    8（档案里就没有标记日期）</code></pre>
+
+      <p>
+        2979 个条目全部对上，每一类记录一条不差，2519 条状态历史原样回来，
+        私密那份豆列存回去还是私密的。修之前同一份包会撞出 38 条重复，现在一条也没有。
+      </p>
+
+      <h2>顺带删掉一个永远会响的警报</h2>
+
+      <p>
+        第一次跑全量，它报了 32 条问题，全部来自同一件事：
+        <strong>8 条标记在豆瓣上就没有日期</strong>。我们故意不写日期——
+        编一个出来等于替用户宣称他那天标记过——于是服务器只能拿导入那一刻顶上，
+        日期必然对不上。
+      </p>
+
+      <p>
+        这类问题<strong>永远修不掉，也永远会报</strong>。留着的话，每跑一次就是 32 条噪音，
+        而<strong>一个永远有内容的失败清单，就是一个没人看的失败清单</strong>——
+        8 条足够盖住第 9 条真的问题。现在它压成一行说明，不进错误列表。
+      </p>
+
+      <p class="small muted">
+        这跟之前把「没有豆瓣链接、注定导入失败的那一条」移出压缩包、
+        改放进旁边一个单独文件，是同一个判断。
+      </p>
+
+      <h2>还有一条旧结论要收回</h2>
+
+      <p>
+        上上篇写过一句得意的话：NeoDB 的分类是它自己按条目重判的，
+        而它判出来的 movie 6 / tv 8 跟我们按「集数 / 首播 / 季数」判的<strong>完全一致</strong>。
+        当时 n=14。
+      </p>
+
+      <p>
+        全量跑完是：<strong>2111 条影视里 25 条不一致</strong>，净差 3
+        （我们 movie 1470 / tv 641，NeoDB 1473 / 638）。而且<strong>两个方向都有错</strong>：
+      </p>
+
+      <ul>
+        <li>《鬼灭之刃：无限列车篇》《刺客信条》《疯狂的麦克斯5》是电影，豆瓣页面上却带着「首播」，我们判成了剧集；</li>
+        <li>《边境安全：澳洲》《中国奇谭》《四驱兄弟》是不折不扣的剧集，被 NeoDB 归成了电影；</li>
+        <li>还有 8 条是电视特别篇 / OVA（黑镜圣诞特别篇、进击的巨人完结篇……），豆瓣用电影模板渲染，NeoDB 归到母剧集下面——这一类两边都说得通。</li>
+      </ul>
+
+      <p>
+        两个目录都不是权威，所以「对不上」不等于「我们错了」。判据本身站得住，
+        <strong>变的是它能支撑多大的结论</strong>：98.8% 一致比「14 条全对」有用得多。
+        n=14 推不出「一致」——这已经是这个项目第五次在小样本上推错了。
+      </p>
+
+      <h2>还没做的</h2>
+
+      <p class="small muted">
+        Letterboxd 和 Goodreads 依然<strong>没有真导过一次</strong>，
+        那两家现在能说的还是「符合从源码里读出来的格式」，不是「对方真的收」。
+        NDJSON 这一路还有一处真倒退：条目只按 URL 匹配，所以<strong>没有 ISBN 兜底</strong>——
+        一本豆瓣页面已经没了的书，CSV 那边还救得回来，这边救不回来。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-08-24-ndjson.html">更早：广播里存着一段豆瓣自己都不留的历史 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

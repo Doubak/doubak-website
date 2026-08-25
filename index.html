@@ -284,8 +284,12 @@
             以及一条从广播还原出来的<strong>状态时间线</strong>——
             想看 → 在看 → 看过，每一步带着当天的日期和当天打的星，
             <strong>豆瓣自己只留最后一次</strong>。
-            <span class="muted">NDJSON 这一路目前只能说「符合从导入器源码里读出来的格式」，
-            还没有真导过一次。</span>
+            NDJSON 这一路<strong>也真导过了</strong>（2026-08-25，整份档案 17305 条记录，0 条失败），
+            导完长这样：<a href="https://neodb.social/users/immewx/">neodb.social/users/immewx</a>
+            ——想看 1098 · 在看 71 · 看过 1774，电影 1473 · 剧集 638 · 游戏 598 ·
+            图书 145 · 音乐 84 · 舞台剧 5，连同 712 个标签、6 份豆列和 2519 条状态历史。
+            导完之后还从 NeoDB 自己的导出功能<strong>把数据取回来逐字段对过一遍</strong>：
+            2979 个条目全部对上，每一类记录一条不差。
           </p>
         </li>
       </ul>
@@ -295,12 +299,12 @@
       <h3>还没做的 —— 路线图上的</h3>
       <ul class="features">
         <li>
-          <span class="name">NDJSON 那一路真导一次 <span class="pill pill-soon">计划中</span></span>
+          <span class="name">Letterboxd / Goodreads 真导一次 <span class="pill pill-soon">计划中</span></span>
           <p class="desc">
-            豆列、日记、状态历史现在都写得出来了，但<strong>还没有真的导进去过一次</strong>。
-            上一次换来的教训就是这个：「我理解对了他们的代码」和「他们真的收下了」
-            是两件事，而中间那一次上传抓到过一个不该有的默认行为。
-            在导过之前，这一路的说法只能是「符合已记录的格式」。
+            NeoDB 那两条路（CSV 和 NDJSON）都真导进去验过了，
+            这两家<strong>还没有</strong>。教训是同一句：「我理解对了他们的代码」和
+            「他们真的收下了」是两件事——NeoDB 那两次上传各抓到过一个本地测试碰不到的问题。
+            在导过之前，这两家的说法只能是「符合已记录的格式」。
           </p>
         </li>
         <li>
@@ -535,19 +539,19 @@
     <h2>最近的开发日志</h2>
     <ul class="log-list">
       <li>
+        <time datetime="2026-08-25">2026-08-25</time>
+        <h3><a href="/log/2026-08-25-self-check.html">自己跟自己对账，永远是平的</a></h3>
+        <p>整份档案 17305 条真导进了 NeoDB。本地测试全绿，导进去第一眼就看见一个把同一件事写成两行的 bug——<strong>因为对账的两边都是自己写的</strong>。</p>
+      </li>
+      <li>
+        <time datetime="2026-08-24">2026-08-24</time>
+        <h3><a href="/log/2026-08-24-ndjson.html">广播里存着一段豆瓣自己都不留的历史</a></h3>
+        <p>NeoDB 的维护者问能不能出 NDJSON。换过去之后多带走的不只是豆列——3411 条广播拼出一条<strong>豆瓣自己已经不显示</strong>的状态时间线。</p>
+      </li>
+      <li>
         <time datetime="2026-08-20">2026-08-20</time>
         <h3><a href="/log/2026-08-20-round-trip.html">真导一次才知道</a></h3>
         <p>NeoDB 导出真的导了一次。读源码读对的那一处得到了<strong>唯一的实证</strong>，而一条注定失败的记录暴露出一个不该有的默认行为。</p>
-      </li>
-      <li>
-        <time datetime="2026-08-20">2026-08-20</time>
-        <h3><a href="/log/2026-08-20-four-roots.html">放错目录的四份档案</a></h3>
-        <p>四份档案一直没被喂进解析器。并进去多出 43 个豆瓣改过名的作品，也让两条绿了几周的断言变红——<strong>两条都是断言错了</strong>。</p>
-      </li>
-      <li>
-        <time datetime="2026-08-17">2026-08-17</time>
-        <h3><a href="/log/2026-08-17-exports.html">走的时候不用求谁</a></h3>
-        <p>导出到 NeoDB、Letterboxd、Goodreads 做完了。原先写着「要先和 NeoDB 维护者谈」——那是把 API 当成<strong>唯一入口</strong>时的判断。</p>
       </li>
     </ul>
     <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>
