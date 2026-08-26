@@ -140,21 +140,48 @@
         <a href="/how/">怎么用</a>那一页、以及导出包里的《怎么导入》，都补上了同一句。
       </p>
 
-      <h2>最后一件小事：测试该按它断言的东西命名</h2>
+      <h2>那些测试也删了，而且大半本来就是重复的</h2>
 
       <p>
-        那些测试原本叫 <code>TestDoubakAgreesWithCsv</code>、
-        <code>TestDoubakArchiveShapes</code>，放在一个叫 <code>test_doubak.py</code> 的文件里。
-        删掉子类之后，这个文件名指着一个已经不存在的模块。
+        同一天维护者又回了一句：把测试也去掉，大部分是重复的；顺便把只改了行号的
+        翻译回退。第二件是纯事实——那 142 行变动的引用注释，
+        把 <code>:行号</code> 去掉之后两边完全相同，只差属于两条新字符串的 4 条。
+        <strong>第一件我先去核了再动手。</strong>
       </p>
 
       <p>
-        但更根本的问题是命名的<strong>轴选错了</strong>：这些测试断言的东西，
-        没有一条是豆备特有的。档案可以来自任何地方，而它们覆盖的，
-        正是「导出再导入」结构上够不着的那部分——那种测法只会把自己刚写下的东西读回来。
-        所以它们现在按各自的主张命名：两种归档格式描述同一个账号必须落地一致；
-        导出器不会写的形状也必须导得进来；上传表单必须拒绝挨着它的那几种档案。
-        fixture 里的来源署名也改成了 <code>elsewhere.example</code>。
+        核下来他是对的：23 条里有 <strong>14 条</strong>在
+        <code>test_ndjson.py</code> 里已经被断言过。收藏单条目备注、私密可见性、
+        独立日记转 Article、笔记去重、未知记录类型的计数、未改动的重复导入、
+        缺 <code>published</code>、上传校验里的 4 条……都能一条一条指到已有的用例上。
+      </p>
+
+      <p>
+        其中一条值得单独记，因为<strong>我写的理由本身是错的</strong>。
+        那个测试类的说明写着：「导出再导入永远到不了 <code>published</code> 相同、
+        只有 <code>updated</code> 不同的形状。」实际上正好到得了——一条书评被编辑时
+        <code>created_time</code> 不动、<code>edited_time</code> 动，
+        而 <code>test_ndjson_edit_replays_on_reimport</code> 测的就是这个。
+        整个类赖以成立的前提，对它最核心的那条测试不成立。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>「这些是别处测不到的」是一句需要去证的话，不是一句可以拿来当理由的话。</strong>
+          我按<em>类别</em>说服了自己——「导出再导入只能证明同一份代码的两半互相同意」——
+          这句话本身没错，错在我没有对着那 35 条已有用例一条一条比。
+          按类别推理出来的空白，和真的空白，是两回事。
+        </p>
+      </div>
+
+      <p>
+        剩下 9 条确实没有对应：不被本实例识别的 catalog id 靠
+        <code>external_resources</code> 解析、缺 <code>updated</code> 时编辑被静默丢弃的对照组、
+        豆伴的 <code>.xlsx</code> 走到视图（它<strong>本身就是 zip</strong>，
+        <code>is_zipfile</code> 分不出来）、不认识的 <code>format_type</code>，
+        以及四条把同一个账号的 CSV 与 NDJSON 归档逐字段对比的。
+        但这个 PR 已经不改任何 Python 了，<strong>测它没碰的行为就不该放进来</strong>，
+        所以一并删掉，需要的话另开一个。
       </p>
 
       <div class="callout warn">
