@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>把代码删光之后，证据反而更硬了 —— 开发日志</title>
+<meta name="description" content="上游维护者说「这个 PR 只做合并」。覆盖没了，那个子类就什么都不重写了——于是整个导入器删掉。剩下的 PR 里一行生产代码都没有，而它的证据比之前更强。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-26">2026-08-26</time>
+      <h1>把代码删光之后，证据反而更硬了</h1>
+      <p class="summary">上游维护者说「这个 PR 只做合并」。覆盖没了，那个子类就什么都不重写了——于是整个导入器删掉。剩下的 PR 里一行生产代码都没有，而它的证据比之前更强。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        八月二十四号往 NeoDB 提的那个 PR，核心是一个
+        <code>DoubakImporter</code>：继承他们自己的 <code>NdjsonImporter</code>，
+        只覆盖一个方法，为的是多一个<strong>「覆盖」</strong>模式。
+        理由是豆瓣特有的：豆瓣给一条标记盖的是「标记那天」，之后你改短评、改评分，
+        那个时间都不动。所以一个本来就在 NeoDB 上手动标记的人导入自己的豆瓣档案，
+        所有重叠的记录都会被跳过——本地那一行永远显得更新。
+      </p>
+
+      <p>
+        维护者先问了一句「为什么要加一个新导入器」，然后拍板：
+      </p>
+
+      <blockquote>
+        <p>let's make this PR for Merge only. Overwrite can be added later if users actually need it.</p>
+      </blockquote>
+
+      <p>
+        这两句合起来，答案就不是「把覆盖去掉」，而是<strong>把整个子类去掉</strong>。
+        <code>NdjsonImporter</code> 里所有「已有记录更新、跳过」的判断都走同一个方法，
+        子类覆盖的就是那一个——不做覆盖，它一个字都没重写。于是
+        <code>doubak.py</code>、两个数据库迁移、一个视图、一条 URL、一个上传表单，
+        全部删掉。
+      </p>
+
+      <h2>删完之后，证据反而变强了</h2>
+
+      <p>
+        这是我没预料到的部分。旧的 PR 描述里有一条必须写的注意事项：
+      </p>
+
+      <blockquote>
+        <p>那两次真实导入（40 条那份和全量 17305 条那份）走的都是<strong>现有的</strong>
+        <code>NdjsonImporter</code>，所以它们能证明的只是格式对，证明不了这个 PR。</p>
+      </blockquote>
+
+      <p>
+        把子类删掉之后，这句话没有了。因为现在这个 PR 记录的<strong>就是那条路径</strong>：
+        被验证过的东西和被交出去的东西，成了同一个东西。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>证据不是靠往上加东西变强的。</strong>
+          它变强，是因为「被验证的那条路」和「被交出去的那条路」终于重合了。
+          只要这两者不重合，中间那段差距就得由读的人自己去补——而通常没人会去补。
+        </p>
+      </div>
+
+      <h2>顺手撞上的一件事：进度是挂在类上的</h2>
+
+      <p>
+        放弃这个子类之前，我想留一样东西：数据页上单独一块进度显示。
+        导入几千条要很久，我希望用户能看见「豆瓣档案导到哪了」，
+        而不是跟别人的 NeoDB 备份混在同一个格子里。
+      </p>
+
+      <p>
+        查下来是不行的，原因很干脆：
+        <strong>进度挂在任务的「类型」上，而类型是从类本身推出来的。</strong>
+        「取这个用户最近一个任务」是按这个类型过滤的，前端轮询的那个网址也是拿这个类型拼出来的。
+        所以同一个类的两个区块，问的是同一个网址，拿回来的是同一个答案。
+      </p>
+
+      <p>
+        要硬造出两个区，就得去改所有导入器共用的状态模板和视图——
+        <strong>波及面比刚刚被否掉的那个子类还大</strong>，换来的只是把一个队列拆成两个框。
+        何况那一页现在是反着来的：CSV 和 NDJSON 两种导入器合用一个状态区。
+        同一个类，本来就只有一个队列。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>想知道界面上两样东西能不能分开，先看它们的状态挂在什么上。</strong>
+          挂在类上的东西，不换类就分不开——这跟界面怎么写没关系。
+        </p>
+      </div>
+
+      <h2>那 PR 里还剩什么</h2>
+
+      <p>
+        一块路牌。缺的从来不是代码——豆备产出的本来就是 NeoDB 自己的归档格式，
+        他们现有的表单一直就收得下，上面那两次真实导入走的就是它。
+        缺的是<strong>那一页上没有任何一句话这么说</strong>。
+      </p>
+
+      <p>
+        而且默认的猜法恰好是错的：一个拿着豆瓣档案的人，会去点那一节写着
+        「从豆瓣导入标记和评论」的——那一节收的是豆伴（Doufen）的 <code>.xlsx</code>，
+        把这个 zip 传上去只会被拒。看起来像「豆备的导出坏了」。
+      </p>
+
+      <p>
+        所以现在两边互相指：豆瓣那一节说明豆备的档案是 NDJSON、并链到下面的
+        「导入 NeoDB 备份」，那一节也加一句确认。
+        <a href="/how/">怎么用</a>那一页、以及导出包里的《怎么导入》，都补上了同一句。
+      </p>
+
+      <h2>最后一件小事：测试该按它断言的东西命名</h2>
+
+      <p>
+        那些测试原本叫 <code>TestDoubakAgreesWithCsv</code>、
+        <code>TestDoubakArchiveShapes</code>，放在一个叫 <code>test_doubak.py</code> 的文件里。
+        删掉子类之后，这个文件名指着一个已经不存在的模块。
+      </p>
+
+      <p>
+        但更根本的问题是命名的<strong>轴选错了</strong>：这些测试断言的东西，
+        没有一条是豆备特有的。档案可以来自任何地方，而它们覆盖的，
+        正是「导出再导入」结构上够不着的那部分——那种测法只会把自己刚写下的东西读回来。
+        所以它们现在按各自的主张命名：两种归档格式描述同一个账号必须落地一致；
+        导出器不会写的形状也必须导得进来；上传表单必须拒绝挨着它的那几种档案。
+        fixture 里的来源署名也改成了 <code>elsewhere.example</code>。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>还是那句。</strong>
+          Letterboxd 和 Goodreads 这两路仍然<strong>没有做过真实往返</strong>，
+          它们能证明的只是「产出符合读源码、读文档读出来的格式」，不是「对方真的收」。
+        </p>
+      </div>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-25-self-check.html">更早：自己跟自己对账，永远是平的 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
