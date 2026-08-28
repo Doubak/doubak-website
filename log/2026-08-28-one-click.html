@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>把下游搬进扩展，靠的是抄而不是重写 —— 开发日志</title>
+<meta name="description" content="NeoDB 的维护者问「扩展能不能直接导出 NDJSON」。做的时候差点在扩展里重写一遍图片判定——三处全错，三处都不报错。真正的工作不是写代码，是把纯函数从做 I/O 的文件里拆出来。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-28">2026-08-28</time>
+      <h1>把下游搬进扩展，靠的是抄而不是重写</h1>
+      <p class="summary">NeoDB 的维护者问「扩展能不能直接导出 NDJSON」。做的时候我差点在扩展里重写一遍图片判定——三处全错，三处都不报错。真正的工作不是写代码，是把纯函数从做 I/O 的文件里拆出来。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        那个路牌 PR 谈完之后，维护者顺口问了一句：
+      </p>
+
+      <blockquote>
+        <p>Will you be updating your Chrome extension so it can export an NDJSON zip directly?
+        If so, I'll merge and release after you're done.</p>
+      </blockquote>
+
+      <p>
+        之前一直担心「扩展塞太多东西，商店审核会麻烦」。这次去查了一下，
+        发现<strong>那个担心指错了变量</strong>：审核看的是权限、远程代码、
+        以及你怎么声明数据流向，跟代码行数没什么关系。而这次改动新增的权限是<strong>零</strong>，
+        网络请求是<strong>零</strong>，远程代码是<strong>零</strong>——它全是对已经躺在
+        本地的字节做纯计算。要说有影响，是往好的方向：「所有事情都在你自己机器上发生」
+        这句话变得更真了，而不是更假。
+      </p>
+
+      <h2>一半的活早就干完了</h2>
+
+      <p>
+        这是查下来最意外的部分。扩展里早就有一个 <code>src/vendor/parser/</code>，
+        装着解析器五个抽取器的<strong>逐字节拷贝</strong>，还有一条同步脚本和一条
+        CI 检查盯着它别漂。档案页那个「查看内容」也早就在浏览器里跑解析了。
+        读字节那一层（按 offset 定位、解压、切出 HTTP 正文）也有现成的。
+      </p>
+
+      <p>
+        所以问题从来不是「浏览器里能不能解析」，而是<strong>还有几个纯函数被困在
+        做 I/O 的文件里</strong>。
+      </p>
+
+      <h2>真正的工作：四次拆分</h2>
+
+      <p>
+        四个上游文件都在同时干两件事——「把字节读进来」和「拿字节算点什么」。
+        前者两边必然不同（Node 读文件系统，扩展读 OPFS），后者<strong>必须只有一份</strong>。
+      </p>
+
+      <ul>
+        <li><code>digest.js</code> 不再用 <code>node:crypto</code>，改用自带的一份同步 SHA-256</li>
+        <li><code>zip.js</code> 只留格式，压缩函数改成传进来的</li>
+        <li><code>pages.js</code> 从 <code>generate.js</code> 里拆出来：排页面是纯计算</li>
+        <li><code>image-index.js</code> 从 <code>images.js</code> 里拆出来：「哪张图是哪张」是判定</li>
+      </ul>
+
+      <p>
+        最后那一条最值得记，因为<strong>我差一点就没拆</strong>。
+      </p>
+
+      <h2>差点重写的那一段</h2>
+
+      <p>
+        当时想的是：不就是从 index 里挑出图片记录、编成两张表吗，照着字段名写一遍就完了。
+        我真的写了一版。三处，全错：
+      </p>
+
+      <ul>
+        <li>按 <code>content_type</code> 筛，而正确的判据是 <code>surface === 'asset'</code></li>
+        <li>按 <code>row.parent_url</code> 找作品 id——<strong>这个字段根本不存在</strong>，
+        真正的路是顺着 <code>parent_capture_id</code> 回到作品详情页那条记录的 URL</li>
+        <li>同名图留<strong>最早</strong>那份，而上游留的是最新那份（字节一样，但读新的能少解一个旧的大段文件）</li>
+      </ul>
+
+      <p>
+        三处都不会抛异常。出来的两个站点打开都很正常，只是图片路径不一样。
+        而上游那份代码里还写着一条我根本想不到的规则：<strong>不能只按 URL 找封面</strong>——
+        canonical 里的封面地址取自列表页缩略图，档案里存的却是详情页封面。
+        多数媒介恰好是同一个文件，舞台剧不是。实测 95 张明明就在档案里的图会全部落空。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>「这段逻辑很简单，我照着重写一遍就行」——这句话的危险不在于难，在于你不知道它里面还压着几条实测出来的规则。</strong>
+          那 95 张封面、那个不存在的字段名、那个「留最新不留最早」，
+          没有一条能靠读字段名推出来。它们是有人对着真实数据撞出来的，
+          而重写一遍恰好会把它们全部丢掉，且一声不响。
+        </p>
+      </div>
+
+      <h2>为什么是抄，不是 submodule</h2>
+
+      <p>
+        每次说到「一份代码两个地方用」，submodule 都会被提出来。这次没用，理由很具体，
+        不是风格问题：
+      </p>
+
+      <p>
+        <code>git clone</code> 不加 <code>--recursive</code>，会留下一个<strong>存在但是空的</strong>目录。
+        而扩展的打包脚本只在路径<em>不存在</em>时才报错——空目录它照收不误。
+        于是打包成功，装出来的扩展里没有解析器，<strong>而且一声不响</strong>。
+        那个白名单当初就是为了避开这种「静静少了东西」的失败，不能从后门把它放回来。
+      </p>
+
+      <p>
+        现在的做法是老规矩：<strong>产物提交进仓库</strong>（跑测试不需要另外三个仓库在场，
+        零构建步骤的前提不变），新鲜度由 <code>--check</code> 守着，本地缺仓库时「带原因跳过」，
+        <strong>CI 里则算失败</strong>——跳过在 CI 里等于没测。一共 23 个文件。
+      </p>
+
+      <h2>顺手被现有的规矩纠正了两次</h2>
+
+      <p>
+        写导出页的进度条时，我写了 <code>bar.style.width = '42%'</code>。
+        测试立刻红了：这个项目有一条「JS 里不许出现行内样式」的硬规矩，
+        因为样式一旦能在 JS 里随手写，就没有任何力量阻止下一块界面再发明一套。
+      </p>
+
+      <p>
+        被逼着换了个写法之后，换来的东西比原来好：用原生的
+        <code>&lt;progress&gt;</code>。它自带无障碍语义（读屏会念出进度），
+        而且<strong>不写 <code>value</code> 就是「不确定」状态</strong>——
+        正好对应「正在生成文件」这种算不出分母的阶段。
+        自己拿 <code>div</code> 拼的话，那几段只能显示 0%，
+        <strong>而 0% 看起来像卡住了</strong>，跟「在动，但不知道还有多久」是两件必须分清的事。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>一条挡住你的规矩，有时候是在把你推向本来就更好的那个解法。</strong>
+          禁掉行内样式的理由是「统一不了的根源是没有唯一的地方」，
+          而它这次顺带解决的是无障碍和「不确定状态」——两件我压根没在想的事。
+        </p>
+      </div>
+
+      <h2>那几条回答</h2>
+
+      <p>
+        <strong>中间产物不落盘。</strong> 解析结果只活在内存里，出完文件就扔。
+        理由不是省空间——<strong>派生数据落了盘就是第二个真相来源</strong>，
+        而这个面板已经为这件事付过三次代价。代价是每次导出重新解析一遍，
+        换来的是那条不变量继续成立：删掉所有派生数据、只靠原始捕获重建，必须能跑通。
+      </p>
+
+      <p>
+        <strong>一次只跑一个。</strong> 三种产出共用同一次解析，同时跑两个等于把最慢的那步做两遍。
+      </p>
+
+      <p>
+        <strong>直接写进你选的文件夹，不在扩展里中转。</strong>
+        浏览器的 <code>createWritable()</code> 写的是临时文件，只在关闭的那一刻整体换上去——
+        所以中断留下的是「没有这个文件」，而不是「半个文件」。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>还是那句。</strong>
+          Letterboxd 和 Goodreads 这两路仍然<strong>没有做过真实往返</strong>，
+          所以扩展的导出页里<strong>没有</strong>它们——
+          一个按钮就是一句「这条路能走」，而那句话现在还说不出口。
+        </p>
+      </div>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-26-less-code.html">更早：把代码删光之后，证据反而更硬了 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

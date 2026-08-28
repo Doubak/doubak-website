@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>怎么用 —— 豆备 Doubak</title>
-<meta name="description" content="装扩展 → 抓下来 → 解析 → 建站或导出。四步都在你自己的机器上跑，中间不经过任何服务器。每一节都指向对应仓库的 README，那才是唯一真源。">
+<meta name="description" content="装扩展 → 抓下来 → 解析 → 建站或导出。四步都在你自己的机器上跑，中间不经过任何服务器。后三步扩展里点几下就能做完，命令行那条路留给要改参数的人。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -39,6 +39,7 @@
     <p class="lede">
       四步：<strong>装扩展 → 抓下来 → 解析 → 建站或者导出</strong>。
       每一步都在你自己的机器上跑，中间不经过任何服务器，断网也能跑完后面三步。
+      <strong>后三步扩展里点几下就能做完</strong>，命令行那条路留给要改参数的人。
     </p>
   </div>
 </section>
@@ -58,6 +59,20 @@
       只想要一份备份的话，<strong>第 1 步就够了</strong>：装上扩展、抓一次、导出到硬盘，
       那份档案是完整的，后面三步什么时候做、做不做，都不影响它。
     </p>
+
+    <div class="callout">
+      <p>
+        <strong>后面三步现在扩展自己也能做，不用装 Node。</strong>
+        扩展的「导出」页当场把档案算成<strong>结构化数据</strong>、
+        <strong>NeoDB 导入包</strong>、或者一棵 <strong>Markdown 站点</strong>（图片一并导出），
+        直接写进你选的文件夹。用的就是下面那三个仓库的同一份代码——逐字节拷进扩展，
+        由 CI 守着不许漂——所以两条路出来的是同一个东西。
+      </p>
+      <p>
+        下面这几节讲的是命令行那条路。它适合<strong>要改参数、接进脚本、
+        或者只想拿一部分数据</strong>的人；只想点几下的话，看完第 1 步就可以了。
+      </p>
+    </div>
 
     <ol class="pipeline">
       <li><strong>扩展</strong>：在你的浏览器里抓豆瓣，把页面原样存成<strong>原始档案</strong>（bundle）</li>
