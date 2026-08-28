@@ -210,6 +210,43 @@
 
 <section class="section">
   <div class="wrap">
+    <h2>扩展里的「导出」页：第 2–4 步一次做完</h2>
+
+    <p>
+      抓完之后打开扩展的<strong>「导出」</strong>页，三个按钮，各出一样东西。
+      不用先建文件夹——点「导出…」时选一个现成的目录就行（比如「下载」），
+      三种产出会各自在里面建一个子目录，<strong>不会互相覆盖</strong>：
+    </p>
+
+    <pre><code>doubak-neodb/       neodb-ndjson-import.zip ← 传这个，加三份给人看的旁注
+doubak-canonical/   五个 .ndjson + README.txt
+doubak-markdown/    content/（每页一个 .md）与 static/（图片与搜索索引）</code></pre>
+
+    <p>
+      三种都从<strong>同一次解析</strong>来，一次只跑一个。解析结果不落盘——
+      它是可以重算的派生数据，而多存一份就是多一个可能不一致的真相来源。
+      整个过程在本机进行，<strong>不联网</strong>。
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>它和下面的命令行是同一份代码。</strong>
+        解析器、导出适配器、站点生成器里那些纯函数被<strong>逐字节</strong>拷进了扩展，
+        由两边的 CI 守着不许漂。实测对着同一个账号的档案跑：
+        标记、作品、广播、日记、豆列共 9322 条记录<strong>两边一条不差、内容逐字段相同</strong>，
+        产出的 Markdown 3131 个页面文件名完全一致。
+      </p>
+    </div>
+
+    <p>
+      下面这几节讲命令行那条路。<strong>只想点几下的话，看到这里就够了</strong>——
+      往下是给要改参数、接进脚本、或者只想拿一部分数据的人看的。
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
     <h2>第 2 步 · 解析</h2>
 
     <p>

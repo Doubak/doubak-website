@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>把下游搬进扩展，靠的是抄而不是重写 —— 开发日志</title>
-<meta name="description" content="NeoDB 的维护者问「扩展能不能直接导出 NDJSON」。做的时候差点在扩展里重写一遍图片判定——三处全错，三处都不报错。真正的工作不是写代码，是把纯函数从做 I/O 的文件里拆出来。">
+<meta name="description" content="NeoDB 的维护者问「扩展能不能直接导出 NDJSON」。做的时候差点在扩展里重写一遍图片判定——三处全错，三处都不报错。后来对着真实档案验了一遍：9322 条记录两边一条不差。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -185,6 +185,33 @@
         浏览器的 <code>createWritable()</code> 写的是临时文件，只在关闭的那一刻整体换上去——
         所以中断留下的是「没有这个文件」，而不是「半个文件」。
       </p>
+
+      <h2>后来对着真实档案验了一遍</h2>
+
+      <p>
+        写完之后拿一份真实的 18 份档案跑了一趟，再跟命令行那条路的产出逐条比：
+      </p>
+
+      <ul>
+        <li><strong>结构化数据：</strong>标记 2950、作品 2950、广播 3411、长文 5、豆列 6
+        ——两边<strong>一条不差</strong>，每条的最终内容<strong>逐字段相同</strong>。
+        只有 9 条修订数不同，而那 9 条全都来自「一边有、另一边没有」的那两份档案。</li>
+        <li><strong>NeoDB 包：</strong>每一种记录的条数与命令行那份参照<strong>完全一致</strong>，
+        系统自带的 <code>unzip -t</code> 也认。</li>
+        <li><strong>Markdown：</strong>3131 个页面的<strong>文件名一个不差</strong>，
+        内容只有 8 个文件不同——而那 8 个全都指向同 5 张封面，
+        两边各自找到的是同一张海报的两个尺寸。</li>
+      </ul>
+
+      <div class="callout">
+        <p>
+          <strong>第一版对比脚本得出「47 条内容不同」，而那个数字是假的。</strong>
+          标记记录没有顶层 id，我那个「取 id，取不到就退回整条 JSON 的前 200 个字符」
+          的键把成千上万条塌成了几个键。数字看着挺像回事，我差一点就当成发现报出去了。
+          换成解析器自己用的那个键（媒介 + 作品 id）、<strong>并且先断言键是唯一的</strong>
+          之后，答案是 0。
+        </p>
+      </div>
 
       <div class="callout warn">
         <p>
