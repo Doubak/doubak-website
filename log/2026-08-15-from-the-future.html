@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>验一验：能不能读将来的档案 —— 开发日志</title>
-<meta name="description" content="规范给读者立过两条义务，而在此之前没有任何东西验证过它们。加一份「来自未来」的一致性用例，两个读取端各验一遍。以及过程中两次写出恒真的断言。">
+<meta name="description" content="规范给读者定了两条规则，但之前没有任何测试验证过规则的执行。于是加了一份「来自未来」的一致性用例，两个读取端各跑一遍。过程中还两次写出了 assert true 的错误。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -38,7 +38,7 @@
     <div class="post-head">
       <time datetime="2026-08-15">2026-08-15</time>
       <h1>验一验：能不能读将来的档案</h1>
-      <p class="summary">规范给读者立过两条义务，而在此之前<strong>没有任何东西验证过它们</strong>。加了一份「来自未来」的一致性用例，两个读取端各验一遍。以及过程中两次写出了恒真的断言。</p>
+      <p class="summary">规范给读者定了两条规则，但之前<strong>没有任何测试验证过规则的执行</strong>。于是加了一份「来自未来」的一致性用例，两个读取端各跑一遍。过程中还两次写出了 assert true 的错误。</p>
     </div>
 
     <div class="post-body">
@@ -49,8 +49,8 @@
       </p>
 
       <p>
-        而规范第 10 节给读者立了两条义务——容忍未知字段、原样保留开放词表里的未知取值——
-        写在那儿一个多月，没有任何东西检查过谁真的做到了。
+        规范第 10 节给读者定了两条规则——容忍未知字段、原样保留开放词表里的未知取值——
+        写在那儿一个多月，没有任何测试检查过谁真的做到了。
       </p>
 
       <h2>要守的是哪一半</h2>
@@ -95,7 +95,7 @@ intent         future.route.that.does.not.exist.yet 开放词表里的未知取�
       </p>
 
       <p>
-        读者对那一类的义务是另一条：保守处置，不得当成 <code>ok</code>。
+        读者对那一类要守的是另一条：保守处理，不能当成 <code>ok</code>。
         「未知的判定结果」和「未知的字段」听起来像一回事，
         <strong>处置方式恰好相反</strong>：前者要疑，后者要放。
       </p>
@@ -117,7 +117,7 @@ intent         future.route.that.does.not.exist.yet 开放词表里的未知取�
         所有旧解析器都会对着新档案刷屏——而刷屏的告警等于没有告警。
       </p>
 
-      <h2>然后我两次写出了恒真的断言</h2>
+      <h2>然后我两次写出了 assert true 的错误</h2>
 
       <p>
         这才是这一趟真正学到的东西。两份测试，各有一条断言<strong>永远不可能失败</strong>，
@@ -148,7 +148,7 @@ intent         future.route.that.does.not.exist.yet 开放词表里的未知取�
       </div>
 
       <p>
-        两处都改成了会变的判据，踩坑记在注释里。
+        两处都换成了真有可能红的判据，踩坑记在注释里。
         这跟之前那个「声称有 N 条却一个 id 都没抽到」的自检是同一件事的两面：
         <strong>一个从来没红过的检查，和一个不存在的检查，在证据上是等价的。</strong>
       </p>

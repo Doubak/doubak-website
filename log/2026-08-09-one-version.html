@@ -68,8 +68,8 @@
 
       <p>
         更糟的是<strong>崩溃恢复那条路径根本没传过这个字段</strong>，全靠上面那个默认值兜着。
-        而 MV3 的后台随时会被浏览器回收，一场几小时的抓取必然跨越好几次——
-        也就是说那不是异常路径，那是常态。恢复之后写下的每一个段，头里都躺着那个字面量。
+        MV3 的后台随时会被浏览器回收，一场几小时的抓取必然跨越好几次——
+        所以那不是异常路径，是常态。恢复之后写下的每一个段，头里都躺着那个字面量。
       </p>
 
       <div class="callout warn">
@@ -97,14 +97,14 @@
 
       <p>
         原因是<strong>真正写档案的那条路径不跑在面板里</strong>。面板是普通扩展页面，
-        扩展 API 全都有；而抓取跑在一个 offscreen document 里，那里
+        扩展 API 全都有。抓取跑在一个 offscreen document 里，那里
         <strong>只暴露 <code>chrome.runtime</code> 的消息 API</strong>（Chrome 的原话是
         “only the chrome.runtime messaging APIs are exposed to the offscreen document”）。
         <code>getManifest</code> 不在其中。
       </p>
 
       <p>
-        三个上下文的能力不一样，而<strong>出问题的那个恰恰是测试进不去的那个</strong>：
+        三个上下文的能力不一样，<strong>出问题的那个恰恰是测试进不去的那个</strong>：
         <code>node:test</code> 里压根没有 <code>chrome</code>，那一行从来没被执行过。
       </p>
 
@@ -129,8 +129,8 @@
 
       <p>
         版本号本身则退回去直接 <code>fetch</code> manifest.json 这个文件。
-        这反而比问 chrome 更贴合「只有一个来源」：那就是同一个文件；
-        而读扩展自己的资源在三个上下文里都成立，不需要任何扩展 API。
+        这反而比问 chrome 更贴合「只有一个来源」：那就是同一个文件。
+        读扩展自己的资源在三个上下文里都成立，不需要任何扩展 API。
       </p>
 
       <h2>守着它的那条测试，第一版也挡不住它要防的 bug</h2>

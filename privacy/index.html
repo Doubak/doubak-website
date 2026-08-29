@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>隐私政策 —— 豆备 Doubak</title>
-<meta name="description" content="豆备（Doubak）的隐私政策：不收集、不上传、不传输任何数据。没有服务器，没有统计，没有 cookie。所有数据留在你自己的设备上。">
+<meta name="description" content="豆备（Doubak）的隐私政策：不收集、不上传、不传输任何数据。没有服务器、没有统计、没有 cookie，数据全留在你自己的设备上。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -37,7 +37,7 @@
   <div class="wrap">
     <h1>隐私政策</h1>
     <p class="lede">
-      一句话：<strong>豆备不收集任何数据，因为它没有地方可收。</strong>
+      一个原则：<strong>豆备不收集任何数据，因为它无处可存。</strong>
       没有服务器，没有账号，没有统计脚本，没有 cookie。
     </p>
     <p class="small muted">最后更新：2026-08-09 · 适用于浏览器扩展「豆备 Doubak」与本站 doubak.com</p>
@@ -46,7 +46,7 @@
 
 <section class="section">
   <div class="wrap">
-    <h2>这个扩展会碰到什么</h2>
+    <h2>这个扩展会读到什么</h2>
     <p>
       为了把你的豆瓣内容备份下来，扩展会在<strong>你自己的浏览器里</strong>读取这些东西：
     </p>
@@ -74,9 +74,9 @@
     </div>
 
     <p class="muted">
-      扩展只向 <code>douban.com</code> 与 <code>doubanio.com</code> 发请求 ——
-      也就是你本来就在访问的那个网站。除此之外它不连接任何第三方，
-      <strong>包括本站</strong>：安装之后 doubak.com 挂掉也不影响它工作。
+      扩展只向 <code>douban.com</code> 和 <code>doubanio.com</code> 发请求 ——
+      也就是你本来就在访问的那个网站。除此之外它不连任何第三方，
+      <strong>包括本站</strong>：装好之后 doubak.com 挂了也不影响它工作。
     </p>
   </div>
 </section>
@@ -85,21 +85,21 @@
   <div class="wrap">
     <h2>明确没有的东西</h2>
     <ul>
-      <li><strong>没有服务器。</strong>这个项目没有后端，也就没有任何地方能接收你的数据。</li>
+      <li><strong>没有服务器。</strong>这个项目没有后端，没有任何地方能接收你的数据。</li>
       <li><strong>没有账号、没有登录。</strong>扩展本身不需要你注册任何东西。</li>
       <li><strong>没有统计与遥测。</strong>不上报使用情况、不上报崩溃、不做 A/B。</li>
-      <li><strong>没有第三方代码。</strong>零运行时依赖，没有 CDN、没有分析脚本、没有广告。</li>
-      <li><strong>不出售、不共享、不用于训练。</strong>没有数据到手，也就无从谈起。</li>
+      <li><strong>没有第三方代码。</strong>运行时零依赖，没有 CDN、没有分析脚本、没有广告。</li>
+      <li><strong>不出售、不共享、不用于训练。</strong>数据根本到不了手，无从谈起。</li>
       <li><strong>本站不设 cookie</strong>，也不加载任何第三方资源。</li>
     </ul>
 
     <div class="callout">
       <p>
-        <strong>为什么可以不只是相信这段话。</strong>
-        扩展的全部源码是公开的，权限清单逐条写了理由，而且它声明的网络权限
-        <em>只包含</em> <code>https://*.douban.com/*</code> 与
-        <code>https://*.doubanio.com/*</code> —— 浏览器不会允许它连接别处。
-        安装时的权限警告就是这份承诺的技术兑现。
+        <strong>为什么这段话不只是说说而已。</strong>
+        扩展的源码全部公开，权限清单逐条写了理由，声明的网络权限
+        <em>只有</em> <code>https://*.douban.com/*</code> 和
+        <code>https://*.doubanio.com/*</code> —— 浏览器不允许它连接别处。
+        安装时那条权限警告，就是这份承诺在技术上兑现的样子。
       </p>
       <p>
         <a href="https://github.com/Doubak/doubak-extension/blob/main/docs/permissions.md">看权限审计 →</a>
@@ -115,11 +115,11 @@
     <h2>数据在你手里，也由你负责</h2>
     <p>
       备份下来的档案是<strong>你的文件</strong>。豆备把它写到你指定的文件夹之后就不再管它 ——
-      我们既看不到它，也删不掉它。相应地：
+      我们看不到它，也删不掉它。所以：
     </p>
     <ul>
       <li><strong>删除</strong>：删掉那些文件即可；扩展内的副本可以在「存储」页删除。卸载扩展会连同浏览器里的存储一起清掉。</li>
-      <li><strong>导出</strong>：档案是标准 WARC 加 JSON 索引，用 <code>jq</code>、pywb、ReplayWeb.page 都能直接打开，不依赖本工具。</li>
+      <li><strong>导出</strong>：档案是标准 WARC 加 JSON 索引，用 <code>jq</code>、pywb、ReplayWeb.page 都能直接打开，不靠本工具。</li>
       <li><strong>如果你把生成的站点公开发布</strong>：那是你的主动行为。发布前请自己确认里面没有你不想公开的内容 —— 短评、日记与广播里可能包含个人信息。</li>
     </ul>
   </div>
@@ -129,12 +129,12 @@
   <div class="wrap">
     <h2>关于别人的数据</h2>
     <p>
-      豆备<strong>刻意不抓第三方内容</strong>：别人在你广播下的回复、你的关注与被关注列表、
-      豆邮、别人上传的图片，都不在抓取范围内。这既是隐私边界，也是一条工程边界。
+      豆备<strong>刻意不抓第三方内容</strong>：别人在你广播下的回复、你的关注和被关注列表、
+      豆邮、别人上传的图片，都不在抓取范围内。这是隐私边界，也是工程边界。
       详见首页的<a href="/#not-collected">「它刻意不抓什么」</a>。
     </p>
     <p class="muted">
-      即便如此，你自己写的内容里仍然可能提到别人。这一点在你决定是否公开发布时需要自己判断。
+      但你自己写的内容里还是可能提到别人。要不要公开发布，这一点需要你自己判断。
     </p>
   </div>
 </section>
@@ -144,8 +144,8 @@
     <h2>变更与联系</h2>
     <p>
       这份政策如有变更，会更新本页顶部的日期，并记录在
-      <a href="https://github.com/Doubak/doubak-website/commits/main/privacy/index.html">Git 提交历史</a>里 ——
-      改了什么、什么时候改的，都可以自己核对。
+      <a href="https://github.com/Doubak/doubak-website/commits/main/privacy/index.html">Git 提交历史</a>里。
+      改了什么、什么时候改的，你都可以自己核对。
     </p>
     <p>
       有疑问：<a href="mailto:admin@doubak.com">admin@doubak.com</a>

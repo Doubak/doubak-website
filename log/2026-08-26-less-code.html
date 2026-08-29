@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>把代码删光之后，证据反而更硬了 —— 开发日志</title>
-<meta name="description" content="上游维护者说「这个 PR 只做合并」。覆盖没了，那个子类就什么都不重写了——于是整个导入器删掉。剩下的 PR 里一行生产代码都没有，而它的证据比之前更强。">
+<meta name="description" content="上游维护者说「这个 PR 只做合并」。覆盖没了，那个子类就一个方法都不重写了——整个导入器干脆删掉。剩下的 PR 一行生产代码都没有，证据反而比之前更强。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -38,7 +38,7 @@
     <div class="post-head">
       <time datetime="2026-08-26">2026-08-26</time>
       <h1>把代码删光之后，证据反而更硬了</h1>
-      <p class="summary">上游维护者说「这个 PR 只做合并」。覆盖没了，那个子类就什么都不重写了——于是整个导入器删掉。剩下的 PR 里一行生产代码都没有，而它的证据比之前更强。</p>
+      <p class="summary">上游维护者说「这个 PR 只做合并」。覆盖没了，那个子类就一个方法都不重写了——整个导入器干脆删掉。剩下的 PR 一行生产代码都没有，证据反而比之前更强。</p>
     </div>
 
     <div class="post-body">
@@ -60,9 +60,9 @@
       </blockquote>
 
       <p>
-        这两句合起来，答案就不是「把覆盖去掉」，而是<strong>把整个子类去掉</strong>。
+        这两句放一起，答案就不是「把覆盖去掉」，而是<strong>把整个子类去掉</strong>。
         <code>NdjsonImporter</code> 里所有「已有记录更新、跳过」的判断都走同一个方法，
-        子类覆盖的就是那一个——不做覆盖，它一个字都没重写。于是
+        子类覆盖的就是那一个——不做覆盖，它一个字都没重写。
         <code>doubak.py</code>、两个数据库迁移、一个视图、一条 URL、一个上传表单，
         全部删掉。
       </p>
@@ -70,7 +70,7 @@
       <h2>删完之后，证据反而变强了</h2>
 
       <p>
-        这是我没预料到的部分。旧的 PR 描述里有一条必须写的注意事项：
+        这是我没想到的部分。旧的 PR 描述里有一条非写不可的注意事项：
       </p>
 
       <blockquote>
@@ -145,7 +145,7 @@
       <p>
         同一天维护者又回了一句：把测试也去掉，大部分是重复的；顺便把只改了行号的
         翻译回退。第二件是纯事实——那 142 行变动的引用注释，
-        把 <code>:行号</code> 去掉之后两边完全相同，只差属于两条新字符串的 4 条。
+        把 <code>:行号</code> 去掉之后两边一模一样，只差两条新字符串对应的 4 条。
         <strong>第一件我先去核了再动手。</strong>
       </p>
 
@@ -161,8 +161,8 @@
         那个测试类的说明写着：「导出再导入永远到不了 <code>published</code> 相同、
         只有 <code>updated</code> 不同的形状。」实际上正好到得了——一条书评被编辑时
         <code>created_time</code> 不动、<code>edited_time</code> 动，
-        而 <code>test_ndjson_edit_replays_on_reimport</code> 测的就是这个。
-        整个类赖以成立的前提，对它最核心的那条测试不成立。
+        <code>test_ndjson_edit_replays_on_reimport</code> 测的就是这个。
+        整个类成立的前提，恰恰在它最核心的那条测试上不成立。
       </p>
 
       <div class="callout">
