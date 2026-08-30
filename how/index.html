@@ -256,14 +256,26 @@ doubak-markdown/    content/（每页一个 .md）与 static/（图片与搜索�
       随时可以删掉重跑。
     </p>
 
-    <pre><code>node bin/parse.js &lt;装着一堆原始档案的目录&gt; [输出目录] [--ignore-warnings]</code></pre>
+    <pre><code>node bin/parse.js &lt;装着一堆原始档案的目录&gt; [输出目录] [--ignore-warnings] [--no-verify]</code></pre>
 
     <p>
       喂<strong>整个目录</strong>就好，不用自己挑哪几份，
       <strong>子目录里的也会一起找到</strong>——解压出来带一层外壳、
       按月份分了文件夹、几次导出堆在一起，都不用先手工摊平。
+      就算好几份档案的文件平铺在同一个文件夹里（下载目录常常就是这样），
+      也会被一份份认出来。
       抓了很多次、换过机器、甚至有两条互不相连的链，都直接扔进去：
       合并的结果正好是它们的并集，挑一条反而会丢东西。
+    </p>
+
+    <p>
+      解析之前它会<strong>先核一遍字节</strong>：每个段文件、每一条捕获，
+      都拿档案里记着的摘要对一次，对不上的那几条不会进结构化数据。
+      这一步<strong>默认就做</strong>，因为要人主动去跑的检查等于没有检查。
+      一份 619&nbsp;MB、两万多条捕获的真实档案上大约多花 8 秒；
+      真嫌慢可以加 <code>--no-verify</code> 跳过，
+      代价是坏掉的捕获会照常进去。想单独核而不解析：
+      <code>node bin/verify.js &lt;同一个目录&gt;</code>。
     </p>
 
     <div class="callout warn">
