@@ -594,7 +594,7 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
             <td>档案格式的规范文本与 JSON Schema。整个项目的基石。</td>
-            <td class="ok">bundle 1.2</td>
+            <td class="ok">bundle 1.3</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-parser">doubak-data-parser</a></td>
@@ -616,6 +616,11 @@
             <td>结构化数据 → NeoDB / Letterboxd / Goodreads 的导入文件。纯函数，不联网。</td>
             <td class="ok">能跑了</td>
           </tr>
+          <tr>
+            <td><a href="https://github.com/Doubak/doubak-import-adapters">doubak-import-adapters</a></td>
+            <td><strong>别的</strong>抓取工具存下来的页面 → 原始档案（bundle）。于是那些旧数据能走完同一条流水线。</td>
+            <td class="ok">能跑了</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -623,7 +628,10 @@
       还有 <a href="https://github.com/Doubak/doubak-data-enricher">doubak-data-enricher</a>（可选的外部链接补全）。
       下游全部可以晚几年再写，因为抓取已经完成了 —— 解析器是一个对已抓页面的纯函数，什么时候写都来得及。
       2020 年那一版 <a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>（Go 命令行）已归档，
-      但它抓下来的档案没有白费——本项目的实测结论几乎都来自那批数据。
+      但它抓下来的档案没有白费：本项目的实测结论几乎都来自那批数据，而现在
+      <a href="https://github.com/Doubak/doubak-import-adapters">doubak-import-adapters</a>
+      能把它们直接转成档案接进来——实测 782 MB、7353 个页面、2022 到 2024 的四次抓取，
+      补回 20 个月豆瓣自己也不保存的编辑史。
     </p>
   </div>
 </section>
