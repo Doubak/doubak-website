@@ -427,6 +427,15 @@ npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
       重新跑一遍解析器不花什么代价。
     </p>
 
+    <p class="small muted">
+      顺带一提：原始档案<strong>不只有扩展写得出来</strong>。
+      <a href="https://github.com/Doubak/doubak-import-adapters">导入适配器</a>
+      能把别的抓取工具存下来的页面转成同一种格式，接进上面这条流水线——
+      目前支持 2020 年那一版命令行工具
+      <a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>。
+      如果你手上没有那种老档案，这一段可以跳过。
+    </p>
+
     <p>
       两种都是 WARC 加 NDJSON，没有私有二进制格式。
       判据是：<strong>2040 年一个不认识这个项目的人，能不能只靠 <code>jq</code> 把它读出来。</strong>
