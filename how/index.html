@@ -98,14 +98,18 @@
 
     <ol>
       <li>
-        <strong><a href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">Chrome 应用商店</a></strong>
-        —— 多数人走这条，点一下就装上，之后自动更新。Edge 也能从这里装。
+        <strong>浏览器商店</strong>
+        —— 多数人走这条，点一下就装上，之后自动更新：
+        <a href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">Chrome 应用商店</a>、
+        <a href="https://microsoftedge.microsoft.com/addons/detail/jfaancfhcbfebmlphapaifkpijlcgnpf">Microsoft Edge 加载项</a>。
+        两边提交的是同一份包，装哪边都一样；Edge 也仍然能从 Chrome 应用商店装。
       </li>
       <li>
         <strong><a href="https://github.com/Doubak/doubak-extension/releases/latest">Releases</a></strong>
         —— 不想走商店的话，下 <code>doubak-&lt;版本&gt;.zip</code>。它跟商店里那份是同一条 CI 打出来的，
-        逐字节相同。注意那是<strong>提交给商店的格式，Chrome 不能直接装 zip</strong>：
-        要先解压，再到 <code>chrome://extensions</code> 打开开发者模式 →「加载已解压的扩展程序」→ 选解压出来的目录。
+        逐字节相同。注意那是<strong>提交给商店的格式，浏览器不能直接装 zip</strong>：
+        要先解压，再到 <code>chrome://extensions</code>（Edge 是 <code>edge://extensions</code>）
+        打开开发者模式 →「加载已解压的扩展程序」→ 选解压出来的目录。
       </li>
       <li>
         <a href="https://github.com/Doubak/doubak-extension/actions/workflows/package.yml">Actions 里的构建产物</a>

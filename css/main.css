@@ -305,6 +305,8 @@ hr {
   font-weight: 500;
   line-height: 1.4;
   cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease,
+              color .15s ease, filter .15s ease;
 }
 .btn:hover { text-decoration: none; }
 
@@ -322,9 +324,53 @@ hr {
 }
 .btn-ghost:hover { border-color: var(--green); color: var(--green-link); }
 
+/* 「安装」这一组。上架第二个商店之后它不再是一个按钮：两块同样大、同样排版，
+   区别只在实心还是描边——Chrome 那边的人多，所以实心的是它，但两边装下来
+   是同一份包。副标题写商店的正式名字，是因为按钮上写着「安装到 Edge」、
+   点过去落在一个叫「Microsoft Edge 加载项」的页面上，中间那一步不该让人自己猜。
+
+   用 grid 而不是 flex：两块要一样宽（文字长度不一样，flex 会撑出两个宽度，
+   一组并列的东西长短不齐就显得是随手摆的）。auto-fit + minmax 顺带把窄屏
+   收成一列，不用再写一条 media query。210px 比里面最长那行（「Microsoft Edge
+   加载项」加左右内边距，约 175px）宽，所以任何宽度下都不会挤出去。 */
+.install {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  max-width: 32em;
+  margin-bottom: 12px;
+}
+
+/* 两行字，所以主轴转成纵向。.btn 的 align-items:center 在这里会把两行都居中，
+   而这两行是一组左对齐的标签。 */
+.btn-store {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: .15em;
+  padding: .7em 1.25em .75em;
+  line-height: 1.35;
+}
+.btn-store .label { font-size: 1rem; font-weight: 600; }
+/* 副标题不压 opacity：这一行本来就只有 .78rem，再降一档对比度就掉进
+   「看得见但读不清」那一格了。分主次交给字号和字重，够用。 */
+.btn-store .store { font-size: .78rem; font-weight: 400; }
+.btn-store.btn-primary .store { color: rgba(255, 255, 255, .92); }
+
+/* 描边版：和实心那个同一个绿，只是反过来（绿底白字 ↔ 淡绿底绿字）。
+   没有复用 .btn-ghost，是因为 ghost 是「次要动作」那一档（灰边灰字，
+   下面那排就是），而这一个跟旁边的实心按钮是并列的——纯白底加一条淡边
+   压不住旁边那块实心绿，两个并排会看成一主一次。 */
+.btn-outline {
+  background: var(--green-soft);
+  color: var(--green-link);
+  border-color: var(--green-line);
+}
+.btn-outline:hover { border-color: var(--green); }
+
 /* 尚未上架的占位按钮：看得见，但点不动，也不假装能点。
-   首页已经不用它了（2026-08-15 上架），留着是因为 Edge / Firefox 那两个商店还没上，
-   到时候还是这一种状态。 */
+   首页已经不用它了（Chrome 2026-08-15 上架，Edge 随后也上了），留着是因为
+   Firefox 那个商店还没上，到时候还是这一种状态。 */
 .btn-soon {
   background: var(--bg-alt);
   color: var(--text-faint);

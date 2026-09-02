@@ -62,12 +62,19 @@
       <strong>不用装任何别的软件</strong>。凭据和数据全程不离开你的设备。
       长什么样不用想象——<a href="https://sample.doubak.com">sample.doubak.com</a> 就是这么来的。
     </p>
-    <div class="actions">
-      <!-- 只写扩展 ID、不带名字那一段（`/detail/豆备-doubak/<id>`）：带名字的那种在
-           改名之后就失效了，而只有 ID 的这个永远跳得过去。 -->
-      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">
-        安装到 Chrome
+    <!-- 两个商店的链接都只写扩展 ID、不带名字那一段（`/detail/豆备-doubak/<id>`）：
+         带名字的那种在改名之后就失效了，而只有 ID 的这个永远跳得过去。 -->
+    <div class="install">
+      <a class="btn btn-primary btn-store" href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">
+        <span class="label">安装到 Chrome</span>
+        <span class="store">Chrome 应用商店</span>
       </a>
+      <a class="btn btn-outline btn-store" href="https://microsoftedge.microsoft.com/addons/detail/jfaancfhcbfebmlphapaifkpijlcgnpf">
+        <span class="label">安装到 Edge</span>
+        <span class="store">Microsoft Edge 加载项</span>
+      </a>
+    </div>
+    <div class="actions">
       <!-- 指 /releases/latest 而不是某个具体版本：这个地址永远跟着最新的 release 走，
            不会在下一次发版之后变成一个指向旧版的死角。 -->
       <a class="btn btn-ghost" href="https://github.com/Doubak/doubak-extension/releases/latest">
@@ -79,10 +86,11 @@
       <a class="btn btn-ghost" href="https://sample.doubak.com">看生成出来的样张</a>
     </div>
     <p class="small muted" style="margin-top:1.2em">
-      需要 Chrome 或 Edge。Edge 也能从 Chrome 应用商店安装。
+      需要 Chrome 或 Edge。两个商店提交的是同一份包——同一条 CI 打出来的，
+      所以装哪边都一样；Edge 也仍然能从 Chrome 应用商店装。
       不想走商店的话，<a href="https://github.com/Doubak/doubak-extension/releases/latest">release</a>
-      里那份 <code>.zip</code> 是同一个包——注意它是商店的提交格式，
-      <strong>Chrome 不能直接装 zip</strong>，要先解压再用开发者模式的「加载已解压的扩展程序」。
+      里那份 <code>.zip</code> 还是同一个包——注意它是商店的提交格式，
+      <strong>浏览器不能直接装 zip</strong>，要先解压再用开发者模式的「加载已解压的扩展程序」。
       <a href="https://github.com/Doubak/doubak-extension#装载到浏览器">说明在这里</a>。
     </p>
     <p class="small muted">
