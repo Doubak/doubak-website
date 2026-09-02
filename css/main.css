@@ -331,31 +331,61 @@ hr {
 
    用 grid 而不是 flex：两块要一样宽（文字长度不一样，flex 会撑出两个宽度，
    一组并列的东西长短不齐就显得是随手摆的）。auto-fit + minmax 顺带把窄屏
-   收成一列，不用再写一条 media query。210px 比里面最长那行（「Microsoft Edge
-   加载项」加左右内边距，约 175px）宽，所以任何宽度下都不会挤出去。 */
+   收成一列，不用再写一条 media query。240px 比里面最长那行（图标 + 间距 +
+   「Microsoft Edge 加载项」+ 左右内边距，约 215px）宽，所以任何宽度下都
+   不会挤出去。 */
 .install {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
-  max-width: 32em;
+  max-width: 34em;
   margin-bottom: 12px;
 }
 
-/* 两行字，所以主轴转成纵向。.btn 的 align-items:center 在这里会把两行都居中，
-   而这两行是一组左对齐的标签。 */
+/* 左边一个浏览器图标、右边两行字，所以从 .btn 的 flex 换成 grid：图标那一格
+   跨满两行，另一列摞着标题和副标题。用 grid 而不是「图标 + 一个包着两行的
+   div」，是为了不往 HTML 里多塞一层只为布局存在的元素。 */
 .btn-store {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: .15em;
-  padding: .7em 1.25em .75em;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: .72em;
+  row-gap: .1em;
+  align-items: center;
+  padding: .62em 1.2em .66em;
   line-height: 1.35;
 }
-.btn-store .label { font-size: 1rem; font-weight: 600; }
+.btn-store .label { grid-area: 1 / 2; font-size: 1rem; font-weight: 600; }
 /* 副标题不压 opacity：这一行本来就只有 .78rem，再降一档对比度就掉进
    「看得见但读不清」那一格了。分主次交给字号和字重，够用。 */
-.btn-store .store { font-size: .78rem; font-weight: 400; }
+.btn-store .store { grid-area: 2 / 2; font-size: .78rem; font-weight: 400; }
 .btn-store.btn-primary .store { color: rgba(255, 255, 255, .92); }
+
+/* 浏览器标志。走 mask + currentColor（跟导航那个「↗」同一套做法），所以图标
+   跟着按钮的字色走：实心绿上是白的，淡绿上是绿的。原版 logo 是彩色带渐变的，
+   四种品牌色压在实心绿按钮上像贴纸，跟这一页不是一回事——单色之后形状照样
+   认得出来，颜色不再和页面打架。文件和出处见 assets/browsers/README.md。
+
+   用 ::before 而不是一个 <span class="ico">：这个图标是纯装饰，屏幕阅读器
+   念出来的应该只有「安装到 Chrome」。 */
+.btn-store::before {
+  content: "";
+  grid-area: 1 / 1 / 3 / 2;
+  width: 24px;
+  height: 24px;
+  background-color: currentColor;
+  -webkit-mask: var(--browser-icon) no-repeat center / contain;
+  mask: var(--browser-icon) no-repeat center / contain;
+}
+.btn-chrome { --browser-icon: url("/assets/browsers/chrome.svg"); }
+.btn-edge   { --browser-icon: url("/assets/browsers/edge.svg"); }
+
+/* Edge 那个是实心剪影，Chrome 那个是个环——同样 24px 见方，Edge 的墨多，看着
+   就大一圈。改的是 mask-size 不是 width：格子还是 24px，两个按钮的文字才在
+   同一个位置起排，只把里面那笔画缩一点。 */
+.btn-edge::before {
+  -webkit-mask-size: 92%;
+  mask-size: 92%;
+}
 
 /* 描边版：和实心那个同一个绿，只是反过来（绿底白字 ↔ 淡绿底绿字）。
    没有复用 .btn-ghost，是因为 ghost 是「次要动作」那一档（灰边灰字，
