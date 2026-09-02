@@ -23,7 +23,7 @@
      刻意不写的：aggregateRating 和 review。没有真实评分就编一个出来，是这类
      标记最常见的用法，也是最不该学的那一种。
 
-     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.3.0 是同一个数字，
+     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.3.1 是同一个数字，
      一共三处。发版时三处一起改——忘了改不会有任何症状，页面照常渲染，
      只是机器读到的版本停在上一版。tools/check-links.py 会把三处比对一遍。 -->
 <script type="application/ld+json">
@@ -36,7 +36,7 @@
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Windows, macOS, Linux, ChromeOS",
   "browserRequirements": "Requires a Chromium-based browser (Chrome or Edge); uses the File System Access and offscreen APIs, so Firefox and Safari are not supported",
-  "softwareVersion": "1.3.0",
+  "softwareVersion": "1.3.1",
   "description": "在你自己的浏览器里把豆瓣原样存成标准 WARC 档案，再解析、生成你自己的静态豆瓣、导出到 NeoDB 等站点。凭据和数据都不离开你的设备。",
   "inLanguage": "zh-Hans",
   "isAccessibleForFree": true,
@@ -85,7 +85,7 @@
         <span class="full">豆瓣备份器 · Douban Backup</span>
       </div>
     </div>
-    <p class="badge"><span class="dot"></span>扩展 v1.3.0 已发布</p>
+    <p class="badge"><span class="dot"></span>扩展 v1.3.1 已发布</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
       这不是一个工具，而是一整条数据链路：把豆瓣抓下来、存成十几年后还打得开的档案、
@@ -678,6 +678,11 @@
     <h2>最近的开发日志</h2>
     <ul class="log-list">
       <li>
+        <time datetime="2026-09-02">2026-09-02</time>
+        <h3><a href="/log/2026-09-02-no-keywords.html">名字里一个关键词都没有</a></h3>
+        <p>商店标题里一个关键词都没有，而这一格<strong>改不了后台</strong>——它取自 manifest.json。顺带发现自家英文 README 把两组不同的「8」并成了一句。</p>
+      </li>
+      <li>
         <time datetime="2026-08-28">2026-08-28</time>
         <h3><a href="/log/2026-08-28-one-click.html">把下游搬进扩展，靠的是抄而不是重写</a></h3>
         <p>解析、导出、建站现在扩展里点几下就能做完。做的时候差点重写一遍图片判定——<strong>三处全错，三处都不报错</strong>。</p>
@@ -687,12 +692,7 @@
         <h3><a href="/log/2026-08-26-less-code.html">把代码删光之后，证据反而更硬了</a></h3>
         <p>上游说「这个 PR 只做合并」，那个子类就没有存在的理由了。删到一行生产代码都不剩，而<strong>它的证据比之前更强</strong>。</p>
       </li>
-      <li>
-        <time datetime="2026-08-25">2026-08-25</time>
-        <h3><a href="/log/2026-08-25-self-check.html">自己跟自己对账，永远是平的</a></h3>
-        <p>整份档案 17305 条真导进了 NeoDB。本地测试全绿，导进去第一眼就看见一个把同一件事写成两行的 bug——<strong>因为对账的两边都是自己写的</strong>。</p>
-      </li>
-    </ul>
+</ul>
     <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>
   </div>
 </section>
@@ -711,7 +711,7 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
             <td>浏览器扩展。抓取，产出原始档案（bundle）。整个项目的入口都在这里。</td>
-            <td class="ok">v1.3.0</td>
+            <td class="ok">v1.3.1</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>

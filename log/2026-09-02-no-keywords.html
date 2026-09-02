@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>名字里一个关键词都没有 —— 开发日志</title>
+<meta name="description" content="商店标题写着「豆备 Doubak」，一个关键词都没有。而这一格改不了后台——它取自 manifest.json，得改代码、重新打包、重新过审。顺带发现自家英文 README 把两组不同的「8」并成了一句。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-02-no-keywords.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-02">2026-09-02</time>
+      <h1>名字里一个关键词都没有</h1>
+      <p class="summary">
+        商店标题写着「豆备 Doubak」。而这一格改不了后台——它取自 manifest.json，
+        得改代码、重新打包、重新过审。
+      </p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        起点是一件挺难看的事：<strong>搜「doubak」，搜不到这个项目</strong>。
+        搜出来的是<strong>豆包</strong>——字节那个 AI 助手，量级差着好几个数量级。
+        「豆备」和「豆包」差一个字，拼音只差一个字母，搜索引擎和商店的搜索框都会
+        把 doubak 当成 doubao 的错拼来纠。
+      </p>
+
+      <p>
+        这件事没法赢，也不值得赢。真正的结论是另一件：
+        <strong>品牌名不能当获客渠道</strong>——每一次安装都得从「豆瓣备份」这种
+        描述性的词，或者别人的推荐里来。
+      </p>
+
+      <h2>那就得看看名字里写了什么</h2>
+
+      <p>
+        豆伴的商店标题是<strong>「豆伴：豆瓣账号备份工具」</strong>。品牌在前、说明在后，
+        说明那八个字把 豆瓣备份 / 豆瓣账号备份 / 备份工具 全占了。
+      </p>
+
+      <p>
+        这边是<strong>「豆备 Doubak」</strong>。<strong>一个关键词都没有。</strong>
+        简短说明那一栏上限 132 个字符，原来写了 37 个——<strong>95 个字符的位置空着</strong>，
+        而「广播」和「导入 NeoDB」这两件别人不做的事，一个字都没提到。
+      </p>
+
+      <p>
+        改成了「豆备 Doubak：豆瓣备份与原样归档」。句式照抄豆伴，但说明那半句
+        <strong>刻意绕开「备份工具」</strong>：那是它用几年安装量和评价占住的头部词，
+        正面撞上去赢不了。「原样归档」是这个项目与它真正不同的地方，
+        也是<a href="/#compare">对比表</a>里唯一一条它没法跟的。
+      </p>
+
+      <h2>而这一格改不了后台</h2>
+
+      <p>
+        本以为是登录商店后台改两行字的事。不是——<strong>商店的名称和简短说明取自
+        <code>manifest.json</code>，后台是只读的</strong>。改它就等于发一个新版本：
+        改代码、重新打包、重新提交审核。
+      </p>
+
+      <p>
+        顺着查下去还有一件更值钱的：<strong>分语言的商店页，只对扩展里带了
+        对应 <code>_locales/&lt;语言&gt;</code> 目录的语言开放。</strong>
+        也就是说这件事的开关也在代码里，不在后台。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>繁体不是简体的一个变体。</strong>
+          「備份」和「备份」是两个完全不同的字串，搜索不互通——
+          港台用户搜「豆瓣備份」，现在什么也搜不到，而这一格是空的。
+          英文那边搜 “douban backup” 的结果同样基本是空的。
+          两页都<strong>不需要翻译界面</strong>就能开出来。
+        </p>
+      </div>
+
+      <p>
+        所以加了三份：<code>zh_CN</code>、<code>zh_TW</code>、<code>en</code>。
+        界面本身没有翻译，仍然只有简体中文（面板里写死的中文字符串有 693 条），
+        <strong>繁体和英文的简短说明里都写明了这一点</strong>——
+        这两页会把读不了简体的人带进来，不先说，换来的是一次白装。
+      </p>
+
+      <h2>一个装上就炸、而本地全绿的坑</h2>
+
+      <p>
+        <code>_locales</code> 必须进打包白名单。漏了它，后果不是「名字变回英文」——
+        <code>manifest.json</code> 里的 <code>default_locale</code> 指着一个不在包里的
+        目录，<strong>Chrome 会整个拒绝加载这个扩展</strong>。
+      </p>
+
+      <p>
+        而打包脚本的 <code>collect()</code> <strong>只在名单里的路径不存在时才抛错</strong>；
+        名单里压根没有的目录，它根本不看。于是本地一切正常、测试全绿，
+        问题要到上传审核那一刻才出现——<strong>那时名字已经改了</strong>。
+      </p>
+
+      <p>
+        这是这个项目反复见到的同一个形状：<strong>出问题的那个上下文，本地进不去。</strong>
+        判据只能是静态的——去读代码，而不是跑它。所以加了一条测试直接检查白名单里有没有
+        <code>_locales</code>，连同另外六条：缺键、键集不一致、超长（名称 75、说明 132，
+        超了是<strong>拒收而不是截断</strong>）、<code>default_locale</code> 指向不存在的目录，
+        以及——
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>最容易被「修好」的那一条：把 manifest 里那四格写回硬编码。</strong>
+          写死之后本地一切正常，商店页也照开，只是繁体和英文那两页的标题
+          变成了简体中文——<strong>而那正是开这两页的唯一理由</strong>。
+          七条里只有这一条，是把前六条都写完、逐条做变异测试时才发现漏掉的。
+        </p>
+      </div>
+
+      <h2>顺带：自家英文 README 把两组「8」并成了一句</h2>
+
+      <p>
+        同一批改动里加了一份英文 README。里头有一句：样张里有
+        <strong>八个作品豆瓣已经删掉，评论和评分都还在</strong>。
+        照着规矩去档案里数了一遍，两处都不成立。
+      </p>
+
+      <p>
+        <strong>档案里有两组不同的「8」，只重合一个。</strong>
+        一组是豆瓣把条目删掉、标题成了空的那 8 个（7 个游戏、1 部电影）；
+        另一组是被豆瓣剥光的 8 条标记——标题还在，但日期、评分、标签、短评全空。
+        两组只有一个作品同时属于两边。纯属巧合，也正因为是巧合才危险。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>被删掉的那 8 个作品，标记里还留着</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">短评</th><td>7 / 8</td></tr>
+            <tr><th scope="row">标签</th><td>6 / 8</td></tr>
+            <tr><th scope="row">标记日期</th><td>7 / 8</td></tr>
+            <tr><th scope="row">评分</th><td><strong>0 / 8</strong></td></tr>
+            <tr><th scope="row">广播里冻住的星</th><td>3 / 8</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        <strong>没有任何一条标记还带着评分。</strong>
+        活下来的三颗星全部来自广播——广播发出去就不能改，所以它冻住了那一天的星；
+        而标记只存当前状态，当前状态跟着条目一起没了。
+        <a href="/#why">首页那段中文</a>一直是对的（「标记本身没有分数，这颗星只在广播里」），
+        <strong>英文那份把它说反了</strong>，而且是在最没法自己去核对的那批读者面前。
+      </p>
+
+      <p class="small muted">
+        这个项目已经记下六次「拿手上的样本推出一个结论」的错。这一次的形状略有不同：
+        不是样本太小，是<strong>两个数字恰好都是 8</strong>。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-28-one-click.html">更早：把下游搬进扩展，靠的是抄而不是重写 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
