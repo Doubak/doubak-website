@@ -7,6 +7,9 @@
   3. 在 log/index.html 顶部加一条，在首页「最近的开发日志」里加一条（只留最近三条）
   4. 把上一篇的 post-nav 右侧补上指向这篇的链接
 
+  canonical 的那一行也在 {{占位}} 里，跟着第 2 步一起改就行。忘了改也不会
+  白发出去：tools/check-links.py 会把它比对回文件自己的路径，CI 里是红的。
+
   这个文件本身不会被链接到，但它会被 GitHub Pages 原样发布出去，别写敏感内容。
 -->
 <html lang="zh-Hans">
@@ -18,6 +21,7 @@
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/{{YYYY-MM-DD-slug}}.html">
 <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
