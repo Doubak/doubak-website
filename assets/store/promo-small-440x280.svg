@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280"
+     role="img" aria-label="豆备 Doubak —— 豆瓣备份与原样归档">
+  <title>豆备 Doubak —— 豆瓣备份与原样归档</title>
+  <!--
+    Chrome 应用商店的「小型宣传图块」，440×280。
+
+    尺寸是商店定死的；这里的取舍只有一条：**它会被缩得很小**，所以元素越少越好。
+    最终留下四样——标记、名字、一句话、一行出处。背景用站点 header 的那支深绿
+    （css 里那支 green-deep 附近），而不是首页那支亮绿：商店里一整屏都是亮色卡片，深色反而跳出来。
+
+    标记刻意用白色而不是品牌绿。绿底上的绿标记在 56px 时糊成两个圆点，「豆」字完全看不见。
+
+    改字之前先想一下：这张图不承担「说清楚它是什么」，那是简短说明的事。
+    它只要在一屏缩略图里让人认出来、并且看起来不像随手做的。
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#123f22"/>
+      <stop offset="1" stop-color="#092a15"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="440" height="280" fill="url(#bg)"/>
+
+  <g transform="translate(40,74) scale(2.3333333333333335)" color="#f2f8f3"><mask id="m-bm" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+    <rect width="24" height="24" fill="#fff"/>
+    <path d="M 0 -5.2 C 2.3 -5.2 4 -2.9 4 0 C 4 2.9 2.3 5.2 0 5.2 C -2.1 5.2 -3.6 3 -3.6 0.1 C -3.6 -2.8 -2.1 -5.2 0 -5.2 Z" transform="translate(14.45 14.22) rotate(-20) scale(1.127)" fill="#000" stroke="#000" stroke-width="1.686" stroke-linejoin="round"/>
+    <rect x="-2.8" y="-1.95" width="1.15" height="3.9" rx="0.575" transform="translate(8.683 9.2) rotate(-20) scale(1.006)" fill="#000"/>
+  </mask>
+  <mask id="m-fm" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+    <rect width="24" height="24" fill="#fff"/>
+    <rect x="-2.8" y="-1.95" width="1.15" height="3.9" rx="0.575" transform="translate(14.45 14.22) rotate(-20) scale(1.127)" fill="#000"/>
+    <path d="M 65.02 30.16 L 18.57 30.16 L 18.57 46.18 L 65.02 46.18 Z M 9.11 21.78 L 74.39 21.78 L 74.39 54.56 L 9.11 54.56 Z M 2.23 4.65 L 81.27 4.65 L 81.27 13.04 L 2.23 13.04 Z M 24.34 55.95 C 27.8 60.79 30.89 66.63 33.63 73.45 L 50.16 73.45 C 53.43 68.18 56.31 62.34 58.78 55.95 L 68.28 59.21 C 65.79 64.6 63.11 69.36 60.27 73.45 L 83.5 73.45 L 83.5 81.74 L 0 81.74 L 0 73.45 L 24.34 73.45 C 22.1 69.04 19.2 64.3 15.59 59.21 Z" transform="translate(14.45 14.22) rotate(-20) scale(1.127) translate(1.05 0) scale(0.0479) translate(-41.75 -43.195)" fill="#000"/>
+  </mask>
+  <g fill="currentColor">
+    <g mask="url(#m-bm)"><path d="M 0 -5.2 C 2.3 -5.2 4 -2.9 4 0 C 4 2.9 2.3 5.2 0 5.2 C -2.1 5.2 -3.6 3 -3.6 0.1 C -3.6 -2.8 -2.1 -5.2 0 -5.2 Z" transform="translate(8.683 9.2) rotate(-20) scale(1.006)"/></g>
+    <g mask="url(#m-fm)"><path d="M 0 -5.2 C 2.3 -5.2 4 -2.9 4 0 C 4 2.9 2.3 5.2 0 5.2 C -2.1 5.2 -3.6 3 -3.6 0.1 C -3.6 -2.8 -2.1 -5.2 0 -5.2 Z" transform="translate(14.45 14.22) rotate(-20) scale(1.127)"/></g>
+  </g></g>
+  <text x="110" y="120" fill="#f2f8f3" font-family="Noto Sans CJK SC, Source Han Sans SC, PingFang SC, Microsoft YaHei, sans-serif" font-size="40" font-weight="700" letter-spacing="0.5">豆备 Doubak</text>
+
+  <text x="40" y="174" fill="#cfe3d5" font-family="Noto Sans CJK SC, Source Han Sans SC, PingFang SC, Microsoft YaHei, sans-serif" font-size="25" font-weight="500" letter-spacing="2">豆瓣备份 · 原样归档</text>
+
+  <rect x="40" y="202" width="34" height="2" rx="1" fill="#4faf62"/>
+  <text x="40" y="234" fill="#8fb79b" font-family="Noto Sans CJK SC, Source Han Sans SC, PingFang SC, Microsoft YaHei, sans-serif" font-size="14.5" font-weight="400" letter-spacing="0.6">存成标准 WARC · 离线可读 · doubak.com</text>
+</svg>
