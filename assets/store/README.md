@@ -25,10 +25,19 @@ extensions that do have that image.”）。所以它是一个排序惩罚，不
   看起来像是设计做坏了。
 - **上传的 PNG 不要带透明通道。** 渲染出来默认是带的，记得 flatten。
 - SVG 的注释里**不能出现两个连字符连写**（XML 规定），写 CSS 变量名的时候会踩到。
+- **最后一步一定是 `optipng`。** 仓库里其他 PNG 全都压过（`-simulate` 跑一遍，
+  一个都挤不出水分了），新加的那张不压就是唯一的例外。实测这张小了 28.6%。
+  它是**无损**的：压完用 `compare -metric AE` 核一遍，应当是 0 个像素不同——
+  真跑一次，别只是相信它。
 
 ```sh
 # 用浏览器或任何真渲染器把 SVG 转成 440×280 PNG 之后：
 convert promo-small-440x280.png -background '#0d3319' -alpha remove -alpha off -strip \
         PNG24:promo-small-440x280.png
+
+cp promo-small-440x280.png /tmp/before.png            # 留一份用来核对
+optipng -o7 -strip all promo-small-440x280.png
+
 identify -format '%wx%h 透明通道 %A\n' promo-small-440x280.png   # 应当是 440x280 透明通道 False
+compare -metric AE /tmp/before.png promo-small-440x280.png null:  # 应当是 0
 ```
