@@ -8,12 +8,50 @@
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/">
 <link rel="stylesheet" href="/css/main.css">
 <meta property="og:title" content="豆备 Doubak · 豆瓣备份器">
 <meta property="og:description" content="从抓取、存档、解析，到生成你自己的静态豆瓣。数据留在本地。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://doubak.com/">
 <meta property="og:image" content="https://doubak.com/assets/logos/icon-512.png">
+
+<!-- 结构化数据。搜索引擎和答题机器人（现在多数人是问 AI「豆瓣怎么备份」而不是
+     去搜）读的是这一块，而不是正文里的散文——散文里说清楚的事情（免费、开源、
+     哪两个商店、什么许可证），这里再用机器读得懂的形式说一遍。
+
+     刻意不写的：aggregateRating 和 review。没有真实评分就编一个出来，是这类
+     标记最常见的用法，也是最不该学的那一种。
+
+     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.3.0 是同一个数字，
+     一共三处。发版时三处一起改——忘了改不会有任何症状，页面照常渲染，
+     只是机器读到的版本停在上一版。tools/check-links.py 会把三处比对一遍。 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "豆备 Doubak",
+  "alternateName": ["豆瓣备份器", "Douban Backup"],
+  "url": "https://doubak.com/",
+  "applicationCategory": "BrowserApplication",
+  "operatingSystem": "Windows, macOS, Linux, ChromeOS",
+  "browserRequirements": "Requires a Chromium-based browser (Chrome or Edge); uses the File System Access and offscreen APIs, so Firefox and Safari are not supported",
+  "softwareVersion": "1.3.0",
+  "description": "在你自己的浏览器里把豆瓣原样存成标准 WARC 档案，再解析、生成你自己的静态豆瓣、导出到 NeoDB 等站点。凭据和数据都不离开你的设备。",
+  "inLanguage": "zh-Hans",
+  "isAccessibleForFree": true,
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" },
+  "downloadUrl": [
+    "https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe",
+    "https://microsoftedge.microsoft.com/addons/detail/jfaancfhcbfebmlphapaifkpijlcgnpf"
+  ],
+  "softwareHelp": "https://doubak.com/how/",
+  "privacyPolicy": "https://doubak.com/privacy/",
+  "codeRepository": "https://github.com/Doubak/doubak-extension",
+  "sameAs": ["https://github.com/Doubak"]
+}
+</script>
 </head>
 <body>
 
@@ -99,7 +137,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section" id="why">
   <div class="wrap">
     <h2>为什么要有它</h2>
     <p class="lead-2">
@@ -142,7 +180,7 @@
 
     <p class="muted">
       这件事从 2020 年就在做了。
-      <a href="https://github.com/its-my-data/doubak">前一版</a>是个 Go 写的命令行工具，
+      <a href="https://github.com/its-my-data/doubak" rel="nofollow">前一版</a>是个 Go 写的命令行工具，
       古法编程，一行一行手敲出来的，现已归档；这一版是 vibe coding 写的，五天 112 次提交。
       所以它更得让人读得懂：零依赖、零构建步骤、仓库里的源码就是浏览器里跑的东西——
       你不需要信任写它的人或模型，你可以直接读它。
@@ -152,7 +190,83 @@
   </div>
 </section>
 
-<section class="section section-alt" id="lifecycle">
+<!-- 「已经有豆伴了，为什么还要这个」是读完上一节紧接着的问题，所以这一节放在
+     这里，而不是塞到页面最下面。
+
+     表里关于豆伴的每一条都出自它自己的 README（doufen-org/tofu），不是试用出来
+     的印象——写别人家工具的短处，凭印象写是不诚实的。链接给了，读者可以自己核。
+     刻意没写的：它多久没更新了。那是推测，不是事实。 -->
+<section class="section section-alt" id="compare">
+  <div class="wrap">
+    <h2>和豆伴、豆坟有什么不一样</h2>
+
+    <p class="lead-2">
+      先说个常被混起来的事：<strong>「豆坟」和「豆伴」不是同一个东西</strong>。
+      <a href="https://github.com/doufen-org/tofu" rel="nofollow">豆伴</a>是那个扩展；
+      <strong>豆坟是他们打包的一个改过的 Chromium 浏览器</strong>，
+      给装不了 Chrome 应用商店的 Windows 用户用的，装进去的还是豆伴。
+      所以「豆坟用不了」通常是那个浏览器的事，不是备份本身没救了——
+      扩展本体照样可以装进你已经有的 Chrome 或 Edge。
+    </p>
+
+    <p>
+      豆伴比这个项目早很多年，很多人十年的豆瓣是靠它留下来的。
+      真正的分歧只有一个：<strong>存下来的是「从页面上读出来的东西」，还是「页面本身」</strong>。
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th></th><th>豆伴</th><th>豆备</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">存下来的是</th>
+            <td>解析后的条目，存进扩展自己的库</td>
+            <td>页面原样，标准 WARC 档案</td>
+          </tr>
+          <tr>
+            <th scope="row">图片</th>
+            <td>不含（它的 README 写明「备份下载的内容不包括图片」，要联机才看得到）</td>
+            <td>一起抓（自己上传的照片、作品封面）</td>
+          </tr>
+          <tr>
+            <th scope="row">断网之后</th>
+            <td>图片打不开</td>
+            <td>整站可看，链接是固定的</td>
+          </tr>
+          <tr>
+            <th scope="row">导出</th>
+            <td>Excel 表格</td>
+            <td>结构化数据、NeoDB 导入包、可搜索的静态站点</td>
+          </tr>
+          <tr>
+            <th scope="row">浏览器</th>
+            <td>只支持 Chromium 内核</td>
+            <td><strong>一样只支持 Chromium 内核</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="small muted">
+      最后一行不是笔误。这个项目用 File System Access 和 offscreen 两个只有
+      Chromium 有的接口，所以 <strong>Firefox 和 Safari 现在都装不了，这一点上它不比豆伴强</strong>。
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>什么时候豆伴更合适。</strong>
+        只想要一份能翻的清单、拉进 Excel 算一算，那它更直接，也不用琢磨 WARC 是什么。
+        这里多出来的那些——原样存档、图片、离线、固定链接——是为另一件事准备的：
+        <strong>等条目哪天被删了，你还想知道当时页面上到底写了什么。</strong>
+        <a href="#why">上面那个《返校》的例子</a>就是这么留下来的。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="lifecycle">
   <div class="wrap">
     <h2>数据的一生</h2>
     <p class="lead-2">
@@ -195,7 +309,7 @@
   </div>
 </section>
 
-<section class="section" id="features">
+<section class="section section-alt" id="features">
   <div class="wrap">
     <h2>具体能做什么</h2>
 
@@ -352,7 +466,7 @@
   </div>
 </section>
 
-<section class="section section-alt" id="showcase">
+<section class="section" id="showcase">
   <div class="wrap">
     <h2>样张</h2>
     <p class="lead-2">
@@ -391,14 +505,14 @@
       样张不含任何第三方内容：抓取时就不抓别人的回复、关注列表与豆邮，
       转发进来的别人的广播按 <code>data-uid</code> 过滤掉，别人上传的图也不抓。
       <br>
-      本项目早期的设计判断是拿<a href="https://github.com/its-my-data/doubak">前代命令行工具</a>抓的一份
+      本项目早期的设计判断是拿<a href="https://github.com/its-my-data/doubak" rel="nofollow">前代命令行工具</a>抓的一份
       782 MB 档案验证的（2022–2024，20 个批次），包括
       <a href="/log/2026-07-28-counts-lie.html">「豆瓣自己报的数量不能用来证明抓全了」</a>这一条。
     </p>
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap">
     <h2>不让你的账号出事</h2>
     <p class="lead-2">
@@ -417,7 +531,7 @@
   </div>
 </section>
 
-<section class="section section-alt" id="not-collected">
+<section class="section" id="not-collected">
   <div class="wrap">
     <h2>它刻意不抓什么</h2>
     <p class="lead-2">
@@ -455,7 +569,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap">
     <h2>现在能跑到什么程度</h2>
     <div class="callout warn">
@@ -494,7 +608,7 @@
   </div>
 </section>
 
-<section class="section section-alt" id="contribute">
+<section class="section" id="contribute">
   <div class="wrap">
     <h2>最缺的是别人的数据</h2>
     <p class="lead-2">
@@ -559,7 +673,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap">
     <h2>最近的开发日志</h2>
     <ul class="log-list">
@@ -583,7 +697,7 @@
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section">
   <div class="wrap">
     <h2>项目由几个仓库组成</h2>
     <p class="lead-2">
@@ -635,7 +749,7 @@
     <p class="small muted">
       还有 <a href="https://github.com/Doubak/doubak-data-enricher">doubak-data-enricher</a>（可选的外部链接补全）。
       下游全部可以晚几年再写，因为抓取已经完成了 —— 解析器是一个对已抓页面的纯函数，什么时候写都来得及。
-      2020 年那一版 <a href="https://github.com/its-my-data/doubak">its-my-data/doubak</a>（Go 命令行）已归档，
+      2020 年那一版 <a href="https://github.com/its-my-data/doubak" rel="nofollow">its-my-data/doubak</a>（Go 命令行）已归档，
       但它抓下来的档案没有白费：本项目的实测结论几乎都来自那批数据，而现在
       <a href="https://github.com/Doubak/doubak-import-adapters">doubak-import-adapters</a>
       能把它们直接转成档案接进来——实测 782 MB、7353 个页面、2022 到 2024 的四次抓取，
