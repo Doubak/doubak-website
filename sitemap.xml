@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://doubak.com/</loc>
-<lastmod>2026-09-04T18:09:18+10:00</lastmod>
+<lastmod>2026-09-04T20:12:21+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/how/</loc>
@@ -10,7 +10,7 @@
 </url>
 <url>
 <loc>https://doubak.com/log/</loc>
-<lastmod>2026-09-04T18:09:18+10:00</lastmod>
+<lastmod>2026-09-04T20:12:21+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/log/2026-07-23-why-warc.html</loc>
@@ -137,8 +137,12 @@
 <lastmod>2026-09-04T17:43:47+10:00</lastmod>
 </url>
 <url>
+<loc>https://doubak.com/log/2026-09-04-re-marked.html</loc>
+<lastmod>2026-09-04T20:12:21+10:00</lastmod>
+</url>
+<url>
 <loc>https://doubak.com/log/2026-09-04-v1-3-2.html</loc>
-<lastmod>2026-09-04T18:09:18+10:00</lastmod>
+<lastmod>2026-09-04T20:12:21+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/privacy/</loc>
