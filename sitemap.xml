@@ -2,15 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://doubak.com/</loc>
-<lastmod>2026-09-02T19:14:21+10:00</lastmod>
+<lastmod>2026-09-04T16:47:17+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/how/</loc>
-<lastmod>2026-09-02T19:06:47+10:00</lastmod>
+<lastmod>2026-09-04T11:13:19+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/log/</loc>
-<lastmod>2026-09-02T19:14:21+10:00</lastmod>
+<lastmod>2026-09-04T16:47:17+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/log/2026-07-23-why-warc.html</loc>
@@ -126,7 +126,11 @@
 </url>
 <url>
 <loc>https://doubak.com/log/2026-09-02-no-keywords.html</loc>
-<lastmod>2026-09-02T19:14:21+10:00</lastmod>
+<lastmod>2026-09-04T16:47:17+10:00</lastmod>
+</url>
+<url>
+<loc>https://doubak.com/log/2026-09-04-half-a-round-trip.html</loc>
+<lastmod>2026-09-04T16:47:17+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/privacy/</loc>
