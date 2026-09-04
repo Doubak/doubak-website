@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>重标一次，2018 年那条就没了 —— 开发日志</title>
+<meta name="description" content="把一部电影删掉重标，站点上 2018 年的短评、标签、那条广播的链接和封面一起消失。而 git 里零新增、零删除——这种消失是看不见的。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-04-re-marked.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-04">2026-09-04</time>
+      <h1>重标一次，2018 年那条就没了</h1>
+      <p class="summary">把一部电影删掉重标，站点上 2018 年的短评、标签、那条广播的链接和封面一起消失。而 git 里零新增、零删除——这种消失是看不见的。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        一次很普通的增量抓取：59 个页面，全部正常，零缺口，26 条路线全都连续。
+        档案本身干净得没什么可说的。
+      </p>
+
+      <p>
+        重新生成一遍样张站，diff 里有 325 个页面变了。绝大多数是「最后一次看到」
+        那一行的时间戳——这次抓取又看见了它们，仅此而已。
+        真正有内容变化的只有一小撮，而其中一页是这样的：
+      </p>
+
+      <pre><code>movie/3541415.html  《盗梦空间》
+
+- &lt;span&gt; · 2018-01-03&lt;/span&gt;
++ &lt;span&gt; · 2026-09-04&lt;/span&gt;
+
+- 真好看啊，之前看了一下剧情解密才理解了这个结局。 //2015-08-26 …
++ 精彩，真的精彩，开放式结局竟有一丝丝哀伤，下周二去看奥德赛！
+
+- &lt;h2&gt;说过什么&lt;/h2&gt;
+- &lt;h3&gt;2018-01-03 21:15:28&lt;/h3&gt;
+- &lt;p&gt;&lt;em&gt;广播 · 看过 · ★★★★★&lt;/em&gt;&lt;/p&gt;
+- &lt;p&gt;真好看啊，之前看了一下剧情解密才理解了这个结局。 //2015-08-26 …&lt;/p&gt;</code></pre>
+
+      <p>
+        换掉的那部分是对的：这部电影确实是这天重新标记的，短评和标签都换了新的。
+        <strong>但「说过什么」整栏没了。</strong>
+        那是 2018 年发出去的一条广播，
+        <a href="/log/2026-08-24-ndjson.html">豆瓣自己早就不显示它了</a>——
+        这份档案里留着它，正是这个工具存在的理由。
+      </p>
+
+      <p>同一时刻，2018 年那个月的广播页上也少了点东西：</p>
+
+      <pre><code>broadcast/2018-01.html
+
+- &lt;a href="../movie/3541415.html"&gt;&lt;img src="../covers/p513344864.jpg"…&gt;&lt;/a&gt;
+-   看过 &lt;a href="../movie/3541415.html"&gt;盗梦空间 / Inception&lt;/a&gt; ★★★★★
++   看过 盗梦空间 Inception‎ (2010) ★★★★★</code></pre>
+
+      <p>
+        链接没了，封面没了，剩下一行纯文字。
+      </p>
+
+      <div class="callout warn">
+        <p><strong>而 git 说：零新增，零删除。</strong>
+        页数一张不多一张不少。要不是那天正好在逐页读 diff，
+        这三处消失不会有任何东西提醒任何人。</p>
+      </div>
+
+      <h2>两条标记是从哪来的</h2>
+
+      <p>
+        用户在豆瓣上把《盗梦空间》<strong>删掉，然后重新标了一次</strong>。
+        豆瓣的做法是发一个全新的条目编号：
+      </p>
+
+      <pre><code>1299196346   2018-01-03  ★5  「真好看啊…」        ← 上一次抓取还看得到
+4937138397   2026-09-04  ★5  「精彩，真的精彩…」  ← 这次新出现的</code></pre>
+
+      <p>
+        解析器把它们记成<strong>两条记录</strong>。这是对的，而且是刻意的：
+        两个不同的上游编号就是两次不同的标记，
+        这恰好是豆瓣页面上那个 <code>data-cid</code> 唯一能看见、
+        而降级方案看不见的东西。档案层是一本<strong>事件日志</strong>，
+        「他 2018 年标过一次、2026 年又标了一次」是两件真实发生过的事，
+        必须都留着。
+      </p>
+
+      <h2>网页不能跟着分</h2>
+
+      <p>
+        生成站点的那一层不是事件日志，它是一张<strong>「当前是什么样」的缓存</strong>，
+        而一部电影只有一个网址。它对「两条标记」这件事一句规矩都没写，于是同时踩了两个坑，
+        两个都不出声：
+      </p>
+
+      <ul>
+        <li>
+          <strong>两条标记算出同一个文件名，后写的把先写的整个盖掉。</strong>
+          谁活下来取决于它们在数组里的先后，不取决于任何判据。
+          页数没变，所以 git 上看不出来——2018 年的短评和标签就是这么没的。
+        </li>
+        <li>
+          <strong>「一个作品编号出现了两次」被当成了编号撞车</strong>，
+          于是拒绝把广播接回作品页。链接、封面、整栏时间线一起消失。
+        </li>
+      </ul>
+
+      <h2>「撞车」那条规矩，本来问的是另一个问题</h2>
+
+      <p>
+        广播卡片上只有一个数字编号，没有说这是电影还是书。而不同类别的编号各排各的，
+        理论上会撞。撞了还硬接，页面上就会出现一条指向另一部作品的链接——
+        <strong>那比不接严重得多：不接只是少个链接，接错了是档案在说假话，而且看不出来。</strong>
+        所以规矩是「撞了就不接」，这条完全正确。
+      </p>
+
+      <p>
+        问题出在它<em>怎么判</em>撞车：数一数这个编号出现了几次。
+        在「一个作品最多一条标记」的年头里，这个数法和「跨类别撞车」是一回事。
+        用户第一次删掉重标，两者就分了家——
+        同一部电影的两条标记指向的是<strong>同一页</strong>，
+        哪来的歧义。
+      </p>
+
+      <div class="callout">
+        <p>这是个<strong>替身判据</strong>：真正要问的是「类别一样吗」，
+        而代码里问的是「编号出现几次」。
+        两者曾经等价，所以没人发现替身是替身——
+        <a href="/log/2026-08-07-parser-and-fake-edits.html">这个项目已经在同一个形状上栽过几次了</a>。</p>
+      </div>
+
+      <h2>修法</h2>
+
+      <p>
+        在生成站点的入口按「类别 + 作品编号」把标记归一次组：
+      </p>
+
+      <ul>
+        <li>
+          <strong>页头取「最后一次看到」的那条。</strong>
+          豆瓣现在还留着的，才是最近一次抓取里出现过的那条。
+          按标记日期挑是错的——补标一部老片可以填一个更早的日期，
+          而它在豆瓣上仍然是现存的那条。
+        </li>
+        <li>
+          <strong>被顶掉的那几条并进时间线。</strong>
+          于是 2018 年那次的短评、评分、日期都还在页面上，位置也对，
+          而不是假装从没发生过。
+        </li>
+        <li>
+          页脚那句「这条记录有 N 个版本」把它们都算上。
+          说「只有 1 个版本」而下面明明列着两次标记，是自相矛盾。
+        </li>
+      </ul>
+
+      <p>修完之后那一页是这样的：</p>
+
+      <pre><code>&lt;h2&gt;说过什么&lt;/h2&gt;
+2026-09-04 17:37:44   广播 · 看过 · ★★★★★   精彩，真的精彩…
+2018-01-03 21:15:28   广播 · 看过 · ★★★★★   真好看啊，之前看了一下剧情解密…
+
+这条记录有 2 个版本</code></pre>
+
+      <p>
+        2018 年那个月的广播页则一个字节都没变——链接和封面回来了。
+      </p>
+
+      <h2>我加的那道守卫是废的，突变测试当场抓到</h2>
+
+      <p>
+        顺手把「撞车」的判据也从「出现几次」改成了「类别一样吗」，看起来更对。
+        照惯例做突变测试：把它改回旧写法，看有没有测试变红。
+      </p>
+
+      <p>
+        <strong>一条都没红。</strong>
+      </p>
+
+      <p>
+        原因很简单：归组已经保证了每个「类别 + 编号」只剩一条，
+        到了那一步还能撞上的，<strong>只可能是跨类别</strong>——
+        我新加的那句比较永远为真。
+        它不防任何东西，只是读起来像有人在看着。
+        <a href="/log/2026-08-26-less-code.html">删掉</a>，
+        换成一行注释把这个上游保证写清楚。
+      </p>
+
+      <p>
+        但同一次测试也告诉我：另一处判据是<strong>真的</strong>要改。
+        广播往作品页里送时间线走的是另一条路，它读的是原始档案，
+        确实会看见两条标记。这两个方向必须<strong>分开测</strong>——
+        一边接得回、另一边接不回的话，广播卡片上有链接、作品页上却没有那段历史，
+        <a href="/log/2026-08-25-self-check.html">两边对起来还是「平」的，谁都看不出是谁错了</a>。
+      </p>
+
+      <p>
+        测的判据是<strong>秒</strong>：标记只精确到天，只有广播带秒。
+        那一行要是退化成「天」，就说明广播根本没接进来。
+      </p>
+
+      <h2>它是怎么被发现的</h2>
+
+      <p>
+        不是靠评审，也不是靠任何一条报警。是把一份<strong>没见过的新数据</strong>
+        喂进去跑一遍，然后<strong>一页一页读 diff</strong>。
+      </p>
+
+      <p>
+        这已经是第三回了：
+        <a href="/log/2026-08-07-parser-and-fake-edits.html">解析器那两个 bug</a>、
+        <a href="/log/2026-08-20-four-roots.html">放错目录的那四份档案</a>，
+        都是换一份数据跑出来的，不是看代码看出来的。
+        而这一次尤其说明问题——<strong>它没有任何征兆</strong>：
+        不报错，不告警，页数不变，零新增零删除。
+        唯一的痕迹是某一页里少了三行。
+      </p>
+
+      <p>
+        所以「重新生成之后要数一数有没有页面被删掉」这个习惯，
+        这次<em>没有</em>救到我们：一页都没被删。真正救回来的是逐页读内容。
+      </p>
+
+      <h2>顺带：首页的广播预览从 2 条变成 5 条</h2>
+
+      <p>
+        改的时候正好在看首页。广播是首页上<strong>唯一能看见原话</strong>的地方——
+        作品那几栏是一排封面，日记和影评是标题加 80 字摘要。
+        两条撑不起「这份存档里有话」这件事。
+      </p>
+
+      <p>
+        它原来和长文共用一个数字，现在分成两个：长文一篇就占掉一屏，
+        给五篇等于把下面所有栏目推下去。<strong>共用一个常量，调其中一个必然连累另一个。</strong>
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-04-v1-3-2.html">更早：v1.3.2，以及为什么格式版本跳到了 1.4 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
