@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>档案是全的，声明是错的 —— 开发日志</title>
+<meta name="description" content="抓取报「有 1 处缺口」，点了重试，抓完还是「有 1 处缺口」。而那张图明明就在档案里，542163 字节。缺口只增不减——这在别处都对，唯独「这一页抓不下来」是一句可以被自己证伪的话。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-04-gap-already-filled.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-04">2026-09-04</time>
+      <h1>档案是全的，声明是错的</h1>
+      <p class="summary">
+        抓取报「有 1 处缺口」，点了重试，抓完还是「有 1 处缺口」。
+        而那张图明明就在档案里，542163 字节。
+      </p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        一次真实的全量抓取，中途有一张广播配图连着三次超时。面板如实报了
+        「<strong>有 1 处缺口</strong>」，用户点了「重试」，抓取继续，最后跑完。
+        而收尾写下的档案里，那一行还是「有 1 处缺口」。
+      </p>
+
+      <p>把导出的那份档案打开，两行就说完了：</p>
+
+      <pre><code>manifest.json  crawl_state[asset.status_photo]
+  contiguous: false
+  gaps: [{ reason: "fetch_failed",
+           detail: "…f042d8249db3650.jpg：重试 3 次仍失败（请求超时）" }]
+
+index.ndjson
+  #000716  同一个 URL  ·  verdict ok  ·  200  ·  image/jpeg
+           542163 字节  ·  content_sha256 齐全</code></pre>
+
+      <p>
+        <strong>重试成功了。</strong>图就在 <code>assets-…warc.gz</code> 里，偏移量
+        27823442，字节、类型、摘要一样不缺。缺的只是有人去把那句话收回。
+      </p>
+
+      <div class="callout warn">
+        <p><strong>档案是全的，声明是错的。</strong>
+        而 bundle 一旦产出就是冻住的——这句错话再也改不了了。</p>
+      </div>
+
+      <h2>为什么会这样</h2>
+
+      <p>
+        缺口是<strong>只增不减</strong>的。这不是疏忽，在绝大多数地方它都是对的：
+      </p>
+
+      <ul>
+        <li>「抓到一半中途停下」——后面某一页抓成功了，并不能证明中间那段没有洞。</li>
+        <li>「页面声称有 30 条，一个 ID 都没抽到」——那是抽取器坏了，
+          再抓成一页也说明不了什么。</li>
+      </ul>
+
+      <p>
+        这些缺口讲的都是<strong>一整段</strong>的事，后来的成功冲不掉它们。
+        但「这一页反复抓不下来」不一样：<strong>它是一句关于某一个 URL 的断言，
+        而同一个 URL 的一次成功捕获，恰好把它证伪</strong>——用的还是这份档案
+        自己的证据，不需要相信任何外部数字。
+      </p>
+
+      <p>
+        所以这一处、而且只有这一处，必须能被收回。
+      </p>
+
+      <h2>不能拿那句话去匹配</h2>
+
+      <p>
+        最省事的做法是拿 <code>detail</code> 里那句中文去搜 URL——它就在里面。
+        但 <code>detail</code> 是<strong>给人看的一句话</strong>，靠子串把 URL 抠出来，
+        判错的方向有两个，而两个都比「漏报」贵得多：
+      </p>
+
+      <ul>
+        <li><strong>抹掉一处真缺口。</strong>两条 URL 可以互为前缀，
+          一次不相干的成功就把真的洞盖上了——而那正是档案里最不能出的错。</li>
+        <li><strong>诬告一次真实的失败。</strong>反过来匹配上了不该匹配的，
+          等于说「你这处失败是假的」。</li>
+      </ul>
+
+      <p>
+        所以缺口现在多存一份<strong>结构化的 URL</strong>：
+        <code>detail</code> 照旧给人读，<code>url</code> 给机器用来精确比对。
+        成功捕获时按完全相等去抹，只在本次抓取内生效。
+        <strong>抹掉缺口等于放宽完整性声明，判据必须严。</strong>
+        不带 URL 的那些缺口（中途停下、抽取器坏了）永远不会被碰到——
+        它们说的本来就不是某一个 URL。
+      </p>
+
+      <h2>于是这成了一次格式修订</h2>
+
+      <p>
+        给缺口加一个字段，就是改档案格式。而 <code>gap</code> 这个对象在 schema 里写着
+        <code>additionalProperties: false</code>——多一个字段就是不合规。
+        规范自己的规矩很明确：<strong>新增可选字段 = 小版本</strong>，于是有了
+        <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">bundle/1.4</a>。
+      </p>
+
+      <p>
+        顺手把这条判据也写进了校验器：<strong>一处带 URL 的
+        <code>fetch_failed</code> 缺口，如果同一份档案的索引里就有那个 URL 的
+        <code>verdict: ok</code> 捕获，报错。</strong>它跟规范里另一条老规矩是同一枚硬币的两面——
+        <a href="/log/2026-07-28-counts-lie.html">豆瓣自己报的数字不能用来<em>证明</em>抓全了</a>，
+        但拿来<em>推翻</em>一句离谱的声明是另一回事。<strong>授予要严，证伪可松</strong>；
+        何况这一次用来证伪的，是生产者自己写下的另一句话。
+      </p>
+
+      <p>
+        校验器<strong>故意不去解析老档案 <code>detail</code> 里的 URL</strong>。
+        1.3 及更早的缺口只有那句话，猜错的代价上面已经算过了——所以对它们，这条检查
+        干脆不适用。已经写下的档案仍然合法。
+      </p>
+
+      <h2>三件值得记下来的事</h2>
+
+      <ul>
+        <li>
+          <strong>早年那几次修的都是眼前那一半。</strong>
+          2026-07-30 修的是「一个抓不下来的页面会葬送九成档案，而且档案被静默标成
+          <em>已完成</em>」，从那时起才开始记缺口；一周后做的是「重试」这个按钮。
+          <strong>而「重试成功之后，那处缺口怎么办」从来没有人写过</strong>——
+          两个功能各自都对，中间那道缝没有名字，也就没人去看。
+        </li>
+        <li>
+          <strong>校验器跳过了一层，而它说得不够响。</strong>
+          写这个补丁时，产出的档案有一小段时间是不合规的（多了个 1.3 不认的字段），
+          而本机的校验器<strong>什么都没说</strong>——它先打了一句
+          「未安装 jsonschema，跳过 schema 层校验」，然后打了一句「<strong>通过</strong>」。
+          后面那两个字才是会被读进去的。
+        </li>
+        <li>
+          <strong>这是「假完整性声明」的镜像。</strong>
+          这个项目早就记过一次相反方向的：几份档案声称某条路线「整份都枚举过了」，
+          而实际只抓到 15 条中的一小部分。那次是<em>多报</em>，这次是<em>少报</em>——
+          而少报是<strong>安全的那个方向</strong>，所以反而没有任何东西拦它。
+        </li>
+      </ul>
+
+      <h2>那份已经写下的档案呢</h2>
+
+      <p>
+        它照旧带着那句错话，<strong>冻住的就是冻住的</strong>——这正是这个项目对
+        bundle 的态度，也是它值得信的原因：档案不会被事后改写，哪怕改写的是我们自己
+        的一处口误。
+      </p>
+
+      <p>代价是可以数清楚的，而且不大：</p>
+
+      <ul>
+        <li>覆盖率页上那一行永远写着「有 1 处缺口」；</li>
+        <li>这条路线的水位线不推进，所以下次增量会重新走一遍它——
+          而它本来每次都会走（配图是从广播页派生的），已经抓到的图会被跳过。</li>
+      </ul>
+
+      <p>
+        <strong>档案本身一张图都没少。</strong>
+        这也正是那条新校验的意义：往后再有人拿到这样一份档案，
+        校验器会当场告诉他「这句话别当真」，而不是让他照着一处并不存在的洞去重抓。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-04-half-a-round-trip.html">更早：响应头到了，不等于这次请求完了 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
