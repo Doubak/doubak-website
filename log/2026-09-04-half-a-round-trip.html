@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>响应头到了，不等于这次请求完了 —— 开发日志</title>
+<meta name="description" content="一次抓取卡了 8494 秒。真凶是超时只盖住了半次往返：浏览器的 fetch 在响应头到达时就返回，而读正文那一步没有任何上限。而它之所以能卡这么久，是因为另外三道保护各自堵住了自救的一段。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-04-half-a-round-trip.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-04">2026-09-04</time>
+      <h1>响应头到了，不等于这次请求完了</h1>
+      <p class="summary">
+        一次真实抓取卡了 8494 秒。真凶是超时只盖住了半次往返；
+        而它之所以能卡这么久，是因为另外三道保护各自堵住了自救的一段。
+      </p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        报上来的现象很短：<strong>进度不动了</strong>。用户点了暂停，再点继续，
+        得到一句
+      </p>
+
+      <blockquote>
+        <p>无法继续：已经有「抓取」在进行中（<strong>8494 秒</strong>前开始）。</p>
+      </blockquote>
+
+      <p>
+        控制台里是两行「推进结果 …captured:25…」，然后<strong>连着 282 次</strong>
+        「心跳 → 未恢复」。282 乘以心跳周期 30 秒等于 8460 秒——和那个 8494 是同一件事：
+        整整 2 小时 21 分钟，全都是同一段抓取卡在那儿。
+      </p>
+
+      <p>
+        进度表显示它停在<strong>作品封面图 2414 / 2943</strong>。
+        已经抓到的东西一页都没丢——这一点从头到尾没变过，
+        因为<a href="/#stops">每抓一页就落一次盘</a>。丢的只是时间。
+      </p>
+
+      <h2>什么情况下会撞上</h2>
+
+      <p>
+        真凶只有一句话：<strong>浏览器的 <code>fetch()</code> 在响应头到达时就返回，
+        正文还在路上。</strong>
+      </p>
+
+      <p>
+        抓取的每一个请求都有 30 秒超时，这件事写在代码里也写在设计文档里，
+        理由是那份文件开头自己写的：
+      </p>
+
+      <blockquote>
+        <p>没有超时的话，一个挂住的连接会<strong>永远</strong>卡住队列——
+        而监管层只会看到「还在跑」，永远不来干预。那是一种静默的失败，
+        比响亮地报错糟糕得多。</p>
+      </blockquote>
+
+      <p>
+        这句话说得完全正确。漏掉的是另一个问题：<strong>「一次请求」到哪儿为止。</strong>
+        超时定时器在 <code>fetch()</code> 返回的那一刻就被清掉了，
+        用户暂停用的那个中止信号也在同一刻被摘掉——而紧接着的那一行
+      </p>
+
+      <pre><code>const buf = await response.arrayBuffer();</code></pre>
+
+      <p>
+        是一个<strong>完全没有上限的等待</strong>。服务器把响应头发过来、然后不再发字节，
+        这一行就再也不会返回；连用户按下的暂停都掐不断它，因为信号已经不挂在上面了。
+      </p>
+
+      <p>触发它需要的条件，说穿了很平常：</p>
+
+      <ul>
+        <li><strong>一条连接给完响应头之后停住。</strong>移动网络切换、Wi‑Fi 漫游、
+          笔记本合盖休眠、CDN 边缘节点抽风——任何一种都够。</li>
+        <li><strong>正文越大越容易撞上</strong>，因为「头已到、正文未完」这个窗口越长。
+          所以最先撞上的是封面图：它们是整场抓取里最大的一批响应，
+          而且走的是另一个域名（<code>img*.doubanio.com</code>）。</li>
+        <li>和抓什么、抓多少无关。<strong>它是概率问题</strong>：
+          一场抓取两万多个请求，只要有一个赶上，整场就停在那儿。</li>
+      </ul>
+
+      <div class="callout">
+        <p><strong>最难看的地方在于它一声不吭。</strong>
+        卡住的位置在两条事件<em>之间</em>：没有错误、没有重试、没有日志、
+        连「我还活着」的信号都不再发。对上面每一层来说，它看起来都还在正常工作。</p>
+      </div>
+
+      <h2>那为什么没自己好起来</h2>
+
+      <p>
+        因为这种卡死<strong>本来是有救的</strong>。互斥锁的规矩是：
+        持有者连续 5 分钟不吭声就判定为卡死，允许下一段抢占它接着抓。
+        这套机制就是为「合盖睡一觉」那类事故建的，之前也真的救过。
+      </p>
+
+      <p>
+        这一次它一次都没被叫到。三道保护各自堵住了通往它的一段路，
+        <strong>而每一道都是在正确地做自己的事</strong>：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>它本来在防什么</th><th>这次它做了什么</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>「别同时跑两段抓取」</strong><br>
+              后台记一个「正在推进」的标志，防止同一个 frontier 被两个循环消费。</td>
+            <td>那个标志在<strong>后台进程</strong>里，而抓取跑在<strong>另一个上下文</strong>里。
+              等待永远没回来，标志就永久为真——此后每一次心跳都在它跟前掉头，
+              <strong>一次都没走到锁那儿</strong>。而抢占的唯一入口正好在这条路上。
+              这是同一个标志的第三次事故，前两次都被当成「忘了清」修掉了。</td>
+          </tr>
+          <tr>
+            <td><strong>「一段跑得久，不等于它死了」</strong><br>
+              持有者每抓一页就报一次「我还活着」，免得一次合法的慢被误判。</td>
+            <td>所有抓取事件走同一条通道，而<strong>不是每条事件都由持有者发出</strong>。
+              用户按下暂停时发出的那条事件，替<strong>那具尸体</strong>刷新了心跳。
+              <strong>用户按下的那个按钮，正是让他按不动下一个按钮的原因。</strong></td>
+          </tr>
+          <tr>
+            <td><strong>「同一时刻只跑一件事」</strong><br>
+              两条请求流叠加会让实际请求频率翻倍，可能导致账号被限制。</td>
+            <td>「继续」被锁拒绝，而这句拒绝<strong>抛在了改写调度状态之前</strong>。
+              于是记录里一直写着「用户手动暂停」，心跳从此每 30 秒判一次「不恢复」。
+              <strong>点下去的那一下「继续」，唯一的效果是让抓取再也不会自己回来。</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        这三条各自都讲得通，合起来是一句更值得记住的话：
+        <strong>一道防线，如果只有在它保护的那件事没发生时才够得着，那就等于没有。</strong>
+      </p>
+
+      <h2>四处都修了</h2>
+
+      <ul>
+        <li><strong>正文读进同一个期限里。</strong>正文改由 <code>readBody</code>
+          交给超时那一层去读，于是 30 秒的期限盖住的是<strong>整次往返</strong>，
+          中止信号也会把正文流一并掐断——只拒绝不掐断的话，连接还挂在那儿。
+          顺带修好了一件此前不成立的事：读正文现在算进闸门持有的时间，
+          所以<strong>「同一时刻只有一个请求」到今天才是真的</strong>，
+          此前下一个请求可以在上一个正文还在下载时就发出去。</li>
+        <li><strong>「正在推进」那个内存标志删掉了。</strong>它描述的是别的上下文的状态，
+          本来就只是个猜测；判断交给真正知道答案的那一层——
+          锁被活着的那一段占着就说「跳过这次」，判死就抢占。</li>
+        <li><strong>「我还活着」必须由持有者自己出具。</strong>
+          暂停、中止、收尾、重试这四件事发出的信号不再算数；
+          而且<strong>判死之后不再翻案</strong>——活着是连续的，
+          一条迟来的消息改变不了「已经静默超过阈值」这个事实。</li>
+        <li><strong>「被锁挡住」不等于「继续失败」。</strong>
+          现在只把这一种情况接住（别的错误照样报，比如登录失效），
+          接住之后照常把调度状态改回去，于是心跳会继续照看它。</li>
+      </ul>
+
+      <p>
+        面板的帮助页也加了一行「<strong>进度长时间不动</strong>」，
+        说清楚 5 分钟后会自动接管、不必重装扩展、点了继续没有立刻看到新请求是正常的。
+        这条比上面四处都好懂，而它本该早就在那儿。
+      </p>
+
+      <h2>现在会怎样</h2>
+
+      <p>
+        同一条连接再挂住，30 秒后会超时、归类成可重试的网络错误、按退避重来一次，
+        整件事变成日志里的一行，抓取继续往下走。
+        万一还有别的没想到的卡死方式——一定还有——它现在<strong>最多卡 5 分钟</strong>，
+        然后被判死、被接管、从断点继续。
+      </p>
+
+      <div class="callout">
+        <p><strong>已经抓到的内容一页都没受影响。</strong>
+        这不是这次修复带来的，而是本来就成立：抓一页写一页，
+        卡住的是「接着抓」，不是「已经抓到的」。
+        那份档案照样能解析、能导出，也照样能当下次增量抓取的基准。</p>
+      </div>
+
+      <p>
+        最后一句留给这次真正的教训，它比四个补丁都短：
+        <strong>一个超时的价值，取决于它对「完成」的定义</strong>——
+        而 fetch 给出的那个默认答案，不是一个做归档的人想要的那个。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-02-no-keywords.html">更早：名字里一个关键词都没有 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
