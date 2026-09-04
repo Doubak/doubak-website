@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v1.3.2，以及为什么格式版本跳到了 1.4 —— 开发日志</title>
+<meta name="description" content="两组修复：抓取卡死、重试成功了缺口却收不回。顺带解释档案格式为什么从 1.3 走到 1.4——它只多了一个可选字段。附一张表：哪些新旧搭配是支持的，哪一种不是。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-04-v1-3-2.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-04">2026-09-04</time>
+      <h1>v1.3.2，以及为什么格式版本跳到了 1.4</h1>
+      <p class="summary">
+        两组修复：抓取卡死、重试成功了缺口却收不回。
+        档案格式随之从 1.3 走到 1.4——它只多了一个可选字段。
+      </p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        <a href="https://github.com/Doubak/doubak-extension/releases/tag/v1.3.2">v1.3.2 已经发布</a>。
+        两件事都来自同一次真实抓取的反馈，各自已经写过一篇，这里只列结果：
+      </p>
+
+      <ul>
+        <li>
+          <strong><a href="/log/2026-09-04-half-a-round-trip.html">抓取卡住不动</a></strong>——
+          一次抓取停了 8494 秒。真凶是超时只盖住半次往返：浏览器的
+          <code>fetch()</code> 在响应头到达时就返回，而随后读正文那一步没有任何上限。
+          而它能卡这么久，是因为另外三道保护各自堵住了自救的一段。四处都修了；
+          同样的卡死现在<strong>最多卡 5 分钟</strong>，然后被判死、接管、从断点继续。
+        </li>
+        <li>
+          <strong><a href="/log/2026-09-04-gap-already-filled.html">重试成功了，缺口却收不回</a></strong>——
+          一张图三次超时记下缺口，点重试、成功了，而档案里那句「抓不下来」原样封了进去。
+          缺口现在多存一份结构化的 URL，成功捕获时精确抹掉。
+        </li>
+      </ul>
+
+      <p>
+        面板还多了两句话：帮助页的「<strong>进度长时间不动</strong>」（5 分钟后自动接管，
+        不必重装扩展），以及导入按钮旁边那行——系统的文件夹对话框一次只能选一个文件夹，
+        要一次导入多份，<strong>选中它们共同的上一级</strong>。
+      </p>
+
+      <h2>那个 1.4 是什么</h2>
+
+      <p>
+        它<strong>不是</strong>扩展的版本号。这个项目有两条独立的版本线，混起来看会很吓人：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>版本号</th><th>说的是什么</th><th>现在是</th></tr></thead>
+        <tbody>
+          <tr><td>扩展版本</td><td>你装的这个软件</td><td>v1.3.2</td></tr>
+          <tr><td><code>spec_version</code></td><td>档案文件夹的<strong>格式</strong></td><td>bundle/1.4</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        1.4 与 1.3 的全部差别是<strong>一个可选字段</strong>：一处「这一页抓不下来」的缺口，
+        现在除了那句给人看的话，还单独存一份它说的那个 URL。
+      </p>
+
+      <p>
+        为这一个字段动版本号，是<a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">规范自己的规矩</a>：
+        <strong>新增可选字段就是一次小版本</strong>。听起来小题大做，但它买下的东西很具体——
+        档案是<strong>冻住的</strong>，一份 2022 年的备份今天还要能读。
+        「这份档案是按哪一版写的」必须写在文件里，而不是靠读的人去猜。
+      </p>
+
+      <p>
+        这个字段还带来一条新的校验：<strong>一处缺口说某个 URL 抓不下来，
+        而同一份档案里就有那个 URL 的成功捕获——校验器现在会报错。</strong>
+        换句话说，这一类错话从今往后<em>能被第三方当场看出来</em>，
+        不必相信生产者的自述。
+      </p>
+
+      <h2>新旧怎么搭，一张表说完</h2>
+
+      <p>
+        <strong>结论先说：老档案什么都不用做。</strong>不用重抓，不用转换，不用导出再导入。
+        下面这些是实际验过的——手上那 26 份真实档案正好横跨四个格式版本
+        （1.0 四份、1.1 八份、1.2 六份、1.3 八份），全套流程跑了一遍。
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>场景</th><th>支持吗</th><th>依据</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>新版扩展<strong>导入</strong> 1.0–1.3 的老档案</td>
+            <td class="ok">✅ 支持</td>
+            <td>导入只核对文件名、字节数与摘要，从不看版本号</td>
+          </tr>
+          <tr>
+            <td>一个目录里<strong>混着</strong>好几个格式版本，一起解析</td>
+            <td class="ok">✅ 支持</td>
+            <td>实测：26 份一起解析，产出 2963 条标记</td>
+          </tr>
+          <tr>
+            <td>拿老档案当基准，接着做<strong>增量抓取</strong></td>
+            <td class="ok">✅ 支持</td>
+            <td>链的判据是档案编号与水位线，与格式版本无关</td>
+          </tr>
+          <tr>
+            <td>老档案<strong>建站 / 导出到 NeoDB</strong></td>
+            <td class="ok">✅ 支持</td>
+            <td><a href="https://sample.doubak.com">样张站</a>就是这么生成的</td>
+          </tr>
+          <tr>
+            <td>抓到一半（1.3.1），升级之后<strong>接着抓完</strong></td>
+            <td class="ok">✅ 支持</td>
+            <td>断点续抓不按版本校验；收尾时按新版本如实写下</td>
+          </tr>
+          <tr>
+            <td><strong>旧</strong>版本的扩展 / 解析器读 1.4 的<strong>新</strong>档案</td>
+            <td class="ok">✅ 支持</td>
+            <td>规范要求读者容忍不认识的字段，两边都有专门的用例在跑</td>
+          </tr>
+          <tr>
+            <td><strong>新</strong>校验器校验老档案</td>
+            <td class="ok">✅ 支持</td>
+            <td>实测 26 份里 22 份通过；4 份报的是七月那个已知的老毛病，与版本无关</td>
+          </tr>
+          <tr>
+            <td><strong>旧</strong>校验器（1.3 那一版）校验 1.4 的新档案</td>
+            <td class="todo">⬜ 会被拒</td>
+            <td>唯一的例外，见下</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        最后一行是整张表里唯一的「不支持」，而它是<strong>故意的</strong>：
+        档案格式的 schema 不接受它不认识的字段。一个 1.3 时代的校验器看到
+        <code>url</code> 会说「这不合规」——它说得对，按它知道的那一版确实不合规。
+        这条规矩存在的理由是<strong>宁可响亮地拒绝，也不要默默地少读一个字段</strong>；
+        规范里另外两次小版本递增（<code>unknown</code> 判定、导入档案的成色取值）也都是这样。
+      </p>
+
+      <p>
+        解决办法是把规范仓库更新到最新——那是<strong>校验器</strong>这一个工具的事，
+        跟你的档案、跟扩展、跟解析器都没有关系。
+      </p>
+
+      <div class="callout">
+        <p><strong>一句话版本：</strong>装上 v1.3.2，老档案照旧用，新抓的档案里多了一个字段。
+        只有一件事会变——如果你手上留着一份旧的 <code>validate.py</code> 用来自己核对，
+        更新它。</p>
+      </div>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-04-gap-already-filled.html">更早：档案是全的，声明是错的 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
