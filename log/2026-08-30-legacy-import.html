@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>接上 2022 年的老档案：多的不是记录，是二十个月的编辑史 —— 开发日志</title>
+<meta name="description" content="把前代命令行工具 2022–2024 存下的 782 MB 页面转成档案接进来。记录只多了 7 条，而「改过不止一次」的标记从 8 条变成 147 条。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-08-30-legacy-import.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-30">2026-08-30</time>
+      <h1>接上 2022 年的老档案：多的不是记录，是二十个月的编辑史</h1>
+      <p class="summary">前代那个命令行工具 2022–2024 存下 782 MB 页面。转成档案接进来之后，记录只多了 7 条——而「改过不止一次」的标记从 8 条变成 147 条。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        2020 年那一版 <a href="https://github.com/its-my-data/doubak" rel="nofollow">its-my-data/doubak</a>
+        是个 Go 写的命令行抓取工具，早就归档了。但它抓下来的东西还在硬盘上：
+        <strong>782 MB、7353 个 HTML、2022-12-25 到 2024-08-11 之间的四次抓取。</strong>
+      </p>
+
+      <p>
+        新写的 <a href="https://github.com/Doubak/doubak-import-adapters">doubak-import-adapters</a>
+        把它们转成豆备的档案格式，于是解析器一行都不用改就能读——它们从此是<strong>一等的档案</strong>，
+        而不是下游某处的特例。
+      </p>
+
+      <h2>先说值不值</h2>
+
+      <p>把那 7 份导入档案和扩展 2026 年抓的 17 份放进同一个目录一起解析：</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>只有 2026 那 17 份</th><th>加上导入的 7 份</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>标记</td><td>2950</td><td>2955</td><td>+5</td></tr>
+          <tr><td>广播</td><td>3411</td><td>3413</td><td>+2</td></tr>
+          <tr><td>标记修订</td><td>2959</td><td><strong>3105</strong></td><td><strong>+146</strong></td></tr>
+          <tr><td>广播修订</td><td>3480</td><td><strong>3856</strong></td><td><strong>+376</strong></td></tr>
+          <tr><td>改过不止一次的标记</td><td>8</td><td><strong>147</strong></td><td><strong>×18</strong></td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        <strong>记录数只多了 7 条。要是冲着「多备份点东西」去，这件事根本不值得做。</strong>
+      </p>
+
+      <p>
+        值钱的是下面那两行。2026 年的档案里整部编辑史只有 9 条修订——因为第一次抓取就是
+        2026 年 7 月，在那之前没有任何观测。导入之后多出来的，是那 20 个月里<strong>真实发生过的编辑</strong>，
+        而豆瓣自己不保存这些：
+      </p>
+
+      <pre><code>movie/26869078
+
+2022-12-26 → 2023-12-18   想看   「又来了，先听歌再马克剧」
+2024-08-11                在看   「开始看了，想起来是 Aimyon 的主题曲……
+                                  //又来了，先听歌再马克剧」
+2026-07-31 → 2026-08-01   看过   ★3  「感觉是东京郊区宣传片……//开始看了……」</code></pre>
+
+      <p>
+        一条完整的 想看 → 在看 → 看过，跨四年。<strong>豆瓣页面上只剩最后那一行。</strong>
+      </p>
+
+      <h2>这不是「解析老 HTML」</h2>
+
+      <p>
+        页面本身一个字节都不用动，它们是真的。缺的是那个工具<strong>从来没记录过的元数据</strong>：
+        这个 URL 当初是为什么抓的、什么时候抓的、它的地址是什么、响应可不可信。
+      </p>
+
+      <p>
+        其中响应头是彻底没有的。而 WARC 的 response 记录结构上必须有个状态行——
+        也就是说导入的时候<strong>必须编一个出来</strong>。
+      </p>
+
+      <p>
+        规范为此加了一个新的成色取值，
+        <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md"><code>bundle/1.3</code></a>：
+      </p>
+
+      <pre><code>capture_fidelity: "decoded_body+synthesized_headers"
+                   ↑ 正文是真的        ↑ 响应头是编的</code></pre>
+
+      <p>
+        规范同时<strong>明令不许</strong>把它降级成 <code>decoded_body+filtered_headers</code>——
+        那个取值宣称响应头来自服务器、只是被浏览器过滤过。
+        <strong>「被过滤的真头部」和「凭空造的假头部」之间的区别，恰恰是取证时唯一要问的那个问题。</strong>
+        同一条原则往下推：index 里的 <code>http_status</code> 字段是可选的，那就<strong>不写</strong>——
+        能不编就不编。
+      </p>
+
+      <h2>判定不能编，因为它读的是正文</h2>
+
+      <p>
+        头部可以编，<a href="/log/2026-07-30-verdicts.html">判定不行</a>——判定读的是正文，而正文是真的。
+      </p>
+
+      <p>
+        这不是个理论问题。<strong>前代工具把登录页按数据文件名写在了磁盘上，没有任何标记。</strong>
+        下游看到的只会是「文件在，里面 0 条」。把抓取器那份分类器原样跑一遍，7353 个页面：
+      </p>
+
+      <pre><code>ok  5051      login  2270      soft404  25      0 字节  7</code></pre>
+
+      <p>
+        那 2270 个里包含<strong>整整一次抓取</strong>：2023-01-27 那天是<strong>登出状态</strong>跑的。
+        而未登录看到的列表页<strong>看起来完全正常</strong>，只是标签那一栏根本不渲染。照单全收的话：
+      </p>
+
+      <pre><code>天真摄取   3049 条修订 / 2534 条记录     ← 其中 2856 条是凭空捏造的
+诚实摄取    193 条修订 / 2526 条记录</code></pre>
+
+      <div class="callout warn">
+        <p>拒掉那 2270 个页面的<strong>全部代价，是 1 条</strong>别处没有的标记。
+        换来的是不捏造 2856 条「这天他把所有标签都删了」。这个不对称大到没什么可讨论的。</p>
+      </div>
+
+      <h2>链：七个起点，而这是正常的</h2>
+
+      <p>
+        每一份档案都记着<strong>上一份是谁</strong>（<code>previous_bundle_id</code>），
+        增量抓取就是这么串起来的。导入器也照做：它把老工具那四次抓取按日期串成<strong>自己的一条链</strong>。
+        于是现在那个目录里是这样的——
+      </p>
+
+      <pre><code>98e6c6 ← 589b88 ← 8a5722 ← e91450 ← 67535d ← ac3bcb ← 4983ef   ← 导入的（2022-12 → 2024-08）
+d40c1d
+786e5c ← afb38b ← a54168
+3eef52 ← 627045 ← f72157 ← 354a1d ← 9f5719 ← c34601 ← ba57a3
+0fb09c ← 157e63 ← 73f85f ← b10d6c ← 4b82f3 ← 0ddb70
+b3c2b6 ← 0484cb</code></pre>
+
+      <p>
+        六条链，互不相连。<a href="/log/2026-08-20-four-roots.html">这件事以前写过</a>：
+        <strong>合并的结果恰好是并集</strong>，所以「该挑哪一条链」这个问题不存在——
+        挑任何一条都会丢掉别的链上的东西。删掉重抓、换台机器、同一天跑两次增量，
+        都会产生新的起点，而这全都正常。
+      </p>
+
+      <h2>但导入的档案绝不许当基准</h2>
+
+      <p>
+        链还有第二个用途：<strong>增量抓取要靠上一份档案的水位线</strong>决定从哪儿开始读。
+        「这条线以上全都抓到了」这句话，是下一次抓取可以少读几千页的唯一依据。
+      </p>
+
+      <p>
+        所以导入器有一条硬规矩：
+      </p>
+
+      <div class="callout warn">
+        <p><strong>导入的档案永远 <code>advanced: false</code>、<code>floor_time: null</code>。</strong>
+        它绝不设水位线。</p>
+      </div>
+
+      <p>
+        道理很直接：老工具最后一次抓取是 2024-08-11。要是那份导入档案设了水位线，
+        <strong>下一次增量抓取就会从 2024 年开始读，然后停下——2024 到 2026 之间的两年，
+        再也不会被读第二遍。</strong>一次为了省事的「继承」，换来两年的空洞，
+        而且是<strong>安静的</strong>：抓取会正常结束，报告会说一切正常。
+      </p>
+
+      <p>
+        同一条思路还决定了另外两件事：
+      </p>
+
+      <ul>
+        <li>
+          <strong>按自然日切档案，不按时间戳。</strong>判据只有一条：
+          <em>一条路线的页面不能被劈进两份档案</em>——劈了的话，它的连续性证明在两边都不成立，
+          <strong>一次完整的枚举会被记成两次不完整的</strong>。实测这批数据里没有任何一条路线跨过日界。
+        </li>
+        <li>
+          <strong>档案编号由「适配器 + 那一天」算出来，不是随机的。</strong>
+          一次抓取是一次观测，值得一个新编号；而一次导入是<strong>对同一批冻结字节的转换</strong>，
+          导两次不该长出第二份平行档案。（不承诺产物逐字节相同，也不该承诺：
+          WARC 要求记录编号全局唯一，重导一次那些 uuid 必然不同。）
+        </li>
+      </ul>
+
+      <h2>它撬出来一个一直都在的解析器 bug</h2>
+
+      <p>
+        豆瓣的标记列表页上有个 <code>data-cid</code> 属性，是那条标记自己的编号。
+        解析器拿它当身份；没有的时候退回一个「账号 + 媒介 + 作品号」拼出来的降级键。
+      </p>
+
+      <p>
+        <strong>而 <code>data-cid</code> 是 2023 年 12 月前后才开始出现的。</strong>
+        也就是说，任何一个同时装着这条线两侧档案的目录，都会让每一条跨过那条线的标记<strong>裂成两半</strong>——
+        两套键根本对不上。实测：
+      </p>
+
+      <pre><code>2526 个作品  →  4050 条标记</code></pre>
+
+      <p>
+        而编辑史——这次导入的<strong>全部价值</strong>——正好被砍掉一半。
+      </p>
+
+      <div class="callout warn">
+        <p><strong>失败形状是最坏的那一种：不报错，而且看起来像数据变多了。</strong></p>
+      </div>
+
+      <p>
+        修法是让降级键当「这条记录目前落在哪个键下」的锚：后来出现了真编号，
+        记录就<strong>迁移</strong>过去。而两个<em>不同</em>的真编号仍然各成一条——
+        那是真的删掉重标，也正是 <code>data-cid</code> 唯一能看见、降级键看不见的东西。
+      </p>
+
+      <p>
+        这个 bug 不是评审看出来的，是<strong>喂一份没见过的数据跑出来的</strong>。
+        <a href="/log/2026-08-07-parser-and-fake-edits.html">上一次</a>也是，
+        <a href="/log/2026-08-20-four-roots.html">上上次</a>还是。
+      </p>
+
+      <h2>一句说错了的话，以及它错在哪</h2>
+
+      <p>
+        导入刚做完时，README 上写着一句：「<strong>救不回被豆瓣删掉的作品名。实测 0/8。</strong>」
+      </p>
+
+      <p>
+        档案里有 8 个「墓碑」——最后一次看到时，豆瓣连名字都不给了，只剩一个占位符。
+        当时看了其中一个（《返校》），发现它在 <strong>2022-12-25 的广播卡片上就已经是「未知条目」</strong>，
+        于是写下了 0/8。
+      </p>
+
+      <p>
+        <strong>那句话是从 n=1 推出来的，而它是错的。</strong>回头对着合并后的档案重新数：
+      </p>
+
+      <pre><code>movie/11611021   在这世界的角落 / この世界の片隅に
+game/24299254    瘟疫公司 Plague Inc.
+game/27054820    瘟疫公司：物竞天择 Plague Inc: Evolved</code></pre>
+
+      <p>
+        <strong>3 个救回来了。</strong>老档案在豆瓣删掉它们<em>之前</em>看见过。
+        《返校》那一条仍然成立——它被删得更早——但「0/8」不成立。
+      </p>
+
+      <p>
+        <a href="/log/2026-07-28-counts-lie.html">拿小样本推一个封闭结论</a>，
+        是这个项目重复得最多的一个错误。相应的测试也改了：断言写成<strong>下界</strong>
+        （「至少救回 3 个」），因为墓碑的意思是「<em>变成了</em>无名」，
+        写成恒等会让「又多救回一个名字」表现成测试失败。
+      </p>
+
+      <h2>做不到的，写在这里</h2>
+
+      <ul>
+        <li><strong>一张图都没有。</strong>老工具只存 HTML。摄取广播会让结构化数据引用 20 个没有字节的图片地址——
+          这不是缺陷，是那个生产者根本没有图片这条路线，而且现在有一条测试<strong>专门断言这 20 个必须没有字节</strong>：
+          哪天有了，说明按成色做的那个划分已经不成立了。</li>
+        <li><strong>没有日记 / 影评 / 豆列 / 相册</strong>——老工具没有这些路线。</li>
+        <li><strong>未登录抓的那一整代丢掉</strong>，理由见上。</li>
+      </ul>
+
+      <p>
+        样张站已经按合并后的档案重新生成过：多了 5 个作品页，
+        <strong>一页都没有减少</strong>——那正是「合并即并集」这条性质该有的样子。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-30-nothing-was-checking.html">← 更新：校验器一直都在，只是没人跑</a>
+      <a href="/log/2026-08-28-one-click.html">更早：把下游搬进扩展，靠的是抄而不是重写 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

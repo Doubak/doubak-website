@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一个目录里十份档案，只读了一份 —— 开发日志</title>
+<meta name="description" content="下载文件夹里平铺着十份档案的文件。扫描器取了第一个匹配，剩下九份 573 条捕获无声消失——而校验器只验了那一份，然后说「通过」。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-08-30-ten-bundles-one-read.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-30">2026-08-30</time>
+      <h1>一个目录里十份档案，只读了一份</h1>
+      <p class="summary">下载文件夹里平铺着十份档案的文件。扫描器取了第一个匹配的清单，剩下九份、573 条捕获无声消失——而校验器只验了那一份，然后说「通过」。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        <code>~/downloads/old</code> 是个再普通不过的下载文件夹：
+        十份档案的清单和段文件全平铺在里面，一个 <code>manifest.json</code>，
+        外加一堆截图。
+      </p>
+
+      <p>找清单的那行代码是这么写的：</p>
+
+      <pre><code>readdirSync(dir).find((f) =&gt; f.startsWith('index-'))
+                 ↑ 第一个匹配的</code></pre>
+
+      <p>
+        然后<strong>另外</strong>单独读了那个 <code>manifest.json</code>，
+        而且没有任何地方检查这两样是不是同一份档案的。结果是一个<strong>自相矛盾的输入</strong>：
+      </p>
+
+      <pre><code>manifest 说   bundle_id = 786e5c
+清单第一行是  20260730T102904Z-f4ef8c#000001
+              ↑ 完全是另一份档案</code></pre>
+
+      <div class="callout warn">
+        <p><strong>九份档案、573 条捕获，一声不吭地没了。</strong>
+        解析照常跑完，产出照常写出来，是一份看起来完全合理的结构化数据——只是少了一大块历史。</p>
+      </div>
+
+      <h2>校验器也没看出来，而且它说得比谁都肯定</h2>
+
+      <p>
+        <a href="/log/2026-08-30-nothing-was-checking.html">规范仓库那个校验器</a>
+        读的是 <code>manifest.index.filename</code>——manifest 说清单叫什么，它就去验那一个。
+        它<strong>从来没问过「这个目录里是不是还有别的清单」</strong>。
+      </p>
+
+      <p>
+        于是它验了十份里的一份，然后打印「<strong>通过</strong>」。
+        那句话是<em>真的</em>，而且完全没用。
+      </p>
+
+      <h2>修法不是「拒绝这种目录」</h2>
+
+      <p>
+        第一反应是报个错让人先把目录整理好。但这和
+        <a href="/how/">「解析器会连子目录一起找」</a>是同一件事的两面：
+        <strong>逼人手工整理目录，只会换来一份被漏掉的档案</strong>——
+        而漏掉是安静的，报错至少是响的。
+      </p>
+
+      <p>
+        况且什么都不用猜：<strong>段文件的名字里嵌着档案编号，而清单的每一行都写着自己在哪个段里。</strong>
+        所以改成把<strong>每一个</strong>清单都读进来，一个清单就是一份档案。
+      </p>
+
+      <p>两条规矩从这儿掉出来，都是关于「该信谁」的：</p>
+
+      <ul>
+        <li>
+          <strong>档案编号取自清单的文件名，不取自 manifest。</strong>
+          文件名和它里面每一条捕获编号是<em>同源</em>的；而 manifest 是一份<em>关于</em>某个编号的陈述。
+          陈述可以指错，同源的东西不会。
+        </li>
+        <li>
+          <strong>编号对不上的 manifest，干脆不挂上去。</strong>
+          硬挂的话，另一份档案的抓取状态会被喂进「哪些东西可以断定是被删了」那套判断里——
+          也就是<strong>拿别人的水位线来决定这里什么算删除</strong>。
+          不挂只是少了一份证据，那是安全的方向。
+        </li>
+      </ul>
+
+      <p>
+        「这个目录挤了好几份档案」仍然会报出来——十份平铺在一起，
+        最多只有一份还留着自己的完整性证据。
+      </p>
+
+      <h2>同一个 bug，在另一个仓库里等着</h2>
+
+      <p>
+        生成站点那边取图片的代码，写的是一模一样的东西：
+        <code>readdirSync(dir).find(...)</code>，只看一层，也不递归。
+      </p>
+
+      <p>
+        <strong>不一起修的话，它会比之前更糟。</strong>解析器现在读全部十份了，
+        于是结构化数据会引用一批生成器根本导不出来的图——
+        <strong>而离线保证会恰好在那些本来就已经很乱的档案上失效</strong>。
+      </p>
+
+      <h2>「未知」不是一个账号编号</h2>
+
+      <p>同一天还有一个形状完全一样的问题，主角换成了账号。</p>
+
+      <p>
+        标记的降级身份键长这样：<code>d:&lt;账号&gt;:&lt;媒介&gt;:&lt;作品号&gt;</code>，
+        而账号取不到时填的是字符串 <code>'unknown'</code>。
+        <strong>没有 manifest 的档案就没有账号</strong>，于是：
+      </p>
+
+      <pre><code>有 manifest 的   d:82160871:drama:1234
+没 manifest 的   d:unknown:drama:1234
+                   ↑ 两套永不相交的键空间</code></pre>
+
+      <p>
+        这和<a href="/log/2026-08-30-legacy-import.html">导入老档案时挖出来的那个
+        <code>data-cid</code> bug</a> <strong>结构上一模一样</strong>，只是换了个字段来劈。
+        实测把九份没有 manifest 的档案并进去：
+      </p>
+
+      <pre><code>2955 个作品  →  2960 条标记
+                 ↑ 5 条戏剧记录裂成了两份，
+                   状态、评分、标记日期全都一样</code></pre>
+
+      <p>
+        只有戏剧，因为戏剧的列表页不带 <code>data-cid</code>；
+        其他媒介有上游编号，走的是另一套键，怎么都能并回去。
+      </p>
+
+      <h2>认领，而不是猜</h2>
+
+      <p>
+        修法不是给它编一个账号，而是<strong>认领</strong>：
+        一个目录里如果只有一个已知账号，那些没有 manifest 的档案就归到它名下，
+        并且<strong>报一条告警把它们逐个点名</strong>。
+        （一个目录里有两个账号本来就是硬错误，所以这个前提相当牢。）
+        零个已知账号时，大家一起用 <code>'unknown'</code>——那时它是<em>唯一</em>的键空间，劈不了任何东西。
+      </p>
+
+      <p>
+        修完之后同样的合并给出 2955 个作品 / 2955 条标记，修订数一条不变——
+        <strong>所以那多出来的 5 条从头到尾就是个假象。</strong>
+      </p>
+
+      <p>
+        但认领只用来<strong>合并</strong>，不用来<strong>放行广播</strong>。
+        抽广播的时候要拿每条帖子的作者编号和档案主人对一遍，
+        <strong>答错了就是把第三方的内容写进别人的档案</strong>。
+        而「两条记录已经共享同一个作品编号」这件事，对「这条帖子是谁发的」一个字都没说。
+        <strong>授予要严，证伪可松</strong>——所以那些档案的广播照旧被拒。
+      </p>
+
+      <h2>那条告警的第一版，永远不可能响</h2>
+
+      <p>
+        「认领了哪几份」这条告警的第一版是这么写的：名单在用到账号的时候<em>顺便</em>填，
+        而告警在活儿开跑<em>之前</em>就推出去了。
+      </p>
+
+      <p>
+        <strong>也就是说它只可能报零。</strong>
+      </p>
+
+      <div class="callout warn">
+        <p><strong>一条永远不会响的告警比没有更糟——它看起来像有人在看着。</strong></p>
+      </div>
+
+      <p>
+        改成开工前就从档案清单里直接算出来。这个形状在这个项目里反复出现，
+        <a href="/log/2026-09-04-re-marked.html">最近一次是一道永远为真的守卫</a>，
+        而两次都是靠<strong>把它改坏、看有没有测试变红</strong>发现的。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-08-30-offline-promise.html">← 更新：页脚写着「零外部请求」，而那一版有 15 页在联网</a>
+      <a href="/log/2026-08-30-nothing-was-checking.html">更早：校验器一直都在，只是没人跑 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

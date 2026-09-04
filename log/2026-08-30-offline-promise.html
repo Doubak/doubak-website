@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>页脚写着「零外部请求」，而那一版有 15 页在联网 —— 开发日志</title>
+<meta name="description" content="重新生成之后，样张站上 15 个页面把豆瓣的图片地址印了出来。规矩在同一份代码里写过四遍，一条测试正钉着这个 bug，而生成器的告警说了实情却没说后果。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-08-30-offline-promise.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-08-30">2026-08-30</time>
+      <h1>页脚写着「零外部请求」，而那一版有 15 页在联网</h1>
+      <p class="summary">接上老档案重新生成，样张站上 15 个页面把豆瓣的图片地址印了出来。规矩在同一份代码里写过四遍，一条测试正钉着这个 bug，而告警说了实情却没说后果。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        <a href="/log/2026-08-30-legacy-import.html">接上 2022–2024 的老档案</a>之后，
+        样张站重新生成了一遍。上一版是干净的，这一版有 15 个页面带着这个：
+      </p>
+
+      <pre><code>src="https://img3.doubanio.com/…"</code></pre>
+
+      <p>而那个站点<strong>每一页的页脚都写着</strong>：</p>
+
+      <blockquote><p>整个过程零网络请求，这个页面也不发一个外部请求。</p></blockquote>
+
+      <h2>怎么来的</h2>
+
+      <p>封面那行代码是这么写的：</p>
+
+      <pre><code>douban_cover: coverPath ?? m.coverUrl
+                          ↑ 本地没有这张图的时候，退回豆瓣的地址</code></pre>
+
+      <p>
+        <strong>老档案一张图都没存</strong>（前代那个工具只抓 HTML）。
+        于是那 5 个只存在于老档案里的作品没有本地封面，那行代码就老老实实印上了豆瓣的地址。
+      </p>
+
+      <p>
+        这个分支<strong>从来没被执行过</strong>——扩展抓的档案总是连封面一起抓下来的。
+        它就那么躺着，等一份没有图的档案。
+      </p>
+
+      <h2>三件让它更难堪的事</h2>
+
+      <h3>① 规矩在同一份代码里写过四遍</h3>
+
+      <p>
+        「接不回本地就只留文字，<strong>绝不回退到豆瓣的 URL</strong>」——
+        这句话在生成器里写了四遍：广播里的作品链接一遍，被截断的正文一遍，广播卡片标题一遍，
+        还有一遍就在<strong>那行代码上面二十行</strong>，
+        一个叫 <code>realCover()</code> 的函数的注释里，
+        <strong>一字不差地描述了即将发生的这件事</strong>。
+      </p>
+
+      <h3>② 一条测试正钉着这个 bug</h3>
+
+      <p>
+        测试文件里，一条断言要求「本地没有封面时，豆瓣的地址要被数进 <code>remote</code> 那一栏」——
+        <strong>而紧挨着它下面那一条，解释的正是为什么不该这么做。</strong>
+      </p>
+
+      <p>
+        两条相邻的断言，结论相反。谁都没发现，因为那个分支从来没跑到过。
+      </p>
+
+      <h3>③ 生成器告警了，而我把它当成了通知</h3>
+
+      <p>它是这么说的：</p>
+
+      <blockquote><p>⚠ 有 5 张图没能从档案里取到，页面上留的是 doubanio 的地址</p></blockquote>
+
+      <p>
+        每个字都对。而我读完的反应是「哦，老档案没图，正常」，
+        然后继续做别的。<strong>它其实是在说「离线保证马上就要破了」，而它没有把这句说出来。</strong>
+      </p>
+
+      <div class="callout warn">
+        <p><strong>一条只陈述事实、不点明后果的告警，会被跳过。</strong>
+        这一条和<a href="/log/2026-09-04-gap-already-filled.html">校验器打完「跳过 schema 层」紧接着打「通过」</a>
+        是同一个毛病。</p>
+      </div>
+
+      <h2>修法：没有封面就没有封面</h2>
+
+      <p>
+        只写 <code>coverPath</code>，取不到就<strong>什么都不写</strong>。
+        「没有封面就只剩文字，不放占位图」这条规矩本来就已经在了。
+      </p>
+
+      <p>
+        广播的<strong>附图</strong>是刻意的例外，仍然保留远程地址：那是用户自己传的照片，
+        留个地址至少说明「这儿本来有张图」。现在有一条测试<strong>点名</strong>这个例外，
+        免得哪天它又被悄悄扩大。
+      </p>
+
+      <h2>顺带清掉的另外两个</h2>
+
+      <h3>一张烂掉的 JPEG，炸掉整趟生成</h3>
+
+      <p>取图片字节那一步没有任何保护。一个损坏的 JPEG 让整个构建停在这里：</p>
+
+      <pre><code>Error: incorrect data check
+    at payload (src/images.js:92:15)</code></pre>
+
+      <p>
+        没有图片名，没有捕获编号，没有档案名，<strong>一个页面都没写出来</strong>。
+        而这条链路正好把<a href="/log/2026-08-30-nothing-was-checking.html">为什么要核字节</a>演了一遍：
+        <strong>解析器压根不打开图片行，所以它一路绿灯；坏消息隔着两个工具，以一句 zlib 栈回溯的形式出现。</strong>
+      </p>
+
+      <p>
+        补上保护的同时，「缺」和「读不出来」分成了两栏，因为<strong>下一步正好相反</strong>：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>意思</th><th>该做什么</th></tr></thead>
+        <tbody>
+          <tr><td><strong>缺</strong></td><td>档案里就没有这张</td><td>重抓一次，豆瓣还有</td></tr>
+          <tr><td><strong>读不出来</strong></td><td>档案自己的字节坏了</td><td><strong>重抓没用</strong>，得找一份好的档案</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        合成一句「缺 N 张」，等于把人指去做一件<strong>不可能成功</strong>的事。
+        还有一条：解压成功<em>之后</em>才写盘——
+        <strong>一个 0 字节的 <code>.jpg</code> 看起来像张图，打开是坏的，那比没有更糟。</strong>
+      </p>
+
+      <h3>一条 2014 年的系统广播，让 Hugo 整站构建失败</h3>
+
+      <p>
+        广播按月归档，而算月份的函数对着没有时间的广播返回一个字符串 <code>'未知'</code>。
+        <strong>下游没有任何地方认得这个哨兵。</strong>于是：
+      </p>
+
+      <pre><code>'未知'.split('-')  →  Number(undefined)  →  NaN
+
+title: "未知年NaN月"
+date:  "未知-01"      ←  Hugo: 这不是一个能解析的日期  →  整站构建中止</code></pre>
+
+      <p>
+        2026 年抓的 3411 条广播<strong>全都</strong>带时间，所以这条路一次都没被走过。
+        走到它的是老档案里一条 2014 年的<strong>系统广播</strong>——
+        「MewX 开始收听自己的豆瓣FM」，豆瓣自己的模板生成的，确实一个时间都没有。
+      </p>
+
+      <p>
+        修法是<strong>整个字段不写</strong>，而不是编一个日期。Hugo 于是给这一页零值日期，
+        倒序排下来它落在最后——正是「时间未知」该在的位置。
+      </p>
+
+      <div class="callout">
+        <p><strong>一个下游没人接的哨兵值，和一个没人读的 <code>verdict</code> 是同一个形状：
+        它不要钱，直到第一行需要它的数据出现。</strong></p>
+      </div>
+
+      <h2>共同点</h2>
+
+      <p>
+        这四个 bug 里，<strong>没有一个是新写的代码引入的</strong>。
+        它们全都躺在那儿等一份自己没见过的数据：没有图片的档案、坏掉的字节、没有时间的广播。
+      </p>
+
+      <p>
+        而它们被发现，靠的都不是评审——是<strong>把老档案接进来，重新生成一遍，然后读产出</strong>。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-02-no-keywords.html">← 更新：名字里一个关键词都没有</a>
+      <a href="/log/2026-08-30-ten-bundles-one-read.html">更早：一个目录里十份档案，只读了一份 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
