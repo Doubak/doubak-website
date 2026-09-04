@@ -531,7 +531,41 @@
   </div>
 </section>
 
-<section class="section" id="not-collected">
+<section class="section" id="stops">
+  <div class="wrap">
+    <h2>抓取不会失败，只会停下来</h2>
+    <p class="lead-2">
+      一场抓取要几个小时，中途一定会碰上点什么：验证码、掉登录、断网，或者你自己想关掉浏览器。
+      这些都不是故障。<strong>每抓到一页就落一次盘</strong>，所以无论停在哪儿，
+      在那之前的每一页都已经在档案里了。
+    </p>
+    <ul>
+      <li><strong>停下来的十几种理由，没有一种会让你损失已经抓到的东西。</strong>
+          验证码、软封锁、掉登录、断网、手动暂停、关掉浏览器——都是暂停，回来点「继续」就接着走。
+          连写盘出错也不例外：修复的方向永远是向后截断，被截掉的那一条会在续抓时重新抓一遍，重复是免费的。</li>
+      <li><strong>抓到一半的档案，解析器照常读得出来。</strong>
+          <code>manifest.json</code> 只在收尾时写一次，所以没收尾的那份没有它——但索引和页面都在，
+          其中每一条判定为「正常」的捕获都是真实观测。标记、广播、作品、日记、豆列照常解析出来。</li>
+      <li><strong>导出到磁盘之后，以后还能再导回来。</strong>
+          档案就是一个文件夹。抓到一半就导出的那种同样能导回扩展里，然后接着抓。</li>
+      <li><strong>缺的是「抓全了」的证据，不是内容。</strong>
+          覆盖率与连续性证明在收尾时才写，所以没收尾的那份证明不了某条路线已经抓全，
+          也当不了下一次增量抓取的基准。少掉的是这个。</li>
+      <li><strong>个别页面确实可能抓不下来</strong>——那是唯一一种真的「失败」，
+          而它是逐页的：哪几页、什么原因，都会单独列出来。可以重试，也可以确认按现状收尾；
+          受影响路线的水位线不会推进，下次仍会重走那一段。</li>
+    </ul>
+    <div class="callout">
+      <p>
+        <strong>所以「抓了一半」的那份不要删。</strong>
+        真正会让你丢东西的只有一件事：没抓。广播删掉不留任何痕迹，
+        没抓到就是永久丢失——而已经抓到的那一半，是不可替代的。
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="not-collected">
   <div class="wrap">
     <h2>它刻意不抓什么</h2>
     <p class="lead-2">
@@ -569,7 +603,7 @@
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section">
   <div class="wrap">
     <h2>现在能跑到什么程度</h2>
     <div class="callout warn">
@@ -608,7 +642,7 @@
   </div>
 </section>
 
-<section class="section" id="contribute">
+<section class="section section-alt" id="contribute">
   <div class="wrap">
     <h2>最缺的是别人的数据</h2>
     <p class="lead-2">
@@ -673,7 +707,7 @@
   </div>
 </section>
 
-<section class="section section-alt">
+<section class="section">
   <div class="wrap">
     <h2>最近的开发日志</h2>
     <ul class="log-list">
@@ -697,7 +731,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section section-alt">
   <div class="wrap">
     <h2>项目由几个仓库组成</h2>
     <p class="lead-2">
