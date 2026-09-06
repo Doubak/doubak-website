@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同一份档案放了两处，出处就多了九千条 —— 开发日志</title>
+<meta name="description" content="一个下载文件夹里同一份档案躺了两遍，逐字节相同。产出的记录一条不差——错的是每条记录的出处，2933 条标记声称同一次抓取看见过它两次。记录对、出处假，而下游没有一处会读到它。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-06-one-bundle-twice.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-06">2026-09-06</time>
+      <h1>同一份档案放了两处，出处就多了九千条</h1>
+      <p class="summary">一个下载文件夹里同一份档案躺了两遍，逐字节相同。产出的记录一条不差——错的是每条记录的出处，2933 条标记声称同一次抓取看见过它两次。记录对、出处假，而下游没有一处会读到它。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        一个普通的下载文件夹里，同一份档案躺在两个地方：顶层一份，
+        <code>20260806/</code> 下面一份，<strong>逐字节相同</strong>。
+        解压过两遍，或者整理之前先备份了一下——总之是人会做的事。
+      </p>
+
+      <p>解析器把它读成了两份。而产出的记录，一条不多一条不少：</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>有那份重复</th><th>没有</th></tr></thead>
+        <tbody>
+          <tr><td>标记</td><td>2964 条（修订 3117）</td><td class="ok">一模一样</td></tr>
+          <tr><td>广播</td><td>3423 条（修订 3898）</td><td class="ok">一模一样</td></tr>
+          <tr><td>作品 / 长文 / 豆列</td><td>2964 / 5 / 6</td><td class="ok">一模一样</td></tr>
+          <tr><td><strong>档案份数</strong></td><td>27 份</td><td>26 份</td></tr>
+          <tr><td><strong>观测次数</strong></td><td>47646</td><td>41327</td></tr>
+          <tr><td><strong>起点</strong></td><td>7 个（<code>3eef52</code> 列了两次）</td><td>6 个</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        记录是对的，因为合并本来就是并集——同一条捕获读两遍，第二遍什么都没添上。
+        错的是<strong>出处</strong>。
+      </p>
+
+      <h2>出处是这份档案唯一的凭据</h2>
+
+      <p>
+        canonical 里每一条记录都带着一串 <code>capture_ids</code>，指回 WARC 里
+        具体某一条捕获。整个项目的说法——「这不是我编的，你自己去看那一页」——
+        全押在这串东西上。
+      </p>
+
+      <p>而多出来的那一份，让它开始说假话：</p>
+
+      <pre><code>标记   2933 条修订里，同一个 bundle 记了两次「我看见了它」
+作品   2933 条
+广播   3188 条</code></pre>
+
+      <div class="callout warn">
+        <p>它只看见过一次。多出来的那一次，是一个文件同时躺在两个文件夹里造出来的。</p>
+      </div>
+
+      <p>
+        <strong>没有任何一处会报错</strong>，因为记录数是对的、修订数是对的、
+        页面是对的、导出是对的。只有去数出处才看得见。
+      </p>
+
+      <h2>为什么不干脆让人自己收拾干净</h2>
+
+      <p>
+        因为这条路走过。解析器早就<a href="/log/2026-08-30-ten-bundles-one-read.html">不再要求把档案摊平</a>：
+        它会钻进子目录，一个目录里混着几份索引也逐份读出来。理由每次都一样——
+        <strong>要求人先手工整理，换来的只会是漏掉一份</strong>，而漏掉一份不会报错，
+        产出照样是一份看着完整的档案。
+      </p>
+
+      <p>
+        而「钻进子目录」这件事本身，<strong>让复制一个文件夹更容易变成两份档案，
+        不是更少</strong>。所以修法不是拒绝，是认出来。
+      </p>
+
+      <h2>判据：索引是不是前缀</h2>
+
+      <p>
+        抓取过程中索引只往后追加，导出只是把文件拷走。所以「早一次导出」的索引
+        一定是「晚一次导出」的<strong>前缀</strong>——逐字节相同只是它的特例。
+        这条性质是免费的，也足够严：
+      </p>
+
+      <ul>
+        <li><strong>是前缀</strong>：同一份档案的一份拷贝。留捕获多的那个，
+          并把略过了哪个目录打印出来。</li>
+        <li><strong>不是前缀</strong>：两个不同的东西顶着同一个编号。
+          <strong>两份都读</strong>，并报警告。</li>
+      </ul>
+
+      <p>
+        第二条要紧。丢掉其中一个才是不安全的方向——那会静默丢数据；
+        而两份都读的全部代价，只是重复的出处又回来了，而且这回它被说出来了。
+        <strong>方向不对称，处置就不该一样。</strong>
+      </p>
+
+      <h2>顺带说一句它为什么不影响你已经有的东西</h2>
+
+      <p>
+        样张站、导出到 NeoDB 的包、Markdown 树——<strong>一个字节都没变</strong>，
+        因为下游没有一处读 <code>capture_ids</code>。这不是「所以无所谓」，
+        恰恰相反：一个只有去数才看得见、而且下游全都不看的错误，
+        正是这个项目最怕的那一种。
+      </p>
+
+      <p>
+        修完之后拿真实档案跑了一遍，产出与「手工把那份重复删掉再跑」<strong>逐字节
+        相同</strong>——五个文件，五个哈希，一个不差。
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-06-green-but-not-checking.html">← 更新：全绿，只是没在查</a>
+      <a href="/log/2026-09-04-re-marked.html">更早：重标一次，2018 年那条就没了 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>全绿，只是没在查 —— 开发日志</title>
+<meta name="description" content="四个检查都写了，都写得不错，没有一个在该响的地方响：一个长在别的仓库里，一个长在已经不存在的路径后面，一个长在永远有常驻项的清单上，还有一个长在最后那句话前面。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-06-green-but-not-checking.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-06">2026-09-06</time>
+      <h1>全绿，只是没在查</h1>
+      <p class="summary">四个检查都写了，都写得不错，没有一个在该响的地方响：一个长在别的仓库里，一个长在已经不存在的路径后面，一个长在永远有常驻项的清单上，还有一个长在最后那句话前面。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        九个仓库，四套测试，全绿。而这一天查出来的四件事，
+        <strong>每一件都有一个正确的检查在盯着它</strong>——只是没有一个在它该响的地方响。
+      </p>
+
+      <h2>一、检查在，但不在改动作者的那个仓库里</h2>
+
+      <p>
+        命令行的建站工具和浏览器扩展，共用同一份代码：扩展把上游三个仓库的
+        <strong>23 个纯函数文件按字节抄进自己的 <code>src/vendor/</code></strong>，
+        再用一个脚本守着「有没有漂」。理由在
+        <a href="/log/2026-08-28-one-click.html">当初那篇</a>里：
+        字节从哪儿来可以各写各的，字节<em>怎么解释</em>只能有一份。
+      </p>
+
+      <p>然后 9 月 4 日那天是这样的：</p>
+
+      <pre><code>19:55  doubak-extension       最后一次提交
+20:05  doubak-site-generator  修好「删掉再重标会把旧那条整个盖掉」
+                              —— 没有人再跑一次同步</code></pre>
+
+      <p>
+        接下来两天，命令行出的站点是修好的，而<strong>面板里「导出 → Markdown」
+        出的站点，仍然带着那个 bug</strong>：把一部电影
+        <a href="/log/2026-09-04-re-marked.html">删掉重标</a>之后，
+        2018 年那次的短评和标签会被静默盖掉。首页的广播预览也还是两条而不是五条。
+      </p>
+
+      <p>
+        检查<em>是</em>存在的，而且写得比现在这条细。它在扩展仓库里。
+        <strong>而改动是在建站工具仓库里做的，那边的 <code>npm test</code>
+        才是作者会跑的那一个。</strong>
+      </p>
+
+      <div class="callout warn">
+        <p>
+          这与 9 月 4 日
+          <a href="/log/2026-09-04-half-a-round-trip.html">那篇</a>记下的是同一个形状：
+          <strong>每一句话都对，但做决定的人在按下去之前读不到它。</strong>
+          那次是两个对话框，这次是两个仓库。
+        </p>
+      </div>
+
+      <p>
+        修法是让三个上游各自也长一条同样的检查，读的是<strong>同一份名单</strong>
+        （抄第二份名单，两份就会漂，而漂的方向是「这边少列了一个」）。
+        代价照说：两个仓库没有原子提交，所以跨仓库的改动会红一会儿——先推上游，
+        上游红；再同步推到扩展，两边都绿。<strong>那段红是对的</strong>：
+        那段时间里两个宿主对同一份档案确实会给出不同结果。
+        上一次同样的不一致完全无声，持续了两天。
+      </p>
+
+      <h2>二、测试在，但它们一秒钟跑完，因为什么都没查</h2>
+
+      <p>
+        这个项目里几乎每一个真 bug，都不是靠读代码读出来的，
+        是靠<strong>喂给它没见过的真实数据</strong>——
+        <a href="/log/2026-08-20-four-roots.html">两条一直是绿的断言</a>就是这么塌的。
+        所以解析器里有一批测试，跑的是真实档案而不是合成夹具。
+      </p>
+
+      <p>
+        它们指着 <code>~/downloads/20260806</code>。而那些档案后来被归拢进了
+        <code>~/downloads/exports/</code>。
+      </p>
+
+      <p>
+        于是那批测试从「这台机器上没有档案，跳过」变成了<strong>永远跳过</strong>。
+        整套测试照样全绿，而且跑得更快了。
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>之前</th><th>现在</th></tr></thead>
+        <tbody>
+          <tr><td>通过</td><td>205</td><td>226</td></tr>
+          <tr><td><strong>跳过</strong></td><td><strong>18</strong></td><td class="ok"><strong>0</strong></td></tr>
+          <tr><td>耗时</td><td>约 10 秒</td><td>约 80 秒</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        那 18 条里包括「广播发出去就不能改」「分叉的目录合并起来恰好是并集」
+        ——正是这个项目最重要的几条不变量。
+      </p>
+
+      <p>
+        路径修好之后又撞上第二层：十几处测试各自把 26 份档案完整解析一遍，
+        一趟五分多钟，而且在并发下整体崩掉，报出来只有一句没有断言的
+        <code>'test failed'</code>。<strong>一套要跑五分钟的测试，和一套永远跳过的
+        测试，在「有没有人跑它」这件事上是同一个结果。</strong>
+        一份档案解析一次、各条测试共用，回到 80 秒。
+      </p>
+
+      <p>
+        另外几条测试读的是手工另存在下载目录里的单张页面，那些文件早就没了。
+        现在改成<strong>从档案里读</strong>——那张页面本来就在里面，冻着，跑不掉。
+        顺带还多证明了一件事：它确实在档案里。
+      </p>
+
+      <h2>三、清单在，但它上面那两条永远消不掉</h2>
+
+      <p>
+        解析器跑完会印一句「可离线救回 N 条」：这些页面的字节已经在档案里，
+        只是当时没读出来，<strong>改好抽取器重跑就行，不必再去打扰豆瓣</strong>。
+        真实档案上，它常年印着 2 条。
+      </p>
+
+      <p>顺着编号挖出来，是同一篇日记在同一次抓取里被抓的三遍：</p>
+
+      <pre><code>#000010   判不出来（当时还不认 /topic/ 那套模板）
+#001270   判不出来
+#001564   ok</code></pre>
+
+      <p>
+        中途重载了扩展，第三遍就成了。那篇日记连正文带两张配图，
+        <strong>早就完完整整在档案里</strong>。而档案是冻结的——前两条捕获
+        再也不会变，所以那两行会一直挂在待办清单上，直到永远。
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>一个永远有条目的待办清单，是没人看的待办清单。</strong>
+          这个项目已经数到第六次了。两条常驻项，就足够让第三条真的挡不住人的眼。
+        </p>
+      </div>
+
+      <p>
+        判据是现成的，跟 <a href="/log/2026-09-04-gap-already-filled.html">缺口那次</a>
+        一模一样：<strong>同一个网址的一次成功捕获，就把「这一条读不出来」证伪了。</strong>
+        但也不能抹掉——那一页确实少了一次观测，所以它折成一行说出来：
+        「另有 2 条判不出来的捕获，它们的网址在这份档案里另有成功捕获——内容不缺。」
+      </p>
+
+      <h2>四、校验器说了它跳过了一层，然后说「通过」</h2>
+
+      <p>数据格式的校验器分两层，第二层要装一个可选的库才跑。没装的时候它这样说：</p>
+
+      <pre><code>提示: 未安装 jsonschema，跳过 schema 层校验，仅运行结构性检查。
+
+（……）
+
+通过</code></pre>
+
+      <p><strong>被读进去的是最后那两个字。</strong></p>
+
+      <p>
+        这不是假想。写
+        <a href="/log/2026-09-04-gap-already-filled.html"><code>bundle/1.4</code></a>
+        那个新字段的时候，产出的档案有一小段时间是不合规的，
+        而本机的校验器从头到尾只说了「通过」——因为那种不合规
+        <strong>恰恰只有被跳过的那一层看得见</strong>。
+      </p>
+
+      <p>现在最后那句话自己带着它：</p>
+
+      <pre><code>通过（**只跑了结构层** —— 没装 jsonschema，schema 层没查）</code></pre>
+
+      <p>
+        退出码没动：少装一个可选依赖不是档案的毛病，把它算成失败会让
+        「零依赖也能跑」这句话作废。要改的是那句话，不是那个数。
+      </p>
+
+      <h2>共同点</h2>
+
+      <p>
+        四件事里没有一件是「忘了写检查」。四个检查都写了，而且都写得不错。
+        问题全出在<strong>它长在哪儿</strong>：
+      </p>
+
+      <ul>
+        <li>长在另一个仓库里——作者跑不到；</li>
+        <li>长在一条已经不存在的路径后面——它跑了，但没查任何东西；</li>
+        <li>长在一张永远有两条常驻项的清单上——它响了，但没人再看；</li>
+        <li>长在最后那句话<em>前面</em>——它说了，但那不是被读进去的那一句。</li>
+      </ul>
+
+      <p>
+        「有没有这个检查」是个容易回答的问题，而且答案通常是「有」。
+        <strong>「做这件事的人，在那个当口会不会读到它」——这才是要问的那个。</strong>
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-06-one-bundle-twice.html">更早：同一份档案放了两处，出处就多了九千条 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
