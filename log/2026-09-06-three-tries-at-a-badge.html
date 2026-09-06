@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>出处这枚角标，改了三版 —— 开发日志</title>
+<meta name="description" content="整行时间戳做成链接太重；缩成一个箭头又白占掉一整行，每条广播 35 px。第三版才落到时间戳右端。三版的测试从头绿到尾——每一次都是看生成出来的页面才发现的。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-06-three-tries-at-a-badge.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-06">2026-09-06</time>
+      <h1>出处这枚角标，改了三版</h1>
+      <p class="summary">整行时间戳做成链接太重；缩成一个箭头又白占掉一整行，每条广播 35 px。第三版才落到时间戳右端。三版的测试从头绿到尾——每一次都是<strong>看生成出来的页面</strong>才发现的。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        作品页一直都有一行「豆瓣原页」：原件在豆瓣的哪一页，点过去能对。
+        广播没有——它<strong>按月归档</strong>，一个月一页，一条广播只是那一页上的
+        一个时间戳标题，没有自己的页面可以挂这么一个字段。
+      </p>
+
+      <p>
+        这一周把它补上了，改了三版。三版的差别全在版式上，而版式这件事
+        <strong>测试一次都没帮上忙</strong>：三版的 <code>npm test</code> 都是绿的。
+      </p>
+
+      <h2>第一版：整行时间戳变成链接</h2>
+
+      <figure class="shot">
+        <img src="/assets/screenshots/2026-09-06-badge-v1-timestamp.png"
+             width="1472" height="332" loading="lazy"
+             alt="一条广播：时间戳「2021-11-28 20:26:44」整行是绿色链接，后面跟一个站外角标；下面是封面、「玩过 宝可梦 明亮珍珠 ★★★★☆」和短评。">
+        <figcaption>
+          <strong>第一版</strong>
+          最省事的做法，也确实能用。问题是时间戳从此长得像个按钮——
+          而它是时间，不是导航。项目主人的原话：在自己的存档里读起来太重。
+        </figcaption>
+      </figure>
+
+      <p>
+        顺带撞上一条更硬的限制，它决定了后面两版的形状：<strong>页内锚点是静态站
+        生成器从标题文字生成的</strong>。往标题里塞「豆瓣原页」四个字，
+        <code>#2021-11-28-202644</code> 就变成 <code>#2021-11-28-202644-豆瓣原页</code>，
+        站内所有指向某一条广播的固定链接当场全断。
+      </p>
+
+      <div class="callout">
+        <p>
+          把链接<strong>套在</strong>时间戳上不会断（链接文字就是时间戳本身，
+          实测锚点不变）——那正是上面这一版。而空链接文字 <code>[](url)</code>
+          也不行：那是一个念不出名字的链接，跟「图片链接的 alt 不许留空」是同一条。
+        </p>
+      </div>
+
+      <p>
+        所以出处只能是紧跟在标题后面的<strong>独立一段</strong>，
+        剩下的交给主题去收拾。
+      </p>
+
+      <h2>第二版：缩成一个角标——只是没缩掉那一行</h2>
+
+      <figure class="shot">
+        <img src="/assets/screenshots/2026-09-06-badge-v2-own-line.png"
+             width="1472" height="402" loading="lazy"
+             alt="同一条广播：时间戳是黑色纯文字，下面一整行几乎全空，只在最左边有一个很小的绿色站外角标，再下面才是封面和正文。">
+        <figcaption>
+          <strong>第二版</strong>
+          样式表把「豆瓣原页」四个字收成了一个角标，读屏器仍然念得出这个链接去哪儿——
+          唯独忘了那一段自己还占着一个 1.7 rem 的行框。
+          于是每条广播上面多出<strong>一行几乎全空的白</strong>，左下角孤零零一个箭头，
+          谁也看不出它是什么。
+        </figcaption>
+      </figure>
+
+      <p>
+        这一版在 git 的 diff 里是完全正确的：HTML 多了一段，样式表多了几条规则，
+        测试全绿。<strong>它只在页面上是错的。</strong>
+      </p>
+
+      <p>量出来是这样：</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>一条广播的高度</th><th>2021 年 11 月那一页</th></tr></thead>
+        <tbody>
+          <tr><td>第一版</td><td>167 px</td><td>6601 px</td></tr>
+          <tr><td>第二版</td><td>202 px</td><td>7903 px</td></tr>
+          <tr><td><strong>第三版</strong></td><td class="ok">167 px</td><td class="ok">6601 px</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        <strong>每条广播 35 px，一页 37 条，整页缩掉 16%。</strong>
+        而第一版和第三版<strong>逐像素一样高</strong>——也就是说，第三版没有为
+        「时间戳回到纯文字」多付一点高度。
+        「缩成一个角标」这句话在第二版里只兑现了一半，而那一半正好是看不见的那一半。
+      </p>
+
+      <h2>第三版：浮到时间戳右端，加一枚豆瓣的「豆」</h2>
+
+      <figure class="shot">
+        <img src="/assets/screenshots/2026-09-06-badge-v3-inline.png"
+             width="1472" height="332" loading="lazy"
+             alt="同一条广播：时间戳是黑色纯文字，同一行的最右端有一枚绿色的豆瓣「豆」标和一个站外角标；下面直接就是封面和正文，中间没有空行。">
+        <figcaption>
+          <strong>第三版</strong>
+          出处那一段浮到时间戳那一行的最右端，收成一枚豆瓣标加一个站外角标。
+          时间戳回到纯文字，锚点没动过；
+          点之前就看得出这一下会离开存档，去的是哪儿。
+        </figcaption>
+      </figure>
+
+      <p>
+        <strong>HTML 只多了一个属性</strong>，版式全在样式表里——重新生成整个样张站，
+        195 页变化、0 新增 0 删除，其中 193 个广播页每条只多了一个 <code>title=</code>。
+      </p>
+
+      <p>
+        位置对不对没有靠肉眼估：装了个无头浏览器，把全站
+        <strong>3493 枚角标逐个量了一遍</strong>——最大垂直错位 <strong>0.59 px</strong>，
+        没有一枚压到时间戳文字，没有一枚没贴住内容列的右缘。
+      </p>
+
+      <h2>真正要修的东西藏在选择器里</h2>
+
+      <p>
+        正文是 Markdown 生成的，没有地方挂 class，所以主题原来是靠<strong>位置加形状</strong>
+        认出「哪一段是出处」的：时间戳标题紧跟着的、整段只有一个站外链接的那一段。
+      </p>
+
+      <p>它今天工作得很好。而它说的不是「这一段是出处」，只是一个恰好等价的<strong>代理</strong>：</p>
+
+      <pre><code>3503 条广播里，10 条没有出处（那条 URL 没抽到）
+站点上，3 段正文整段只是一个裸链接（Markdown 引擎会自动把它变成链接）
+今天撞车：0 处</code></pre>
+
+      <div class="callout warn">
+        <p>
+          <strong>撞上的那天</strong>，一段你自己写的话会被当成出处，
+          收成一枚 13 px 的图标——正文就这么没了，页面照常渲染，测试照常全绿。
+          这个项目一直说，<strong>一份会悄悄改写你写过的东西的存档，比没有存档更糟</strong>，
+          因为它看着可信。
+        </p>
+      </div>
+
+      <p>
+        判据换成生成器写死的一个链接 <code>title</code>：它是 Markdown 的核心语法，
+        换任何一个静态站生成器都会渲染成 <code>title=</code>，
+        而自动识别出来的裸链接<strong>永远没有 title</strong>——所以这是个精确的判据，
+        不是一个碰巧成立的。它顺带还是个真功能：这个链接的文字在视觉上被收掉了，
+        鼠标停上去总得说得出它去哪儿。
+      </p>
+
+      <p>
+        这是这个项目记下的<strong>第五条代理断言</strong>。
+        每一条的形状都一样：一句话在写下来的那天是对的，因为它站的位置刚好和它要说的事
+        重合；等两者分家的那天，它不会报错，只会开始说另一件事。
+      </p>
+
+      <h2>两条顺带定下来的规矩</h2>
+
+      <ul>
+        <li>
+          <strong>站点自己的标识不用豆瓣的商标，指路牌上可以。</strong>
+          主题里早有一条注释写着「像它的配色可以，用它的标记不行」——那说的是页眉上
+          代表这个站点的那枚方块。而一个<strong>出口</strong>上画着目的地的标，
+          正是它该画的东西。两处注释现在互相引用，免得下一个人读成前后矛盾。
+        </li>
+        <li>
+          <strong>那枚豆瓣标是内联进样式表的</strong>（32×32 的 PNG，
+          <code>optipng</code> 压完 <strong>296 字节</strong>），不是一张外部图片。
+          页脚那句「这个页面也不发一个外部请求」得继续是真的。
+          现在有一条测试守着：<strong>样式表里一个外部地址都不许有</strong>——
+          哪天有人把它换成豆瓣图床上的一张图，页面照样好看，只有那句话变成了假话。
+        </li>
+      </ul>
+
+      <h2>三版都是看页面看出来的</h2>
+
+      <p>
+        值得记下来的不是最后那个版式，是三次的发现路径完全一样：
+        <strong>第一版太重、第二版白占一行，都不是任何一条测试能告诉我的事。</strong>
+        测试能守住「接不回本地的作品名不许变成站外链接」这种性质，
+        守不住「这一页读起来是什么感觉」。
+      </p>
+
+      <p>
+        这一条在这个项目里已经反复出现：广播里 1411 条被吞掉的正文是看页面看出来的，
+        <a href="/log/2026-08-30-offline-promise.html">15 张印着豆瓣地址的封面</a>也是。
+        所以流程里那一步——<strong>改完重新生成整个样张站，然后去读那个 diff</strong>
+        ——不是仪式。
+      </p>
+
+      <p>
+        改动都在 <a href="https://github.com/Doubak/doubak-site-generator">doubak-site-generator</a>，
+        效果在 <a href="https://sample.doubak.com/broadcast/2021-11.html">样张站的广播页</a>上。
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-06-green-but-not-checking.html">更早：全绿，只是没在查 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

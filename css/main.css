@@ -666,12 +666,16 @@ figure.shot { margin: 0; }
   font-size: .88rem;
   color: var(--text-dim);
 }
-.shot figcaption strong {
+/* 图注开头那一行是标题，所以是块级；**只有开头那一个**。
+   原来写的是 `figcaption strong`，于是句子中间任何一处加粗都会自己占一行，
+   把一句话拦腰截断（2026-08-20 那篇的图注就是这么断的）。 */
+.shot figcaption > strong:first-child {
   display: block;
   color: var(--text);
   font-weight: 600;
   margin-bottom: .15em;
 }
+.shot figcaption strong { color: var(--text); font-weight: 600; }
 
 /* ---------- 表格 ---------- */
 
