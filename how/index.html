@@ -331,6 +331,12 @@ npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
       想换 Astro、Eleventy、Jekyll，用 <code>md</code> 就行，产出里没有任何 Hugo 专属的东西。
     </p>
 
+    <p>
+      样张站的页脚比你生成出来的多一行「这个站点的源码」，因为它是用
+      <code>--source-repo=&lt;仓库地址&gt;</code> 生成的——那一行指的是<strong>站点自己</strong>的仓库，
+      每个人各不相同，所以<strong>默认没有</strong>。你的站发在公开仓库里的话，也可以写上你自己的。
+    </p>
+
     <div class="callout warn">
       <p>
         <strong>要发到网上之前先看一眼。</strong>
