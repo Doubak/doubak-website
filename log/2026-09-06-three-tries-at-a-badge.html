@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>出处这枚角标，改了三版 —— 开发日志</title>
-<meta name="description" content="整行时间戳做成链接太重；缩成一个箭头又白占掉一整行，每条广播 35 px。第三版才落到时间戳右端。三版的测试从头绿到尾——每一次都是看生成出来的页面才发现的。">
+<meta name="description" content="整行时间戳做成链接太重；缩成一个箭头又白占掉一整行，每条广播 35 px。第三版才落到时间戳右端，第四版是因为漏了首页——每一次都是看生成出来的页面才发现的。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -39,7 +39,7 @@
     <div class="post-head">
       <time datetime="2026-09-06">2026-09-06</time>
       <h1>出处这枚角标，改了三版</h1>
-      <p class="summary">整行时间戳做成链接太重；缩成一个箭头又白占掉一整行，每条广播 35 px。第三版才落到时间戳右端。三版的测试从头绿到尾——每一次都是<strong>看生成出来的页面</strong>才发现的。</p>
+      <p class="summary">整行时间戳做成链接太重；缩成一个箭头又白占掉一整行，每条广播 35 px。第三版才落到时间戳右端。三版的测试从头绿到尾——每一次都是<strong>看生成出来的页面</strong>才发现的——包括发出去之后才发现的第四版。</p>
     </div>
 
     <div class="post-body">
@@ -147,9 +147,9 @@
       </p>
 
       <p>
-        位置对不对没有靠肉眼估：装了个无头浏览器，把全站
-        <strong>3493 枚角标逐个量了一遍</strong>——最大垂直错位 <strong>0.59 px</strong>，
-        没有一枚压到时间戳文字，没有一枚没贴住内容列的右缘。
+        位置对不对没有靠肉眼估：装了个无头浏览器，把角标逐个量了一遍——最大垂直
+        错位 <strong>0.59 px</strong>，没有一枚压到时间戳文字，没有一枚没贴住内容列的右缘。
+        （量的范围后来还不够，见文末。）
       </p>
 
       <h2>真正要修的东西藏在选择器里</h2>
@@ -222,9 +222,54 @@
         ——不是仪式。
       </p>
 
+      <h2>补：还有第四版，因为这篇文章自己的教训又应验了一次</h2>
+
+      <p>
+        发出去之后项目主人问：<strong>样张站首页上怎么还是「豆瓣原页」四个字？</strong>
+      </p>
+
+      <p>
+        首页的广播预览和广播页用的是<strong>同一段 Markdown</strong>，
+        但那一页 <code>&lt;main&gt;</code> 的类名是 <code>section-home</code>，
+        不是 <code>section-broadcast</code>——角标那几条规则一条都没生效。
+        接住它的是另一条规则：
+      </p>
+
+      <pre><code>.section-home p:not(:has(img)) &gt; a:only-child { …药丸按钮… }</code></pre>
+
+      <p>
+        那条规则说的是「首页每一节末尾那个『看全部 →』」，写的却是
+        <strong>「整段只有一个链接的那一段」</strong>——<strong>又一次代理，
+        同一个形状</strong>。于是出处被画成了一个跟「看全部 1344 →」一模一样的胶囊：
+        它既不是导航，也不通向站内，而首页是这个站点第一眼看到的地方。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          而漏掉它的原因，正是这篇文章自己在讲的那件事的另一面：<strong>我量的范围
+          跟着我的预期走了</strong>。「3493 枚角标全部量过」听着很硬，可那 3493 枚
+          全都在 <code>broadcast/*.html</code> 里——一个只在你以为它会出问题的地方
+          巡逻的检查，和没有检查差别不大。
+        </p>
+      </div>
+
+      <p>
+        判据还是那把钥匙，只是从另一侧用：<code>a:only-child:not([title])</code>。
+        实测首页上带 title 的链接只有那 5 条出处，「看全部」一条都没有。
+        新的测试不再照着记忆列页面，而是<strong>从产出目录自己数出「哪些小节里
+        出现了出处」</strong>，再要求样式表每一个都有规则。
+        重新量的范围也换成全站：4815 页里 194 页有出处，
+        <strong>6839 枚角标，问题 0</strong>。
+      </p>
+
+      <p>
+        修这一版只改了样式表，样张站重新生成之后 <strong>HTML 一个字都没动</strong>。
+      </p>
+
       <p>
         改动都在 <a href="https://github.com/Doubak/doubak-site-generator">doubak-site-generator</a>，
-        效果在 <a href="https://sample.doubak.com/broadcast/2021-11.html">样张站的广播页</a>上。
+        效果在<a href="https://sample.doubak.com/">样张站首页</a>和
+        <a href="https://sample.doubak.com/broadcast/2021-11.html">广播页</a>上。
       </p>
 
     </div>
