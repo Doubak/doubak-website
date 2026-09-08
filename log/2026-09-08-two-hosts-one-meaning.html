@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一句注释拦不住漂移 —— 开发日志</title>
+<meta name="description" content="同一份档案，命令行导出 2966 条标记，扩展导出 2967 条——因为合并逻辑写在了「读文件」那一侧，而扩展读的是浏览器里的存储。那个函数的注释写着「照抄它的定义，不要另发明」，而漂的是上游。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-08-two-hosts-one-meaning.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-08">2026-09-08</time>
+      <h1>一句注释拦不住漂移</h1>
+      <p class="summary">同一份档案，命令行导出 2966 条标记，扩展导出 2967 条——因为合并逻辑写在了「读文件」那一侧，而扩展读的是浏览器里的存储。那个函数的注释写着「照抄它的定义，不要另发明」，而漂的是上游。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        用户在豆瓣上把一部电影<strong>删掉再重新标记</strong>，豆瓣会发一个新的条目编号。
+        解析器据此如实分成两条记录——那是对的，档案是事件日志，两次标记就是两件事。
+      </p>
+
+      <p>
+        但导出是<strong>当前状态</strong>，一个作品只能有一行。不合并的话，
+        《盗梦空间》导出了<strong>两条书架记录</strong>，短评还对不上。而 NeoDB 那边一个作品
+        只有一个书架条目：第二条覆盖第一条，<strong>谁覆盖谁由文件里的先后决定</strong>，
+        不由任何判据决定。
+      </p>
+
+      <p>
+        站点那边<a href="/log/2026-09-04-re-marked.html">四天前刚修过同一个形状</a>，
+        导出这边没跟上。补上，判据照抄：<strong>最后一次看到的那条</strong>——
+        按标记日期挑是错的，补标一部老片可以有更早的日期，而它仍然是现存的那一条。
+      </p>
+
+      <p>
+        跑一遍核对脚本，它第一次说「每一条都跟档案对得上」。<strong>然后就该收工了。</strong>
+      </p>
+
+      <h2>「扩展那边呢？」</h2>
+
+      <p>项目主人问了一句：这跟扩展里的导出一致吗。</p>
+
+      <p>不一致。同一份档案，两条路：</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>标记</th><th>《盗梦空间》的书架记录</th></tr></thead>
+        <tbody>
+          <tr><td>命令行</td><td>2966</td><td class="ok">1 条</td></tr>
+          <tr><td>扩展</td><td>2967</td><td class="todo">2 条</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        因为合并写进了<strong>读文件</strong>的那个函数。而扩展读的是浏览器里的 OPFS，
+        它有自己的那一份。
+      </p>
+
+      <p>
+        这正是这个项目<a href="/log/2026-08-28-one-click.html">把下游搬进扩展</a>时定下的
+        那条线：<strong>字节从哪来是各宿主的事，字节是什么意思只能有一份实现。</strong>
+        把第二半做错是最贵的，因为它是静默的——两个站点都打得开，只有图片路径不一样；
+        这一次是两个包都导得进去，只有书架上多一条。
+      </p>
+
+      <p>
+        而「合并重标」正是第二半。它一行读写都不碰，只是从同一批记录里算出来的——
+        跟它一起的还有作品索引、改过几次的计数、账号信息，全都是。
+      </p>
+
+      <h2>那句注释一直在那儿</h2>
+
+      <p>扩展那个函数的开头写着：</p>
+
+      <blockquote>
+        <p>这几行是那段逻辑的等价物——<strong>照抄它的定义，不要另发明</strong>。</p>
+      </blockquote>
+
+      <p>
+        写得挺清楚，也确实是照抄的。而它拦不住这次的漂移，因为<strong>漂的是上游</strong>：
+        改上游那个函数的人，当时根本不在这个仓库里。
+      </p>
+
+      <p>
+        这是同一个形状的第二次。上一次是
+        <a href="/log/2026-09-06-green-but-not-checking.html">跨仓库的同步检查装在了作者不在的那一侧</a>，
+        于是扩展带着一个已修好的 bug 跑了两天。检查也好、注释也好，长在正确的地方才算数。
+      </p>
+
+      <h2>所以修法是把重复删掉，不是再加一条测试</h2>
+
+      <p>
+        那几行搬进两边共用的那份纯代码里，两个宿主调同一个函数。它本来就在逐字节同步的
+        名单上，而那份同步<strong>两边的 CI 都跑</strong>——这一条从此不靠谁记得。
+      </p>
+
+      <p>拿同一份真实档案跑两条路，比一比产出：</p>
+
+      <pre><code>扩展    journal.ndjson  3429077 字节  sha 6cee967cbb831e31
+命令行  journal.ndjson  3429077 字节  sha 6cee967cbb831e31
+                                     → 逐字节相同</code></pre>
+
+      <h2>顺着这个问题，第三个宿主也在漂</h2>
+
+      <p>
+        站点那边有自己的一份合并逻辑（用途确实不同——它还要把被顶掉的那条并进时间线）。
+        而它挑「哪一条是现存的」时只比两层：最后一次看到、标记日期。
+      </p>
+
+      <p>
+        两者都相同时，结果由<strong>输入次序</strong>决定。而 JavaScript 的排序是稳定的，
+        所以它看起来还很稳——同一台机器上跑一百遍都一样。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          真撞上的话，同一个作品在站点上是这一条、在 NeoDB 上是另一条，
+          <strong>而两边都不会报错</strong>。
+        </p>
+      </div>
+
+      <p>
+        补上第三层判据，与导出那边逐条对齐。测试也照
+        <a href="/log/2026-09-06-one-bundle-twice.html">档案去重那次</a>的做法——
+        拿<strong>打乱过的输入</strong>喂它，只跑一遍是测不出来的。
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-07-censorship-is-not-privacy.html">更早：豆瓣把它锁了，不是你把它藏了 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

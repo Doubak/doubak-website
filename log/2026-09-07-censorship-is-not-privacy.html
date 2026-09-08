@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>豆瓣把它锁了，不是你把它藏了 —— 开发日志</title>
+<meta name="description" content="一篇日记读作「仅自己可见」，而豆瓣在同一页上写着理由：含有违规内容。存档把正文原样留住了，却把「豆瓣拿下了它」整件事漏掉——而第一版的修法差点让这份存档替豆瓣把它二次消音。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-07-censorship-is-not-privacy.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-07">2026-09-07</time>
+      <h1>豆瓣把它锁了，不是你把它藏了</h1>
+      <p class="summary">一篇日记读作「仅自己可见」，而豆瓣在同一页上写着理由：含有违规内容。存档把正文原样留住了，却把「豆瓣拿下了它」整件事漏掉——而第一版的修法差点让这份存档替豆瓣把它二次消音。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        档案里有一篇日记，标题叫<strong>《想看的被河蟹的电影》</strong>。它在豆瓣上的状态是
+        「仅自己可见」。
+      </p>
+
+      <p>
+        生成出来的存档页面上，正文照登：一份被删掉的影片清单，2024 年的日期，发布地澳大利亚。
+        <strong>一个字都没提豆瓣把它锁了。</strong>
+      </p>
+
+      <p>而豆瓣自己在那一页上写得清清楚楚，两处，抓下来的字节里一字未改：</p>
+
+      <pre><code>含有违规或引发不良讨论的内容，内容仅自己可见，请勿发布同类信息
+此日记锁定仅自己可见                        ← 锁定，不是「设为」</code></pre>
+
+      <p>
+        这句话本身就是档案材料——它是豆瓣对用户自己写的东西下的判词，而豆瓣不会替谁保存它。
+        一份为「留住豆瓣拿掉的东西」而存在的存档，把「豆瓣把它拿下了」这件事整个漏掉了，
+        而这一篇恰恰是它最该说话的地方。
+      </p>
+
+      <h2>第一版的设计把这件事读反了</h2>
+
+      <p>
+        发现这个之后，第一反应是把「仅自己可见」当成隐私：作者不想给人看，那导出时就默认
+        别发出去。这个方案已经写进计划了。
+      </p>
+
+      <p>项目主人当场拨了回来：</p>
+
+      <blockquote>
+        <p>
+          when Douban locked to author-only, it doesn't mean the author didn't want it to be
+          public. on the contrary, this is happening because it's public
+        </p>
+      </blockquote>
+
+      <p>
+        它之所以「仅自己可见」，<strong>恰恰因为它曾经是公开的</strong>。作者本来就要它公开，
+        是豆瓣把它关掉的。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          那个设计一旦落地，这份存档会在<strong>唯一还能重新发表它的地方</strong>替豆瓣把它
+          二次消音——而且是静默的：一条被藏起来的记录，不留任何痕迹给人发现。
+        </p>
+      </div>
+
+      <p>
+        「仅自己可见」是个<strong>替身</strong>，它替的是「作者不想公开」。两者在绝大多数
+        日记上等价，而这一篇正是它们分家的那天。这个项目
+        <a href="/log/2026-08-07-parser-and-fake-edits.html">已经为替身式的判据付过几次账</a>，
+        这一条是唯一在落地前被人拦下来的。
+      </p>
+
+      <h2>两个字段，不是一个</h2>
+
+      <p>
+        合成一个布尔值，下游只有两种做法，而两种都错：一律发出去，等于把作者藏起来的东西
+        公开；一律藏起来，就是上面那段。所以档案里记两件事，外加豆瓣那句判词逐字保留。
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>判什么</th><th>判据</th></tr></thead>
+        <tbody>
+          <tr><td>不公开</td><td>页面的隐私容器里有标记（两种日记模板各有各的位置）</td></tr>
+          <tr><td>豆瓣锁的</td><td><strong>豆瓣自己出面解释了</strong>——那条违规通告是正面证据</td></tr>
+          <tr><td>作者设的</td><td>不公开，而豆瓣没出面</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        判据是<strong>结构</strong>不是文字——正文里写着「仅自己可见」这几个字的日记不算，
+        与「（全文）必须结构性地认」是同一条。而容器<strong>找不到</strong>时答案是「说不准」，
+        <strong>不是「公开」</strong>：把「认不出来」并进「公开」，等于豆瓣改一次页面模板就把
+        所有私密日记静默变成公开，而发出去的东西撤不回来。
+      </p>
+
+      <p>
+        这条规矩本来就写在豆列那边，一字不差——<strong>只是从来没被搬到日记上</strong>。
+        一条正确的规则，在隔壁那个记录类型上缺席了半年。
+      </p>
+
+      <h2>「不适用」不是「不知道」</h2>
+
+      <p>
+        影评书评那一栏永远是空的，而这不是没读出来：实测两篇评论页上「私密」「仅自己」
+        「可见」「公开」一个字都没有，连容器都不存在——豆瓣压根没给评论这个功能。
+      </p>
+
+      <p>
+        把它并进「不知道」的话，每个人的每一篇影评书评都会被当成可能不公开的东西收起来，
+        而它们在豆瓣上本来就挂在作品页上给所有人看。
+      </p>
+
+      <h2>全档案只有一处，而且是数出来的</h2>
+
+      <p>
+        第一次扫描按网址去重，扫了 3408 个网址。<strong>那个数字是错的问法</strong>：
+        审查是会变的状态，一个网址只读一次，量的是另一回事。不去重重扫一遍——
+      </p>
+
+      <pre><code>18922 个 html 捕获 / 3408 个网址
+
+/note/868128497/    8 次捕获全都带着那四个标记（2026-08-06 → 09-04）
+其余 12 处命中       全是噪音</code></pre>
+
+      <p>
+        那 12 处值得点名，免得下一个人再追一遍：别人被删掉的转发内容留下的墓碑、
+        「该用户已被删除」，以及一位真的叫<strong>「已被删除库洛酱」</strong>的短评作者。
+      </p>
+
+      <h2>三个消费者，两种默认值，而那不是不一致</h2>
+
+      <p>决定权最后落在项目主人手上，而他的答案很干脆：<strong>豆瓣锁掉的那一类，照常公开。</strong></p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>「不发出去」在这里意味着</th><th>作者自己藏的</th><th>豆瓣锁的</th></tr></thead>
+        <tbody>
+          <tr><td>档案</td><td>——</td><td>如实记下，不做判断</td><td>同左</td></tr>
+          <tr><td>站点</td><td>这一页在网上<strong>根本不存在</strong></td><td>默认照发，命令行开关明说</td><td class="ok">默认照发</td></tr>
+          <tr><td>NeoDB 导出</td><td>记录<strong>照样在你账号里</strong>，只是不对外</td><td>仅提及者可见</td><td class="ok">按公开导入</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        差别只在「作者自己藏的」那一列，而它来自一个实打实的性质差：<strong>导出不等于公开</strong>。
+        那边收起来是安全的，东西一个字不少地进了用户自己的账号；站点这边「不发」就是这一页
+        根本不存在，没有一个同样安全的动作，所以默认全发、由开关明说。
+      </p>
+
+      <p>
+        代价照说，说在三个做决定的地方——命令行、包里那份说明、扩展的导出卡片：
+        NeoDB 的文章会<strong>联邦出去，撤不回来</strong>。要收紧，一个参数收紧全部。
+      </p>
+
+      <h2>认不出来的时候，把线索一起交出去</h2>
+
+      <p>
+        「说不准」的处置是当私密处理——安全，但也因此<strong>安静</strong>：站点少发一页、
+        导出收紧一档，两边都不报错。而它的成因几乎只有一个，豆瓣改了页面模板。
+        那一页已经如实躺在档案里，改好抽取器重跑就救得回来，<strong>前提是有人知道该去改哪儿</strong>。
+      </p>
+
+      <p>所以告警不只报个数，它带着线索：</p>
+
+      <pre><code>tried:       div.topic-meta / div.note-footer-stat     找过这两个容器
+sawClasses:  note-visibility-badge / is-private-v2     这一页上像隐私标记的类名
+capture_id + 网址                                      去哪儿看那一页</code></pre>
+
+      <p>
+        造一个假的改版页试过，新类名直接就在那一行里。而<strong>一个字的正文与标题都不带</strong>——
+        这是用户写的日记，而告警是会被贴进 issue 的。
+      </p>
+
+      <h2>那一页现在长什么样</h2>
+
+      <p>
+        <a href="https://sample.doubak.com/note/868128497.html">样张站上那一篇</a>，
+        正文之前多了一段，逐字引着豆瓣的原话。
+      </p>
+
+      <p>
+        同一次改动还给部署加了一屏预演：铺进公开仓库之前，把「豆瓣上不公开的日记」按成因
+        分栏点名，两个方向都说出来。那一步是不可逆的，而在它前面只有这一屏——
+        <a href="/log/2026-09-06-green-but-not-checking.html">一句正确的话出现在做决定的人
+        读不到的地方，等于没说</a>。
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-08-two-hosts-one-meaning.html">← 更新：一句注释拦不住漂移</a>
+      <a href="/log/2026-09-06-action-not-seven-chars.html">更早：那七个字不是最长的动作词 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

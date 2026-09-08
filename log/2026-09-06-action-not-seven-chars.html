@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>那七个字不是最长的动作词，是「在第一个链接前刹住」 —— 开发日志</title>
+<meta name="description" content="广播动作的七字上限看着像量过最长的那个词，实际是在第一个行内链接前停下——而链接里装的正是这句话的宾语。放宽到 18 能接住漏掉的 33 条，代价是给其中 11 条写进垃圾：一个数字治不了四种形状。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-06-action-not-seven-chars.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-06">2026-09-06</time>
+      <h1>那七个字不是最长的动作词，是「在第一个链接前刹住」</h1>
+      <p class="summary">广播动作的七字上限看着像量过最长的那个词，实际是在第一个行内链接前停下——而链接里装的正是这句话的宾语。放宽到 18 能接住漏掉的 33 条，代价是给其中 11 条写进垃圾：一个数字治不了四种形状。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        广播的第一句是<strong>动作</strong>：「看过」「收藏游戏到豆列 游戏购买小账本」
+        「上传了 17 张照片到《寂静之人》的相册」。抽取器给它设了个七个字的上限，
+        而七这个数看着很有道理——<code>收藏图书到豆列</code> 正好七个字，像是量过最长的那一个。
+      </p>
+
+      <p>它不是。它是<strong>「在第一个链接前面刹住」</strong>：</p>
+
+      <pre><code>收藏游戏到豆列 &lt;a href="…/doulist/45473911/"&gt;游戏购买小账本&lt;/a&gt;
+上传了17张照片到 &lt;a href="…/game/30246116/"&gt;寂静之人&lt;/a&gt; 的 &lt;a …&gt;相册&lt;/a&gt;</code></pre>
+
+      <p>
+        而链接里装着的，正是这句话的宾语。七个字之所以够用，只是因为豆瓣习惯把宾语
+        做成链接——换句话说，那个上限一次都没有真的截断过谁，它只是<strong>恰好长在
+        豆瓣的排版习惯上</strong>。
+      </p>
+
+      <h2>先量，而量出来的结果否掉了本来要做的那件事</h2>
+
+      <p>
+        本来的打算很直接：33 条广播完全没有动作，把上限从 7 放宽到 18 就全接住了。
+        量完之后这个方案自己就废了——18 个字能接住那 33 条，代价是给其中 11 条写进垃圾：
+      </p>
+
+      <pre><code>"喜欢
+      
+:"        真正的动作是「喜欢」，那个冒号是它与引文之间的分隔符</code></pre>
+
+      <p>
+        另有三条把<strong>作品名嵌进了动作里</strong>——同一个动作会因作品而异，
+        而作品名本来就单独存着一份。<strong>一个数字治不了四种形状。</strong>
+      </p>
+
+      <p>
+        所以判据换成结构：从人名链接之后，切到内容开始的地方（<code>&lt;blockquote&gt;</code>，
+        或者正文容器的收尾，谁先来算谁）。
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>改之前</th><th>改之后</th></tr></thead>
+        <tbody>
+          <tr><td>动作为空的广播</td><td>33 条</td><td class="ok">2 条</td></tr>
+          <tr><td>带状态的广播</td><td>3265 条</td><td class="ok">3265 条（丢 0，也没凭空多）</td></tr>
+          <tr><td>动作长度</td><td>≤ 7</td><td>中位 2 · 90% 2 · 最长 76</td></tr>
+          <tr><td>相邻修订之间动作变过</td><td>59 次</td><td class="ok">13 次</td></tr>
+          <tr><td>广播修订总数</td><td>3898</td><td>3873</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>剩下那两条是日记广播，豆瓣压根没写动作词，空着才是对的。</p>
+
+      <h2>三个意外收获，都不是这次要修的东西</h2>
+
+      <p>
+        <strong>61 条广播一直没记下收藏到了哪个豆列</strong>——豆列名在被切掉的那个链接里。
+      </p>
+
+      <p>
+        <strong>25 条修订是凭空捏造的。</strong> 26 条广播各有一条第二修订，而两条之间的
+        差别只有一个冒号的宽窄：老页面写 <code>说:</code>，新页面写 <code>说：</code>。
+        豆瓣四年间改了自己的排版，而这个记录类型的<strong>全部前提</strong>是「发出去就
+        不能改」。收掉结尾那个冒号，它们自己就合并了。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          留在 59 不动，等于给 46 次真的抽取器退化预先放行——那正是这条断言存在的理由。
+        </p>
+      </div>
+
+      <p>
+        站点上那条<strong>光秃秃的「：」</strong>和那个<strong>断掉的「写了《」</strong>
+        （后面什么都没有）也是这么来的。
+      </p>
+
+      <h2>唯一危险的方向，单独量一遍</h2>
+
+      <p>
+        动作词有 12 个是标记动作（看过、想读、玩过……），解析器靠它查出这条广播对应的状态。
+        查不到就写空——而<strong>「这条广播没有状态」与「这条广播不是标记」在数据上分不
+        出来</strong>，一条标记事件会就此静默消失。所以那一列单独测、单独量：3265 → 3265。
+      </p>
+
+      <h2>两个自己写出来的 bug，都是看生成出来的站点看出来的</h2>
+
+      <p>测试全绿的时候它们都在。</p>
+
+      <ul>
+        <li>
+          <strong>把标签换成空格</strong>，怕「到豆列」和「游戏购买小账本」粘成一个词。
+          那个担心是编的：浏览器渲染行内 HTML 本来就是「去标签 + 折叠空白」，
+          该有空格的地方豆瓣源码里就有。换成空格反而造出页面上<strong>没有</strong>的空格——
+          <code>写了《 千と千尋の神隠し 》的讨论</code>，书名号里凭空多两个。
+        </li>
+        <li>
+          <strong>去掉结尾冒号后留了个尾随空格</strong>（<code>喜欢 :</code> → <code>喜欢 </code>），
+          同一个动作于是有了两种写法。
+        </li>
+      </ul>
+
+      <h2>只留文字，那句话在站点上就点不动了</h2>
+
+      <p>
+        <code>收藏游戏到豆列 游戏购买小账本</code>——它在豆瓣上三个词都能点，
+        在站点上却是一句死的话。所以动作照旧存整句（状态表按它精确查），另存一份
+        结构化分段，把链接留下来。
+      </p>
+
+      <p>
+        这份分段带一条不变量：<strong>把每段的文字依次拼起来，逐字等于那句动作</strong>。
+        有它，消费者重建带链接的句子不需要任何匹配；没它，就只是又一次子串匹配——
+        而拿整句去匹配靠的是两边实体解码分毫不差，<strong>对不上时是静默的</strong>
+        （链接不出现，不报错）。3423 条真实广播上验过：0 条拼不回去。
+      </p>
+
+      <p>
+        判据是「这一类东西我们收不收」，不是「本地有没有」。作品、豆列、长文是这份存档要
+        <strong>替代</strong>豆瓣的东西，接不回来说明档案缺了它，给个站外链接等于把「缺了」
+        粉饰成「在那边」；而作品相册里的照片明确不在收录范围内，指出去才是诚实的。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>正则必须钉到结尾</strong>，这是测试当场抓到的：作品的网址是相册与讨论的
+          <strong>前缀</strong>（<code>…/game/30246116/</code> vs
+          <code>…/game/30246116/photos/</code>）。不钉的话相册被认成作品，走「要收录的
+          那一类」，本地没有就不给链接——<strong>相册链接静默消失</strong>，
+          正是这个功能要修的毛病。
+        </p>
+      </div>
+
+      <h2>顺带：那条出处链接每次抓都不一样</h2>
+
+      <p>
+        给广播加豆瓣永久链接时顺手量了一下，结果是它<strong>大部分时候都在变</strong>，
+        两个轴，都与内容无关：
+      </p>
+
+      <pre><code>追踪参数   …/status/4088086916/?_spm_id=ODIxNjA4NzE   base64 解开就是 uid
+用户段     /people/mewcatcher/  ←→  /people/82160871/   同一个人的两种写法</code></pre>
+
+      <p>
+        两个都归一化之后，<strong>0 / 3440 再变</strong>。不处理的话每次重新生成站点都有
+        2827 条链接无缘无故改写——而这个项目是<strong>靠读 diff 确认「这次只改了该改的」</strong>的，
+        那种噪音会把真改动埋掉。
+      </p>
+
+      <p>
+        归一化放在投影层，档案里存的仍然是页面上原样写着什么——投影本来就是有损缓存，
+        而<a href="/log/2026-07-23-why-warc.html">抓下来的字节一个都不许改</a>。
+      </p>
+
+      <p>站点 diff：<strong>125 页改动，0 新增 0 删除</strong>，全部是行内文字。</p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-07-censorship-is-not-privacy.html">← 更新：豆瓣把它锁了，不是你把它藏了</a>
+      <a href="/log/2026-09-06-three-tries-at-a-badge.html">更早：出处这枚角标，改了三版 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
