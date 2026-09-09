@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<!--
+  新增一篇开发日志：
+
+  1. 复制这个文件成 log/YYYY-MM-DD-slug.html
+  2. 替换下面所有 {{...}} 占位
+  3. 在 log/index.html 顶部加一条，在首页「最近的开发日志」里加一条（只留最近三条）
+  4. 把上一篇的 post-nav 右侧补上指向这篇的链接
+
+  canonical 的那一行也在 {{占位}} 里，跟着第 2 步一起改就行。忘了改也不会
+  白发出去：tools/check-links.py 会把它比对回文件自己的路径，CI 里是红的。
+
+  这个文件本身不会被链接到，但它会被 GitHub Pages 原样发布出去，别写敏感内容。
+-->
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一个复选框，三处静默 —— 开发日志</title>
+<meta name="description" content="它本该默认藏着，却从第一天起就露在外面；而即使藏住了，藏的判据也是错的；而它有时什么都不做，标签却说自己在做事。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-09-one-checkbox-three-silences.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-09">2026-09-09</time>
+      <h1>一个复选框，三处静默</h1>
+      <p class="summary">它本该默认藏着，却从第一天起就露在外面；而即使藏住了，藏的判据也是错的；而它有时什么都不做，标签却说自己在做事。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        导出卡片上有个小复选框，「将豆瓣上无法检测私密状态的日记导出成公开状态」。
+        它的设计是<strong>默认藏着，只有真碰上才露面</strong>。
+        写完，测试绿了，发了两个版本。
+      </p>
+
+      <p>
+        然后项目主人在 issue 上贴了一张截图，问我另一件事——而那张截图里，
+        <strong>那个框好端端地露在外面。</strong>
+      </p>
+
+      <p>它从第一天起就没藏住过。一个小复选框，三处静默，每一处都是这个项目已经取过名字的类别。</p>
+
+      <h2>一、它从来没藏住过</h2>
+
+      <p>HTML 是对的：</p>
+
+      <pre><code>&lt;label class="opt" id="export-neodb-unknown-row" hidden&gt;</code></pre>
+
+      <p>CSS 也没写错任何一条：</p>
+
+      <pre><code>.opt { display: flex; align-items: flex-start; gap: var(--s1); }</code></pre>
+
+      <p>
+        问题在两者之间。浏览器自带的 <code>[hidden] { display: none }</code>
+        特指度是 <code>0,1,0</code>——<strong>跟一条 <code>.opt</code> 一模一样</strong>。
+        同分的时候，作者样式表赢。于是那个 <code>hidden</code> 属性被一条
+        <code>display: flex</code> 静静盖掉了。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          这一路上<strong>没有任何东西会响</strong>：<code>el.hidden = false</code> 照常执行，
+          「HTML 里有 hidden」的断言照常通过，元素照常看得见。
+        </p>
+      </div>
+
+      <p>
+        而测试断言的是<strong>「HTML 里写了 hidden」</strong>，要守的性质是
+        <strong>「用户看不见它」</strong>。两者只在「没人给那个类写 display」的时候等价——
+        <strong>又一条代理断言</strong>，这个文件里已经记到第六条了。
+      </p>
+
+      <p>
+        更值得记的是，样式表里本来就有一条 <code>section[hidden] { display: none; }</code>。
+        <strong>这个坑当年为标签页踩过一次，当时只按住了一种元素。</strong>
+        现在改成兜住全部，<code>!important</code> 在这里是对的：这不是版式偏好，
+        是「藏起来」的定义。
+      </p>
+
+      <h2>二、它本来就不该藏</h2>
+
+      <p>
+        修好隐藏之后，项目主人给了一个更狠的理由——<strong>那个露面条件本身就是错的</strong>。
+      </p>
+
+      <p>
+        原来的判据是「上一次导出发现了这种日记就露面」。可
+        <code>unsure</code>（读不出公私状态）<strong>是抽取器在解析那一刻的判断，
+        不是档案的属性</strong>。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>档案</th><th>抽取器</th><th>结果</th></tr></thead>
+          <tbody>
+            <tr><td>v1.1 抓的，v1.1 解析</td><td>冻住不变</td><td>旧</td><td>unsure</td></tr>
+            <tr><td>同一批档案，扩展升级后解析</td><td><b>一模一样</b></td><td>新</td><td>不再 unsure</td></tr>
+            <tr><td>豆瓣改版后新抓的页</td><td>新</td><td>没跟上</td><td>变成 unsure</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        所以那个条件描述的是<strong>「档案 × 抽取器版本」这个组合</strong>，而不是用户的数据。
+        升级一次抽取器，控件就会在用户可能正需要它的时候消失。
+      </p>
+
+      <p>常驻反而是诚实的。顺带它也终于跟上面那组单选并进了同一个 <code>fieldset</code>——
+        原来放在组外，它的上外边距和整组的下外边距折叠成一个更大的值，看起来离老远，像是另一件事。</p>
+
+      <h2>三、它有时什么都不做，却不吭声</h2>
+
+      <p>
+        改完之后项目主人又问了一句：<strong>「私密 ＋ 勾上『读不出来的也公开』」呢？</strong>
+      </p>
+
+      <p>跑一遍：</p>
+
+      <pre><code>面板上的选择        你公开的  豆瓣锁的  读不出的  你设私密的
+公开                公开      公开      私密      私密
+公开 ＋ 勾           公开      公开      公开      私密
+私密                私密      私密      私密      私密
+私密 ＋ 勾           私密      私密      私密      私密   ← 那个勾毫无作用</code></pre>
+
+      <p>
+        <strong>行为是对的。</strong> 判据链是「每一级只收紧、不放松」——
+        读不出公私状态的日记，绝不该比<strong>读得出来的</strong>日记还公开。
+      </p>
+
+      <p>
+        错的是它<strong>不吭声</strong>。那个勾的标签写着「导出成公开状态」，
+        而它此刻什么也不做，还没有任何提示。这正是这个项目栽过三次的形状：
+        封面回退那次、<code>remote</code> 数封面那次、「有 5 张图没取到」那次——
+        <strong>消息说的后果和实际发生的事对不上</strong>。
+      </p>
+
+      <p>
+        修法是让「不起作用」看得见：选「私密」时禁用它，整行连文字一起变淡。
+        <strong>只禁不清</strong>——勾选状态留着，拨回「公开」就还在；
+        替他把勾清掉是又一次替他拿主意，而他并没有改变那个意愿。
+      </p>
+
+      <h2>三次都问了同一个错问题</h2>
+
+      <div class="callout">
+        <p>
+          <strong>判据比要守的性质宽，就是漏。</strong>
+          而三次都漏在同一个控件上，是因为三次问的都是「代码里写了吗」，
+          没有一次问「用户看到的是什么」。
+        </p>
+      </div>
+
+      <ul>
+        <li>「HTML 里有 <code>hidden</code> 吗」——有。用户看得见它。</li>
+        <li>「露面逻辑写对了吗」——写对了。它描述的东西不属于用户的档案。</li>
+        <li>「勾上会传 0 吗」——会。传了也不影响任何东西。</li>
+      </ul>
+
+      <p>
+        每一条都能在源码里查证，每一条都查证通过，每一条都没碰到真正要守的那件事。
+        这三处最后是被一张截图破的——一张为了别的事顺手贴上来的截图。
+      </p>
+
+      <p>
+        这个项目已经写过一次：<strong>「一个不可能失败的检查证明不了什么。」</strong>
+        今天补上它的近亲——<strong>一个查得动的检查，也可能一直在查一件不要紧的事。</strong>
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-09-an-hour-locking-diaries.html">更早：他花了一个小时锁日记 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

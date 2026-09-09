@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<!--
+  新增一篇开发日志：
+
+  1. 复制这个文件成 log/YYYY-MM-DD-slug.html
+  2. 替换下面所有 {{...}} 占位
+  3. 在 log/index.html 顶部加一条，在首页「最近的开发日志」里加一条（只留最近三条）
+  4. 把上一篇的 post-nav 右侧补上指向这篇的链接
+
+  canonical 的那一行也在 {{占位}} 里，跟着第 2 步一起改就行。忘了改也不会
+  白发出去：tools/check-links.py 会把它比对回文件自己的路径，CI 里是红的。
+
+  这个文件本身不会被链接到，但它会被 GitHub Pages 原样发布出去，别写敏感内容。
+-->
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>他花了一个小时锁日记 —— 开发日志</title>
+<meta name="description" content="一条长毛象抱怨：日记导进 NeoDB 之后全公开了。能改，一直都能改——只是那个办法贵到没人会用。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-09-an-hour-locking-diaries.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-09">2026-09-09</time>
+      <h1>他花了一个小时锁日记</h1>
+      <p class="summary">一条长毛象抱怨：日记导进 NeoDB 之后全公开了。能改，一直都能改——只是那个办法贵到没人会用。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        有人在长毛象上说，用豆备把日记导进 NeoDB 之后<strong>全都公开了</strong>，
+        那一个小时都在手忙脚乱地锁日记、删日记，被迫重读了一堆很久以前写的东西。
+      </p>
+
+      <blockquote>
+        <p>
+          tl用豆备的时候可以注意一下，抓到日记之类的导入NeoDB之后会全部公开.......
+          这一个小时我都在手忙脚乱地锁日记删日记，被迫看了一堆很久以前写的垃圾东西，好崩溃
+        </p>
+      </blockquote>
+
+      <p>
+        这个坑是工具的。而且比他说的还糟一点：他装的那一版里，
+        <strong>连他自己在豆瓣上设成「仅自己可见」的日记也一起公开了</strong>——
+        可见性的判断是 09-07 才做进解析器的。他没提这一条，因为他没法知道。
+      </p>
+
+      <h2>导出卡片上，对普通日记一个字都没说</h2>
+
+      <p>
+        事后去看那张卡片，问题不在于哪一句写错了，而在于<strong>该说的那句根本不在</strong>：
+      </p>
+
+      <pre><code>标记 2961 条
+评分 1795 · 短评 2127 · 标签 717
+书评影评 2 · 日记 4 · 豆列 6
+状态历史 2539 条（从广播还原，豆瓣自己已经不显示了）
+⚠ 1 篇日记是被豆瓣锁成「仅自己可见」的，这一份按公开导入——注意会联邦出去，撤不回来</code></pre>
+
+      <p>
+        「日记 4」只是一个数字。整份《怎么导入.md》里，<strong>「联邦」二字只出现一次</strong>，
+        而且挂在被豆瓣锁掉的那一篇上——也就是说，工具只对<strong>不公开</strong>的那几篇提了醒，
+        对<strong>本来就公开</strong>的那些什么都没说。
+      </p>
+
+      <p>
+        但豆瓣上一篇公开日记躺在角落里，跟它变成 NeoDB 时间线上的一篇文章、
+        再联邦同步到别的实例去，是两件事。同一个「公开」，暴露量差着一个量级。
+        这一层区别工具此前既没替他区分，也没在他按下导出之前说清楚。
+      </p>
+
+      <h2>能改，但代价大到没人会付</h2>
+
+      <p>
+        其实一直有 <code>--visibility=2</code>：所有记录一次收紧。问题是它<strong>一动全动</strong>
+        ——为了护住 4 篇日记，得把 2961 条标记、1795 个评分、2127 条短评一起收成仅提及者可见。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>一个贵到没人会付的安全动作，等于没有这个安全动作。</strong>
+          它在文档里、在 <code>--help</code> 里、在测试里，唯独不在任何人的实际选择里。
+        </p>
+      </div>
+
+      <p>
+        而扩展面板上<strong>连这个都没有</strong>：那条路上 <code>visibility</code> 是写死的 0。
+        碰上这件事的人大概率正是面板用户——命令行用户是自己敲了参数、读了打出来那段话才走到这一步的。
+      </p>
+
+      <h2>改的不是行为，是可见度</h2>
+
+      <p>导出卡片上现在多了一组常驻的选择，就在导出按钮上面：</p>
+
+      <pre><code>日记导出设置为
+ (•) 公开
+ ( ) 私密（仅自己可见）
+⚠ 日记导出到 NeoDB 会变成「文章」，公开的会被联邦同步到别的实例去，并且无法撤回。
+  在豆瓣上已经设成私密的日记将不受影响，将继续保持私密状态。</code></pre>
+
+      <p>
+        <strong>默认仍然是「公开」。</strong> 这一点值得说清楚，因为它看起来像是没有吸取教训。
+      </p>
+
+      <p>
+        这份存档存在的理由之一，是让被豆瓣拿下的东西还有一个能重新说话的地方。档案里那篇
+        《想看的被河蟹的电影》读作「仅自己可见」，而它不是作者藏的——豆瓣自己在页面上写着
+        「此日记锁定仅自己可见」。它之所以不公开，<strong>恰恰因为它曾经是公开的</strong>。
+        默认收起来，就是跟着豆瓣一起把它二次消音，而且是静默的。
+      </p>
+
+      <p>
+        所以改的是<strong>可见度</strong>而不是行为：这个选择从「藏在一个没人会用的命令行参数里」
+        搬到了「按下去之前必须看见的地方」。他至少看得见，也改得动。
+      </p>
+
+      <h2>实测各类日记的去向</h2>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>日记导出设置为</th><th>你在豆瓣上公开的</th><th>被豆瓣锁掉的</th>
+              <th>读不出公私的</th><th>你设成私密的</th><th>影评书评</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><b>公开</b>（默认）</td><td>公开</td><td>公开</td>
+              <td class="ok">私密</td><td class="ok">私密</td><td>公开</td></tr>
+            <tr><td>公开 ＋ 勾「读不出来的也公开」</td><td>公开</td><td>公开</td>
+              <td>公开</td><td class="ok">私密</td><td>公开</td></tr>
+            <tr><td><b>私密（仅自己可见）</b></td><td>私密</td><td>私密</td>
+              <td>私密</td><td class="ok">私密</td><td>公开</td></tr>
+            <tr><td>私密 ＋ 勾（此时那个勾是禁用的）</td><td>私密</td><td>私密</td>
+              <td>私密</td><td class="ok">私密</td><td>公开</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>对着真实档案跑出来的，不是照着代码写的。三条不变量：</p>
+
+      <ul>
+        <li>
+          <strong>「你设成私密的」那一列，四种组合下都是私密。</strong>
+          三个开关都放松不了它——一个能放松它的开关，就是绕过整套非对称性的后门。
+        </li>
+        <li>
+          <strong>「读不出公私的」默认按私密走。</strong>「读不出来」不是「确认公开」。
+          它几乎只有一个成因：豆瓣改了日记页的结构，抽取器认不出隐私容器了。
+          碰上时面板会请人去 GitHub 报一声——那几页本来就在他自己的档案里，
+          改好抽取器重新导出就能救回来，<strong>不用重新抓豆瓣</strong>。
+        </li>
+        <li>
+          <strong>影评书评整列不受这一档影响。</strong> 豆瓣本来就没给它们私密这个设置，
+          它们挂在作品页上给所有人看。一起收起来，是拿一个用户没做过的决定去改他的东西。
+        </li>
+      </ul>
+
+      <h2>命令行那边是三级</h2>
+
+      <pre><code>--visibility              所有记录的总基线（默认 0 公开）
+  └ --notes-visibility        日记这一档（默认 0；影评书评不在内）
+      └ --unknown-visibility      其中读不出公私的那几篇（默认 2 仅提及者）</code></pre>
+
+      <p>
+        每一级的 <code>0</code> 都是「跟上一级走」，所以每一级<strong>只收紧、不放松</strong>。
+        写成「强制公开」的话，<code>--visibility=1 --notes-visibility=0</code>
+        会把日记发得比别的记录还开；同理最里面那一级继承的是日记那一档而不是总基线，
+        否则 <code>--notes-visibility=2 --unknown-visibility=0</code>
+        会让读不出来的比读得出来的还公开——正好是反的。两个方向都用突变测试验过。
+      </p>
+
+      <h2>这件事本身的形状</h2>
+
+      <div class="callout">
+        <p>
+          这个项目记过一句话：<strong>一句正确的话，出现在做决定的人读不到的地方，等于没说。</strong>
+          这一次是它的另一面——<strong>一个正确的能力，放在做决定的人够不到的地方，等于没有。</strong>
+        </p>
+      </div>
+
+      <p>
+        <code>--visibility=2</code> 一直都在，文档里写着，<code>--help</code> 里印着，测试盯着。
+        它唯一缺的，是让人在那一刻愿意用它的代价。
+      </p>
+
+      <p>
+        另外值得记一笔的是，这件事不是任何一次代码审查、任何一条测试发现的。
+        它是一个陌生人在长毛象上骂了一句，而那句话里带着「一个小时」这个数字。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-09-one-checkbox-three-silences.html">← 更新：一个复选框，三处静默</a>
+      <a href="/log/2026-09-08-two-hosts-one-meaning.html">更早：一句注释拦不住漂移 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
