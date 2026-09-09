@@ -119,6 +119,44 @@
       </li>
     </ol>
 
+    <!-- Firefox 单独一段，因为它三条路都走不了上面那个样子：包不一样、装法不一样，
+         而且还没上架。首页那个「Firefox：手动加载」按钮指到这儿。 -->
+    <h3 id="firefox">Firefox 怎么装</h3>
+
+    <p>
+      Firefox 能抓、能存、能导出，只是<strong>还没上架 <a href="https://addons.mozilla.org">AMO</a></strong>，
+      所以现在要手动加载。进度跟在
+      <a href="https://github.com/Doubak/doubak-extension/issues/11">#11</a>。
+    </p>
+
+    <ol>
+      <li>
+        到 <a href="https://github.com/Doubak/doubak-extension/releases/latest">Releases</a> 下
+        <code>doubak-&lt;版本&gt;-firefox.zip</code>。
+        <strong>别下错成另一个</strong>——两份的 manifest 不一样，装错了会直接加载失败，
+        而失败信息不会告诉你是拿错了包。
+      </li>
+      <li>解压。</li>
+      <li>
+        打开 <code>about:debugging#/runtime/this-firefox</code> →「临时载入附加组件…」→
+        选解压出来那个目录里的 <code>manifest.json</code>。
+      </li>
+    </ol>
+
+    <p>
+      <strong>「临时载入」是字面意思：关掉浏览器就没了</strong>，下次要再点一次。
+      但<strong>抓下来的档案还在</strong>——它存在浏览器的存储里，不跟着扩展走，
+      下次载入还能接着增量抓。需要 Firefox 140 以上。
+    </p>
+
+    <p>
+      有一处不一样，先说在前面：Firefox 没有「让网页往你选的文件夹里写」这个接口，
+      所以<strong>导出交出来的是一个 zip，不是一个文件夹</strong>。
+      解开之后与在 Chrome 上导出的<strong>逐字节相同</strong>——它是个壳子，不是另一种格式；
+      搬回豆备、喂给解析器，用的都是解开之后的那个文件夹。
+      代价是这一份没法回读校验，也不能续导：中途断了要重来。
+    </p>
+
     <p>
       第一次跑的是<strong>全量抓取</strong>：从头到尾走一遍，能抓的都抓下来。
       时间取决于账号大小，中途可以停，下次接着来。

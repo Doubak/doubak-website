@@ -7,10 +7,14 @@
 |---|---|---|
 | `chrome.svg` | Google Chrome 的单色字形 | [Simple Icons](https://simpleicons.org)（图形文件 CC0-1.0） |
 | `edge.svg` | Microsoft Edge 的单色剪影 | 取自 [browser-logos](https://github.com/alrra/browser-logos) 里官方 SVG 的三条轮廓路径，去掉渐变和高光 |
+| `firefox.svg` | Mozilla Firefox 的单色字形 | [Simple Icons](https://simpleicons.org)（图形文件 CC0-1.0），与 `chrome.svg` 同一处 |
 
-Chrome、Microsoft Edge 及其标志分别是 Google 和 Microsoft 的商标。这里按**指名使用**
-的方式用它们：给「安装到 Chrome / Edge」这两个按钮标明各自通向哪个商店，不表示两家
-与本项目有任何关联或对它的认可。
+Chrome、Microsoft Edge、Firefox 及其标志分别是 Google、Microsoft、Mozilla 的商标。
+这里按**指名使用**的方式用它们：给那几个按钮标明各自通向哪儿，不表示这几家与本项目
+有任何关联或对它的认可。
+
+**Firefox 那个按钮不通向商店**——那一份还没上架 AMO，按钮指的是「下载 zip 手动加载」。
+图标仍然用官方字形，因为它回答的是同一个问题：这一个是给哪个浏览器的。
 
 ## 为什么是单色的
 

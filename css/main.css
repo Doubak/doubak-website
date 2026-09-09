@@ -376,8 +376,9 @@ hr {
   -webkit-mask: var(--browser-icon) no-repeat center / contain;
   mask: var(--browser-icon) no-repeat center / contain;
 }
-.btn-chrome { --browser-icon: url("/assets/browsers/chrome.svg"); }
-.btn-edge   { --browser-icon: url("/assets/browsers/edge.svg"); }
+.btn-chrome  { --browser-icon: url("/assets/browsers/chrome.svg"); }
+.btn-edge    { --browser-icon: url("/assets/browsers/edge.svg"); }
+.btn-firefox { --browser-icon: url("/assets/browsers/firefox.svg"); }
 
 /* Edge 那个是实心剪影，Chrome 那个是个环——同样 24px 见方，Edge 的墨多，看着
    就大一圈。改的是 mask-size 不是 width：格子还是 24px，两个按钮的文字才在
