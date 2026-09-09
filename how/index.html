@@ -102,8 +102,10 @@
         <strong>浏览器商店</strong>
         —— 多数人走这条，点一下就装上，之后自动更新：
         <a href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">Chrome 应用商店</a>、
-        <a href="https://microsoftedge.microsoft.com/addons/detail/jfaancfhcbfebmlphapaifkpijlcgnpf">Microsoft Edge 加载项</a>。
-        两边提交的是同一份包，装哪边都一样；Edge 也仍然能从 Chrome 应用商店装。
+        <a href="https://microsoftedge.microsoft.com/addons/detail/jfaancfhcbfebmlphapaifkpijlcgnpf">Microsoft Edge 加载项</a>、
+        <a href="https://addons.mozilla.org/firefox/addon/doubak/">Firefox 附加组件</a>。
+        两个 Chromium 商店提交的是同一份包，装哪边都一样；Edge 也仍然能从 Chrome 应用商店装。
+        Firefox 那份是<strong>另一个包</strong>（两边的 manifest 不一样），同一条 CI 一起打出来的。
       </li>
       <li>
         <strong><a href="https://github.com/Doubak/doubak-extension/releases/latest">Releases</a></strong>
@@ -124,9 +126,14 @@
     <h3 id="firefox">Firefox 怎么装</h3>
 
     <p>
-      Firefox 能抓、能存、能导出，只是<strong>还没上架 <a href="https://addons.mozilla.org">AMO</a></strong>，
-      所以现在要手动加载。进度跟在
-      <a href="https://github.com/Doubak/doubak-extension/issues/11">#11</a>。
+      正常装就走
+      <a href="https://addons.mozilla.org/firefox/addon/doubak/">Firefox 附加组件</a>，
+      跟 Chrome、Edge 一样点一下就好。需要 <strong>Firefox 140</strong> 以上。
+    </p>
+
+    <p>
+      要试 <code>main</code> 上还没发版的改动，才需要手动加载
+      ——这一条与 Chromium 那边「下 Releases 里的 zip」是同一个地位：
     </p>
 
     <ol>
@@ -146,7 +153,7 @@
     <p>
       <strong>「临时载入」是字面意思：关掉浏览器就没了</strong>，下次要再点一次。
       但<strong>抓下来的档案还在</strong>——它存在浏览器的存储里，不跟着扩展走，
-      下次载入还能接着增量抓。需要 Firefox 140 以上。
+      下次载入还能接着增量抓。
     </p>
 
     <p>

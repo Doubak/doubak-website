@@ -35,7 +35,7 @@
   "url": "https://doubak.com/",
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Windows, macOS, Linux, ChromeOS",
-  "browserRequirements": "Chrome, Edge or Firefox 140+. Firefox is supported but not yet listed on addons.mozilla.org — load the -firefox.zip from GitHub Releases as a temporary add-on. Safari is not supported.",
+  "browserRequirements": "Chrome, Edge or Firefox 140+. Safari is not supported.",
   "softwareVersion": "1.4.0",
   "description": "在你自己的浏览器里把豆瓣原样存成标准 WARC 档案，再解析、生成你自己的静态豆瓣、导出到 NeoDB 等站点。凭据和数据都不离开你的设备。",
   "inLanguage": "zh-Hans",
@@ -111,13 +111,14 @@
         <span class="label">安装到 Edge</span>
         <span class="store">Microsoft Edge 加载项</span>
       </a>
-      <!-- **不做成一个按不动的「敬请期待」。** Firefox 现在就能用，只是还没上架
-           AMO——所以这个按钮指向一条真的走得通的路（下载 -firefox.zip 手动加载），
-           副标题如实说它还没上架。一个按不动的按钮只会让人以为「还不能用」，
-           而事实是能用。 -->
-      <a class="btn btn-outline btn-store btn-firefox" href="/how/#firefox">
-        <span class="label">Firefox：手动加载</span>
-        <span class="store">尚未上架 AMO，跟进 #11</span>
+      <!-- AMO 的地址**不带语言段**：实测它按 Accept-Language 301 到访客自己的
+           语言（zh-CN 去 /zh-CN/，zh-TW 去 /zh-TW/，不带头才去 /en-US/）。写死
+           /zh-CN/ 的话，繁體与英文读者会被送到简体页——而扩展特意备了三份商店文案。
+           与上面两个商店那条「只写扩展 ID、不带名字那一段」是同一条规矩：
+           别把一个会变的段写死。 -->
+      <a class="btn btn-outline btn-store btn-firefox" href="https://addons.mozilla.org/firefox/addon/doubak/">
+        <span class="label">安装到 Firefox</span>
+        <span class="store">Firefox 附加组件</span>
       </a>
     </div>
     <div class="actions">
@@ -132,10 +133,10 @@
       <a class="btn btn-ghost" href="https://sample.doubak.com">看生成出来的样张</a>
     </div>
     <p class="small muted" style="margin-top:1.2em">
-      需要 Chrome、Edge，或 Firefox 140 以上。两个商店提交的是同一份包——同一条 CI
-      打出来的，所以装哪边都一样；Edge 也仍然能从 Chrome 应用商店装。
-      Firefox 那份是另一个包（<code>-firefox.zip</code>，两边的 manifest 不一样），
-      还没上架 AMO，现在要手动加载。
+      需要 Chrome、Edge，或 Firefox 140 以上。两个 Chromium 商店提交的是同一份包
+      ——同一条 CI 打出来的，所以装哪边都一样；Edge 也仍然能从 Chrome 应用商店装。
+      Firefox 那份是<strong>另一个包</strong>（<code>-firefox.zip</code>，两边的
+      manifest 不一样），同一条 CI 一起打出来的。
       不想走商店的话，<a href="https://github.com/Doubak/doubak-extension/releases/latest">release</a>
       里那份 <code>.zip</code> 还是同一个包——注意它是商店的提交格式，
       <strong>浏览器不能直接装 zip</strong>，要先解压再用开发者模式的「加载已解压的扩展程序」。
