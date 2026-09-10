@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://doubak.com/</loc>
-<lastmod>2026-09-10T18:32:06+10:00</lastmod>
+<lastmod>2026-09-10T20:12:55+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/how/</loc>
@@ -10,7 +10,7 @@
 </url>
 <url>
 <loc>https://doubak.com/log/</loc>
-<lastmod>2026-09-09T12:48:14+10:00</lastmod>
+<lastmod>2026-09-10T20:12:55+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/log/2026-07-23-why-warc.html</loc>
@@ -189,8 +189,24 @@
 <lastmod>2026-09-09T12:48:14+10:00</lastmod>
 </url>
 <url>
+<loc>https://doubak.com/log/2026-09-09-firefox-cant-hand-you-a-folder.html</loc>
+<lastmod>2026-09-10T20:12:55+10:00</lastmod>
+</url>
+<url>
+<loc>https://doubak.com/log/2026-09-09-not-logged-out.html</loc>
+<lastmod>2026-09-10T20:12:55+10:00</lastmod>
+</url>
+<url>
 <loc>https://doubak.com/log/2026-09-09-one-checkbox-three-silences.html</loc>
-<lastmod>2026-09-09T12:48:14+10:00</lastmod>
+<lastmod>2026-09-10T20:12:55+10:00</lastmod>
+</url>
+<url>
+<loc>https://doubak.com/log/2026-09-10-same-poster-different-shard.html</loc>
+<lastmod>2026-09-10T20:12:55+10:00</lastmod>
+</url>
+<url>
+<loc>https://doubak.com/log/2026-09-10-spec-says-no.html</loc>
+<lastmod>2026-09-10T20:12:55+10:00</lastmod>
 </url>
 <url>
 <loc>https://doubak.com/privacy/</loc>
