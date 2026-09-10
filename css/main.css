@@ -380,6 +380,12 @@ hr {
    多出一条贴着外框的线。 */
 .install > .btn-store + .btn-store { border-left: 1px solid var(--green-line); }
 
+/* 焦点圈往里画。**这是上面那句 `overflow: hidden` 的代价**：三格都贴着外框，
+   而焦点圈画在边框外面，正好落在被裁掉的那一圈上——实测（Firefox，强制加一圈
+   洋红色描边截图）只剩一道竖线，用键盘 Tab 过来的人看不出焦点在哪一格。
+   这一条必须紧挨着 `overflow: hidden` 放，因为它是被那一行逼出来的。 */
+.install > .btn-store:focus-visible { outline-offset: -3px; }
+
 /* 左边一个浏览器图标、右边两行字，所以从 .btn 的 flex 换成 grid：图标那一格
    跨满两行，另一列摞着标题和副标题。用 grid 而不是「图标 + 一个包着两行的
    div」，是为了不往 HTML 里多塞一层只为布局存在的元素。 */
