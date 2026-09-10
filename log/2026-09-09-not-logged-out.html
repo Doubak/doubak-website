@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>他不是没登录，是豆瓣把他送去了手机版 —— 开发日志</title>
+<meta name="description" content="安卓 Edge 上一按开始就是「无法判断登录状态」。拒绝本身是对的——错的是那句话把人指向了一条修不好的路：他会一遍遍重新登录，去修一个不存在的登录问题。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-09-not-logged-out.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-09">2026-09-09</time>
+      <h1>他不是没登录，是豆瓣把他送去了手机版</h1>
+      <p class="summary">安卓 Edge 上一按开始就是「无法判断登录状态」。拒绝本身是对的——错的是那句话把人指向了一条修不好的路：他会一遍遍重新登录，去修一个不存在的登录问题。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        安卓 Edge 上的一条 issue：一按「开始抓取」就是
+        <strong>「无法判断登录状态，拒绝开始抓取」</strong>。回帖只有一句：
+        「豆瓣网站正常登录的。」
+      </p>
+
+      <p><strong>他是对的。</strong></p>
+
+      <h2>豆瓣把他送去了手机版</h2>
+
+      <p>
+        真实成因是豆瓣按 User-Agent 里的手机标记，把请求跳到了
+        <code>m.douban.com</code>。而那张 12.5 KB 的壳页上，扩展用来判断登录状态的东西
+        <strong>一个都没有</strong>：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>要找的</th><th>桌面版</th><th>手机版那张壳页</th></tr></thead>
+        <tbody>
+          <tr><td><code>nav-user-account</code></td><td class="ok">有</td><td class="todo">0 处</td></tr>
+          <tr><td><code>/accounts/logout</code></td><td class="ok">有</td><td class="todo">0 处</td></tr>
+          <tr><td><code>nav-login</code>（未登录的标志）</td><td class="ok">有</td><td class="todo">0 处</td></tr>
+          <tr><td>四种取数字用户 ID 的写法</td><td class="ok">有</td><td class="todo">全是 0</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        「已登录」和「未登录」两个标志都找不到，所以判定是<strong>「说不准」</strong>，
+        而说不准就不开工——这条是对的。登录状态不明就开抓，可能把只有公开视图的那一份
+        当成完整数据存进档案，而档案是<strong>不可逆</strong>的那一步。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>拒绝是对的，那句话把人送上了一条修不好的路。</strong>
+          他会一遍遍重新登录，去修一个根本不存在的登录问题。
+        </p>
+      </div>
+
+      <p>
+        这个项目里早就有一条同形的规矩：<strong>「读不到用户 ID」与「会话过期了」必须分开说</strong>
+        ——前者是豆瓣改版，后者才是没登录，混成一句会让用户反复重登。
+        而「判断不出来」是这两者之外的<strong>第三种</strong>，当时没跟上。
+      </p>
+
+      <p>
+        线索一直都在手边：网络层返回了最终落在哪个网址、HTTP 状态、跳了几次、多少字节，
+        一个不缺——只是在最后一步，只有网页正文被传了进去，<strong>其余全丢了</strong>。
+      </p>
+
+      <h2>判据是 UA 里的那个词，而且加不管用，只有删管用</h2>
+
+      <p>逐项发真实请求量过：</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>发出去的 UA</th><th>拿到哪个站</th></tr></thead>
+        <tbody>
+          <tr><td>安卓 Chromium</td><td class="todo">手机版</td></tr>
+          <tr><td>同上，外加一个「我不是手机」的请求头</td><td class="todo">手机版（那个头它不看）</td></tr>
+          <tr><td>同上，<strong>去掉 <code>Mobile</code> 这个词</strong></td><td class="ok">桌面版</td></tr>
+          <tr><td>桌面 UA <strong>加上</strong> <code>Mobile</code></td><td class="ok">桌面版（加了没用）</td></tr>
+          <tr><td>安卓<strong>平板</strong> Chromium（本来就没这个词）</td><td class="ok">桌面版</td></tr>
+          <tr><td>Firefox 安卓手机</td><td class="todo">手机版</td></tr>
+          <tr><td>Firefox 安卓<strong>平板</strong></td><td class="todo">手机版</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        「加了没用」那一行否掉了最省事的做法——拼一个桌面 UA 塞进去。
+        而「安卓平板」那一行给出了做法：<strong>删掉 <code>Mobile</code> 得到的不是编造的 UA，
+        是同一个浏览器在安卓平板上的真实 UA</strong>：同系统、同浏览器、同一份 TLS 指纹。
+      </p>
+
+      <h2>不得伪造 UA</h2>
+
+      <p>数据格式规范里有一句方向相反的硬规矩：</p>
+
+      <blockquote>
+        <p>
+          抓取时浏览器的真实 User-Agent，原样记录。<strong>生产者不得伪造 UA</strong>：
+          伪造出的 UA 与 TLS 指纹及其他请求头不一致，反而更易被风控识别。
+        </p>
+      </blockquote>
+
+      <p>
+        那句话防的是「装成另一个浏览器」，而它给出的理由正好就是判据：<strong>不一致才危险。</strong>
+        删一个词，处处一致；拼一个 <code>(X11; Linux x86_64)</code> 配安卓的 TLS 指纹，
+        正是这个项目最不能承担的那种「更容易被盯上」——把用户的豆瓣账号搞封是不可接受的结果，
+        不是可以权衡的风险。
+      </p>
+
+      <p>
+        所以规则<strong>只删词，永远不拼</strong>。认不出的形状一律不动，并如实说「没动」。
+        iOS 的 <code>Mobile/15E148</code> 是个带版本号的整体，删掉得不到任何真实存在的 UA
+        ——那就不动它。<strong>编一个 UA，比不支持这台设备糟糕得多。</strong>
+      </p>
+
+      <h2>那张表原本只有两行，而两行会被读成二分法</h2>
+
+      <p>
+        写这段说明的时候，表里原本只有「Firefox 手机 → 删掉 → 桌面版」那两行。
+        第三行（平板也被跳）与第四行（只有货真价实的桌面 UA 才行）一进来，<strong>结论就反了</strong>：
+        Firefox 安卓上不存在一个满足这条不变量的 UA。
+      </p>
+
+      <p>
+        于是那条 Firefox 判据被撤了下来。它不是「还没写」，是<strong>这个方案在那儿不成立</strong>
+        ——而留着它就等于留下一条永远不会触发、且第一句就是假的判据。
+      </p>
+
+      <p>
+        同一个形状这几天已经栽过两次：<strong>当一条规则有好几种情形而你只画得下两栏时，
+        读者补全的那几格会按他自己的直觉落位</strong>，而直觉往往与设计相反。
+      </p>
+
+      <h2>这一条只解决内容那一侧</h2>
+
+      <p>
+        页面回到桌面模板，分类器、抽取器、路线表就都对得上了。但<strong>离屏文档在移动版浏览器上
+        扛不扛得住一场几小时的抓取，没有实测</strong>，所以没有写成「手机上可以用了」。
+      </p>
+
+      <p>
+        而报告人能走到「无法判断登录状态」这一步本身是个有用的数据点：离屏文档、网络请求、
+        请求头改写在那台设备上<strong>都是活的</strong>——这在此之前完全不知道。
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-09-firefox-cant-hand-you-a-folder.html">← 更新：Firefox 能抓、能存，就是交不出一个文件夹</a>
+      <a href="/log/2026-09-09-one-checkbox-three-silences.html">更早：一个复选框，三处静默 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

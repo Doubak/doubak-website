@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>桌面浏览器放行了规范禁止的东西，于是那条路看起来是通的 —— 开发日志</title>
+<meta name="description" content="安卓 Edge 上一按开始就抛出一句规范原文。是我上一版引入的：两条分支都用了动态加载，而只有一条需要——桌面 Chrome 开了口子，所以本机全绿、CI 全绿、真浏览器里跑得好好的。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-10-spec-says-no.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-10">2026-09-10</time>
+      <h1>桌面浏览器放行了规范禁止的东西，于是那条路看起来是通的</h1>
+      <p class="summary">安卓 Edge 上一按开始就抛出一句规范原文。是我上一版引入的：两条分支都用了动态加载，而只有一条需要——桌面 Chrome 开了口子，所以本机全绿、CI 全绿、真浏览器里跑得好好的。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        <a href="/log/2026-09-09-not-logged-out.html">昨天那位安卓 Edge 用户</a>装上了新版本，
+        然后贴回来一句新的报错：
+      </p>
+
+      <pre><code>import() is disallowed on ServiceWorkerGlobalScope
+by the HTML specification.</code></pre>
+
+      <p>
+        <strong>规范确实是这么写的。</strong>service worker 里不许动态加载模块。
+        而桌面 Chrome 与 Edge 给扩展开了口子，<strong>安卓 Edge 没有，它照规范办事。</strong>
+      </p>
+
+      <h2>于是 Chrome 那条路，也是靠一个规范禁止的特性才通的</h2>
+
+      <p>
+        引入它的正是<a href="/log/2026-09-09-firefox-cant-hand-you-a-folder.html">前一天那道宿主接缝</a>：
+        「抓取跑在哪儿」要按能力挑一个实现，而那段代码<strong>两条分支都写成了动态加载</strong>。
+      </p>
+
+      <p>只有 Firefox 那条<strong>需要</strong>动态：</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>分支</th><th>为什么</th></tr></thead>
+        <tbody>
+          <tr><td>Firefox 那条<br><em>必须动态</em></td>
+              <td>它会把整条抓取链拉进当前上下文——那正是它要的，因为后台就是页面。
+                  静态引的话，Chrome 的 service worker 会把整条链一起拖进来，
+                  而那些代码一加载就注册监听器、起线程。</td></tr>
+          <tr><td>Chrome 那条<br><em>只能静态</em></td>
+              <td class="ok">它只引一堆常量，零副作用，拉进 service worker 没有任何代价
+                  ——上一个版本就是这么写的。</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        所以这一版之前，<strong>桌面上从来看不出问题</strong>：那条路一直走得通，
+        只是它走的是一条规范说不许走的路，而手边的浏览器恰好不拦。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>一个上下文放行了规范禁止的东西，不等于那条路是通的。</strong>
+          判据要按规范写，而不是按手边那个浏览器的宽容度写——而手边那个，
+          正是唯一跑得起来的那个。
+        </p>
+      </div>
+
+      <h2>而测试不是漏了这一条，是**要求**了这个 bug</h2>
+
+      <p>
+        接缝旁边有一条测试，写的是「这三个模块不许被 service worker 静态拉进去」。
+        前两个是对的，第三个把那条规则<strong>多推了一个模块</strong>
+        ——它保护的是「那个文件一加载就有副作用」，而被多推的那个没有副作用。
+      </p>
+
+      <p>
+        于是这条测试<strong>钉住了「唯一正确的写法是错的」</strong>：改回去，它就红。
+      </p>
+
+      <p>
+        这个项目记过两次「测试比它描述的行为活得久」，但形状不一样：那两次是行为变了、
+        测试没跟上。<strong>这一次是规则被推广到了一个不该管的对象上，而推广的那一刻，
+        测试是绿的。</strong>
+      </p>
+
+      <h2>第三种结局：既没有离屏文档，又在 service worker 里</h2>
+
+      <p>
+        原来的代码会走进那个被禁的加载，于是把规范原文丢给用户。
+        <strong>这正是前一天那个形状原样重演</strong>——一句完全正确的话，指向一条修不好的路：
+        看到「规范不允许」，用户只会去重装扩展。
+      </p>
+
+      <p>现在它直接说：这个浏览器跑不了抓取、缺的是什么、<strong>不是登录问题也不是重装能解决的</strong>、去哪儿报。</p>
+
+      <p>
+        写那条测试时还有个小插曲：反向断言的第一版写的是「消息里不许出现『登录』二字」，
+        <strong>它当场把自己判红了</strong>——因为这句话正需要说「不是登录问题」。
+        禁一个词禁的是字面，要的却是「别把人送回那条修不好的路」，
+        而做到这件事最好的办法，恰恰是把那条路点名否掉。
+      </p>
+
+      <h2>补的不是一个补丁，是一张按上下文列的表</h2>
+
+      <p>
+        只挡「动态加载」是给自己打补丁。这一类的形状更大：
+        <strong>在某个上下文里用了那儿根本没有、或规范禁止的东西，而手边这台浏览器放行了。</strong>
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>入口</th><th>跑在哪儿</th><th>挡什么</th></tr></thead>
+        <tbody>
+          <tr><td>后台脚本</td><td>Chrome 是 service worker，<strong>Firefox 是事件页</strong></td>
+              <td>两者的<strong>交集</strong>：网页那一套、起线程、动态加载，
+                  外加只有 service worker 才有的那几样</td></tr>
+          <tr><td>三个专用线程</td><td>专用线程</td><td>网页那一套</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        实测：后台那张图 18 个模块，四类判据一共<strong>命中 1 处</strong>（就是 Firefox 那条分支）；
+        三个线程那边<strong>0 处</strong>。所以这张表今天是严格的，只有一条点名的例外。
+      </p>
+
+      <p>四条让它不至于变成摆设的判据，每条都验过：</p>
+
+      <ul>
+        <li><strong>例外按「哪个文件、加载哪个目标」点名。</strong>只按文件放行的话，
+          这次的回归会被自己的例外放过去——它在同一个文件里对另一个目标也用了动态加载。</li>
+        <li><strong>入口不在测试里抄。</strong>后台那个从两份配置文件里读（并断言两边还是同一个文件
+          ——「取交集」这个前提只有那时才成立），线程那些从代码里的调用点读。加第四个会自动进表。</li>
+        <li><strong>每条判据自带一段必须命中、一段必须不命中的样例，而且跑的是真检查那条管道。</strong>
+          这当场抓到我自己写的两个毛病：其中一条判据的信号藏在字符串里，
+          而检查会先把字符串抹掉——它<strong>永远不可能命中</strong>。</li>
+        <li><strong>例外不许多余。</strong>哪天那条分支不再需要，例外必须一起删。
+          一个没人需要的例外就是一个洞，而它看起来像有人想过。</li>
+      </ul>
+
+      <p>
+        修好的版本已经发出去了。<strong>但那台设备我进不去</strong>——这条修法在安卓 Edge 上
+        没有实测，等报告人回话。
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-10-same-poster-different-shard.html">← 更新：同一张海报，换个服务器地址，档案里就多一条「改过」</a>
+      <a href="/log/2026-09-09-firefox-cant-hand-you-a-folder.html">更早：Firefox 能抓、能存，就是交不出一个文件夹 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

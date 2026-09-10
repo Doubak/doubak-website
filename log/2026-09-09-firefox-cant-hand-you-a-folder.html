@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firefox 能抓、能存，就是交不出一个文件夹 —— 开发日志</title>
+<meta name="description" content="#11 上那句「Firefox 的存储接口不太一样，不好移植」对了一半，而且指的是错的那一半：存储那一格原样可用，卡住的是把字节交到磁盘上那一步。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-09-firefox-cant-hand-you-a-folder.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-09">2026-09-09</time>
+      <h1>Firefox 能抓、能存，就是交不出一个文件夹</h1>
+      <p class="summary">#11 上那句「Firefox 的存储接口不太一样，不好移植」对了一半，而且指的是错的那一半：存储那一格原样可用，卡住的是把字节交到磁盘上那一步。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        <a href="https://github.com/Doubak/doubak-extension/issues/11">#11</a> 要的是上架 Firefox。
+        仓库主人在 issue 上的判断是：<strong>「Firefox 系浏览器的数据存储接口不太一样，
+        没办法很容易地移植过去。」</strong>
+      </p>
+
+      <p>
+        查了浏览器兼容性数据之后，这个判断<strong>对了一半，而且指的是错的那一半</strong>。
+      </p>
+
+      <h2>最神圣的那条路，一行都不用改</h2>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>用到的能力</th><th>Chrome</th><th>Firefox</th></tr></thead>
+        <tbody>
+          <tr><td>浏览器内的私有文件系统（档案就存在这儿）</td><td>86</td><td class="ok">111</td></tr>
+          <tr><td>在专用线程里原地读写它（写档案靠这个）</td><td>102</td><td class="ok">111</td></tr>
+          <tr><td>改请求头的两条规则（没有它一张封面都抓不到）</td><td>84–92</td><td class="ok">113</td></tr>
+          <tr><td>闹钟、下载、选文件夹导入</td><td>—</td><td class="ok">全有</td></tr>
+          <tr><td><strong>后台的 service worker</strong></td><td>88</td><td class="todo">❌ 没有</td></tr>
+          <tr><td><strong>离屏文档</strong></td><td>109</td><td class="todo">❌ 没有</td></tr>
+          <tr><td><strong>「选一个文件夹」那个接口</strong></td><td>86</td><td class="todo">❌ 完全没实现</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout">
+        <p>
+          <strong>Firefox 能抓、能存，就是交不出一个文件夹。</strong>
+          存储那一格——也就是被点名的那一格——原样可用；卡住的是把字节交到用户磁盘上那一步。
+        </p>
+      </div>
+
+      <p>
+        这不是挑毛病。<strong>一个凭印象下的判断，指对了「有问题」而指错了「问题在哪」，
+        代价是这个功能被搁置了。</strong>而查清它只花了半天，办法是去读兼容性数据，
+        再在真的 Firefox 上把答不了的那几格量一遍。
+      </p>
+
+      <h2>Firefox 那边少一层，不是多一层</h2>
+
+      <p>
+        Chrome 的后台是个 service worker：那里没有网页环境，也起不了专用线程，
+        而写档案偏偏只能在专用线程里做——所以 Chrome 要先开一个「离屏文档」，
+        抓取跑在它里面。
+      </p>
+
+      <p>
+        Firefox 的后台<strong>本来就是一个页面</strong>，直接就能起专用线程。
+        所以那一层根本不需要：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>后台是什么</th><th>抓取跑在哪</th></tr></thead>
+        <tbody>
+          <tr><td>Chrome / Edge</td><td>service worker</td><td>先开一个离屏文档</td></tr>
+          <tr><td>Firefox</td><td>事件<strong>页</strong></td><td class="ok">就在后台自己身上</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        挑哪一条<strong>按能力挑，不按浏览器名字挑</strong>——「有没有离屏文档这个接口」。
+        按名字挑的话，某天谁改个名就静默走错分支，而走错的症状是「抓取根本起不来」。
+      </p>
+
+      <h2>导出交出一个 zip，而它是壳子，不是格式</h2>
+
+      <p>
+        没有「选文件夹」这个接口，Firefox 上的导出只能打成一个包下载。
+        而这件事有一句话必须说准：
+      </p>
+
+      <blockquote>
+        <p>
+          这是一个 zip <strong>壳子</strong>。解开之后里面就是标准的档案目录，
+          与 Chrome 导出的完全一样——搬回豆备、喂给解析器，用的都是解开后的那个文件夹。
+        </p>
+      </blockquote>
+
+      <p>
+        说它是「Firefox 专用格式」，等于告诉用户你的数据被锁在一个浏览器上，
+        <strong>而这与这个项目的全部主张正好相反</strong>。所以那句话在三个地方一字不差地写着，
+        并且有一条测试钉住它背后的不变量：
+      </p>
+
+      <div class="callout">
+        <p><strong>Firefox 导出的 zip，解开之后与 Chrome 导出的目录逐字节相同。</strong></p>
+      </div>
+
+      <p>
+        它同时保证了两件事：跨浏览器搬得动，以及解开就能直接喂给命令行工具。
+      </p>
+
+      <h2>同一份实现，也要同一份输入次序</h2>
+
+      <p>
+        同一批 28 份档案，命令行与 Firefox 各导一次 NeoDB 包。内容逐条相同，
+        <strong>行序完全不同</strong>——保持原序逐行比，17420 行里对不上 27636 处。
+      </p>
+
+      <p>两份都对。坏掉的是「同样的档案产出同样的字节」，而这个项目正是靠读 diff 确认「这次只改了该改的」。</p>
+
+      <p>
+        成因不在解析逻辑（结论与顺序无关，有测试钉着），在<strong>喂进去的顺序</strong>：
+        命令行按档案编号升序，扩展按<strong>降序</strong>——因为档案选择器要把最新的排在最上面，
+        那是对的。产出的行序跟着插入顺序走，于是两边分了家。
+      </p>
+
+      <p>
+        这是「字节是什么意思只能有一份实现」的第三次，而这一次<strong>连实现都是同一份</strong>
+        ——整条流水线是逐字节抄过去的。分家的是喂给它的次序。所以那条规矩要再宽一格：
+        <strong>同一份实现，也要同一份输入次序</strong>，否则产出仍然会分叉，而且照样不报错。
+      </p>
+
+      <h2>顺带修掉的几件</h2>
+
+      <ul>
+        <li><strong>Firefox 上一条通知都发不出来。</strong>它对两个可选属性整条拒收，
+          而那句调用外面包着一个吞掉一切的 try/catch——于是每一条通知都静默失败。</li>
+        <li><strong>导出能按「停下」了。</strong>近两万页的解析要跑很久，而在这之前没有出口。</li>
+        <li><strong>自检页在 Chrome 上已经坏了一个月。</strong>它是在真浏览器里验存储的唯一量具，
+          而量具本身是坏的——后面「完整的档案写入与崩溃恢复」那一项从来没跑过。
+          它在打包名单里，却没有任何测试进去过。</li>
+        <li>上游那个 zip 写入器的两个缺陷：中文文件名在 Linux 上乱码，以及解出来的文件<strong>读不了</strong>。
+          后者是三个常用的检查命令都发现不了的——它们都不往磁盘上写。</li>
+      </ul>
+
+      <h2>还剩一件，只有档案主人能做</h2>
+
+      <p>
+        自检页在真 Firefox 上跑通了，导出、导入、跨浏览器搬运都对着真实档案走过一遍。
+        <strong>Gecko 那一侧只剩一个行为性未知：后台事件页扛不扛得住一场几小时的真实抓取。</strong>
+        那要真跑一次，探针答不了。
+      </p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-10-spec-says-no.html">← 更新：桌面浏览器放行了规范禁止的东西，于是那条路看起来是通的</a>
+      <a href="/log/2026-09-09-not-logged-out.html">更早：他不是没登录，是豆瓣把他送去了手机版 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

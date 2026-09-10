@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>同一张海报，换个服务器地址，档案里就多一条「改过」 —— 开发日志</title>
+<meta name="description" content="111 条作品修订是凭空的，两版之间只差一个字符。而去修它之前先重量了当初记下的两个数字——两个都是错的，其中一个还把问题的性质说反了。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-09-10-same-poster-different-shard.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-09-10">2026-09-10</time>
+      <h1>同一张海报，换个服务器地址，档案里就多一条「改过」</h1>
+      <p class="summary">111 条作品修订是凭空的，两版之间只差一个字符。而去修它之前先重量了当初记下的两个数字——两个都是错的，其中一个还把问题的性质说反了。</p>
+    </div>
+
+    <div class="post-body">
+      <p>同一张海报，两次抓取之间只有一个字符不同：</p>
+
+      <pre><code>https://img<strong>1</strong>.doubanio.com/view/photo/s_ratio_poster/public/p2888584528.webp
+https://img<strong>3</strong>.doubanio.com/view/photo/s_ratio_poster/public/p2888584528.webp</code></pre>
+
+      <p>
+        路径一字不差，也就是同一张图。而封面地址参与「这条记录变了没有」的判定，
+        于是它<strong>开出一条修订</strong>——档案里多了一句「豆瓣改了这个作品」，而豆瓣什么都没改。
+      </p>
+
+      <p>
+        这件事早就记着，标着「先不修，等想清楚」。这次去想清楚，
+        <strong>而第一步是把当初记下的两个数字重新量一遍——两个都是错的。</strong>
+      </p>
+
+      <h2>错的第一个：202 是差异对，不是修订数</h2>
+
+      <p>
+        原来那句写的是「藏着 202 条只有分片不同的修订」。202 是<strong>相邻两版之间只有主机不同</strong>
+        的那些配对；其中有 91 对<strong>还带着别的字段一起变</strong>——那些修订本来就该存在，
+        分片只是搭了个便车。
+      </p>
+
+      <div class="callout">
+        <p>真正凭空多出来的是 <strong>111 条</strong>，占 8172 条作品修订的 1.4%。</p>
+      </div>
+
+      <p>
+        这个项目上个月刚在同一个形状上栽过：两组各 8 条记录，因为都是 8 就被写成了一句话，
+        而它们数的根本不是同一件事。<strong>两个数一样之前，先确认它们数的是同一件事。</strong>
+      </p>
+
+      <h2>错的第二个：豆瓣不是「按请求随机挑分片」</h2>
+
+      <p>原来的解释是这样写的。量一遍：</p>
+
+      <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr><td>扫过的图片路径</td><td class="ok">436,197 条</td></tr>
+          <tr><td><strong>同一份档案内，同一条路径出现两个主机的</strong></td><td class="ok">0 条</td></tr>
+          <tr><td>主机变过的海报</td><td>589 张</td></tr>
+          <tr><td>其中变过<strong>两次</strong>、或者换回去过的</td><td class="ok">0 张</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        <strong>一次抓取之内，主机永远一致；每张海报只挪过一次，没有一张挪回去。</strong>
+        所以不是抽样抖动，是豆瓣某个时点把图挪了一次，然后就稳在那儿。
+      </p>
+
+      <p>
+        这改变了问题的性质。不是「我们记下了噪声」，而是<strong>「我们如实记下了一次真实、
+        但没有意义的变化」</strong>——跟「这条短评有几个人觉得有用」「这篇日记被看了多少次」
+        归成一类，而不是跟「每次渲染都不一样的那种地址」归成一类。
+      </p>
+
+      <p>顺带，量的过程里我自己踩了一个：</p>
+
+      <blockquote>
+        <p>
+          第一版扫描对压缩过的档案只印了一句「binary file matches」，一条内容都没输出。
+          于是「不一致 0 条」是个<strong>空循环</strong>得来的答案。
+        </p>
+      </blockquote>
+
+      <p><strong>一个不可能失败的检查，证明不了任何事。</strong>加一个参数之后才是真数字。</p>
+
+      <h2>修法：事实与索引并存，索引不覆盖事实</h2>
+
+      <p>这个项目在另一处早就有现成的写法——档案里每个网址都存两份，一份原样，一份剥掉跟踪参数用来去重。照抄：</p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>是什么</th><th>参不参与判定</th></tr></thead>
+        <tbody>
+          <tr><td><code>cover_url</code></td><td>页面上原样那一个</td><td class="todo">不参与</td></tr>
+          <tr><td><code>cover_url_key</code>（新）</td><td>抹掉量过的那一族分片主机</td><td class="ok">判据是它</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>三条边界，每条写反了都会静默出事：</p>
+
+      <ul>
+        <li><strong>只抹主机。</strong>路径里的图片编号已经唯一标识了这张图——实测 5820 个原始地址
+          收成 5231 个索引，而<strong>一个索引底下出现两条不同路径的：0 个</strong>。</li>
+        <li><strong>尺寸那一段绝不许抹。</strong>不同尺寸是不同的字节，抹了就是两张不同的图被静默并成一张。
+          这是这条规则唯一会造成真数据丢失的方向。</li>
+        <li><strong>没量过的形状一律不动。</strong>档案里除了那四个分片，还真有一个别的图片主机
+          （出现过 4 次）。「不要把图片主机当成闭集」是这个项目吃过亏的规矩。</li>
+      </ul>
+
+      <p>
+        <strong>也没有拿索引去改写那个地址。</strong>档案里没有任何一条路径被从两个主机各抓过一次，
+        所以「几个分片给的字节完全一样」这句话<strong>本地证不了</strong>——改写就是在做一个没有证据的断言。
+      </p>
+
+      <p>
+        代价照说：分片变了而海报没变时不开新修订，于是 <code>cover_url</code> 留着的是
+        <strong>那条修订开张时</strong>看到的值，不保证是最新的。这是对的——一条修订的字段就是
+        「第一次看到它这样时页面这么说」，为一个字段破例，读者就会读错另外二十个。
+        最新那个地址一个字节都没丢，它在原始档案里。
+      </p>
+
+      <h2>「没有摘要」是个决定，所以它必须被检查</h2>
+
+      <p>
+        一个字段不参与判定，在数据上与「忘了给它算摘要」<strong>长得一模一样</strong>。
+        而后者的症状是<strong>该记的变化没记下来</strong>——只有去数才看得见。
+      </p>
+
+      <p>
+        所以豁免是明写着传进去的，而格式校验器新增一条规则：摘要的键必须等于字段的键
+        减去明写的豁免，<strong>少一个多一个都报错</strong>。
+      </p>
+
+      <h2>那条一致性用例的第一版，被它自己的说明文字戳穿了</h2>
+
+      <p>
+        用例里放了两个作品：一个只换分片（必须只有 1 条修订），一个真的换了图（必须 2 条）。
+        说明文字写着「<strong>两个方向都钉</strong>」。
+      </p>
+
+      <p>
+        变异测试一跑：<strong>把封面地址整个删掉，用例照样全绿。</strong>
+        修订条数分毫不变——因为索引还在。而那是真的丢数据。
+      </p>
+
+      <p>
+        文字写的是本体，断言写的是代理，两者隔着三行。这是这个项目记下的第八条代理断言，
+        而这一条特别值得记：<strong>它是在自己的说明文字里被戳穿的。</strong>
+        写完「这个用例在守什么」之后回头对一遍断言，是这一族里最便宜的一道检查。
+      </p>
+
+      <h2>结果</h2>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>改之前</th><th>改之后</th></tr></thead>
+        <tbody>
+          <tr><td>作品修订</td><td>8172</td><td class="ok">8061（−111）</td></tr>
+          <tr><td>标记 / 广播 / 长文 / 豆列</td><td colspan="2" class="ok">一条不动</td></tr>
+          <tr><td>真的换过封面的次数</td><td colspan="2" class="ok">3535，一次不少</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>2967 个作品逐条比对：新的产出恰好等于把旧的「只差分片」的相邻修订压掉，其余字段零差异。</p>
+
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-10-spec-says-no.html">更早：桌面浏览器放行了规范禁止的东西，于是那条路看起来是通的 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
