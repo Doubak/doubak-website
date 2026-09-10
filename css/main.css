@@ -137,6 +137,23 @@ hr {
 .muted { color: var(--text-dim); }
 .small { font-size: .875rem; }
 
+/* 只给读屏软件的文字。用 clip-path 之外还留着老的 clip：这个站要在很旧的浏览器上
+   也能读，而这条声明失效的后果是一段本该藏起来的字露在页面上。
+   不用 `display: none` / `visibility: hidden`——那两种读屏软件也读不到，
+   等于什么都没写。 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- 顶栏 ---------- */
 
 .site-head {
@@ -324,23 +341,44 @@ hr {
 }
 .btn-ghost:hover { border-color: var(--green); color: var(--green-link); }
 
-/* 「安装」这一组。上架第二个商店之后它不再是一个按钮：两块同样大、同样排版，
-   区别只在实心还是描边——Chrome 那边的人多，所以实心的是它，但两边装下来
-   是同一份包。副标题写商店的正式名字，是因为按钮上写着「安装到 Edge」、
-   点过去落在一个叫「Microsoft Edge 加载项」的页面上，中间那一步不该让人自己猜。
+/* 「安装」这一组。三个商店之后它是**一整块**，不是三个按钮：一圈外框、两道分隔线，
+   三格等宽。这比三块各自带框并排更像一句话——「装到哪个浏览器」是一个选择，
+   而不是三个各自独立的动作。
 
-   用 grid 而不是 flex：两块要一样宽（文字长度不一样，flex 会撑出两个宽度，
-   一组并列的东西长短不齐就显得是随手摆的）。auto-fit + minmax 顺带把窄屏
-   收成一列，不用再写一条 media query。240px 比里面最长那行（图标 + 间距 +
-   「Microsoft Edge 加载项」+ 左右内边距，约 215px）宽，所以任何宽度下都
-   不会挤出去。 */
+   宽度与上面那段正文**同宽**，所以这一块的右边缘正好落在正文的右边缘上。两个数字
+   不一样是因为字号不一样：`.hero .lede` 是 1.1rem 上的 40em（= 44rem），这里是
+   1rem 上的 44em——同一个盒子宽度，两种写法。改其中一个就要一起改另一个。
+
+   三格等宽用 `flex: 1 1 0`（不是 `1 1 auto`）：`auto` 会按内容长短给出三个宽度，
+   而这三格的副标题长短差得远（「Microsoft Edge 加载项」比「Chrome 应用商店」宽
+   将近四成），长短不齐就显得是随手摆的。
+
+   副标题写商店的正式名字，是因为按钮上写着「Edge」、点过去落在一个叫
+   「Microsoft Edge 加载项」的页面上，中间那一步不该让人自己猜。而**主标题只写
+   浏览器名字**：并成一块之后「安装到」三个字要重复三遍，白占宽度——那个动词
+   由屏幕外的一段文字带着（`.sr-only`），所以读屏软件念出来的仍然是「安装到 Chrome」。 */
 .install {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-  max-width: 34em;
+  display: flex;
+  max-width: 44em;
   margin-bottom: 12px;
+  border: 1px solid var(--green-line);
+  border-radius: var(--radius);
+  /* 三格自己是直角，靠外框的圆角裁出来。少写三条 border-radius，
+     而且换个顺序、加一格都不用改。 */
+  overflow: hidden;
+  background: var(--green-soft);
 }
+
+.install > .btn-store {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+/* 分隔线只画在两格之间，所以是 `+` 不是给每格加左边框——后者会在最左边
+   多出一条贴着外框的线。 */
+.install > .btn-store + .btn-store { border-left: 1px solid var(--green-line); }
 
 /* 左边一个浏览器图标、右边两行字，所以从 .btn 的 flex 换成 grid：图标那一格
    跨满两行，另一列摞着标题和副标题。用 grid 而不是「图标 + 一个包着两行的
@@ -354,6 +392,9 @@ hr {
   padding: .62em 1.2em .66em;
   line-height: 1.35;
 }
+/* 并进一整块之后左右各收一点：三格加起来要在 40em 里放得下
+   （最宽的一行是「Microsoft Edge 加载项」，约 131px）。 */
+.install > .btn-store { padding-left: .9em; padding-right: .9em; }
 .btn-store .label { grid-area: 1 / 2; font-size: 1rem; font-weight: 600; }
 /* 副标题不压 opacity：这一行本来就只有 .78rem，再降一档对比度就掉进
    「看得见但读不清」那一格了。分主次交给字号和字重，够用。 */
@@ -886,6 +927,14 @@ tbody tr:last-child th { border-bottom: 0; }
      某一行的行首，那道线就成了一个没有来由的小竖杠。留着颜色区分就够。 */
   .site-nav .to-douban { margin-left: 0; padding-left: 0; border-left: 0; }
   .actions .btn { flex: 1 1 auto; justify-content: center; }
+  /* 窄屏上竖着摞成一列，**仍然是一整块**：外框和分隔线都还在，只是分隔线
+     从竖的变成横的。收成三个各自带框的按钮也行，但那样窄屏和宽屏就成了
+     两种东西，而它们是同一个选择。 */
+  .install { flex-direction: column; }
+  .install > .btn-store + .btn-store {
+    border-left: 0;
+    border-top: 1px solid var(--green-line);
+  }
   .post-nav { flex-direction: column; }
   .features > li { grid-template-columns: 1fr; gap: 6px; }
   .stats { gap: 14px 28px; }

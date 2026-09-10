@@ -23,7 +23,7 @@
      刻意不写的：aggregateRating 和 review。没有真实评分就编一个出来，是这类
      标记最常见的用法，也是最不该学的那一种。
 
-     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.4.0 是同一个数字，
+     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.4.1 是同一个数字，
      一共三处。发版时三处一起改——忘了改不会有任何症状，页面照常渲染，
      只是机器读到的版本停在上一版。tools/check-links.py 会把三处比对一遍。 -->
 <script type="application/ld+json">
@@ -36,7 +36,7 @@
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Windows, macOS, Linux, ChromeOS",
   "browserRequirements": "Chrome, Edge or Firefox 140+. Safari is not supported.",
-  "softwareVersion": "1.4.0",
+  "softwareVersion": "1.4.1",
   "description": "在你自己的浏览器里把豆瓣原样存成标准 WARC 档案，再解析、生成你自己的静态豆瓣、导出到 NeoDB 等站点。凭据和数据都不离开你的设备。",
   "inLanguage": "zh-Hans",
   "isAccessibleForFree": true,
@@ -85,7 +85,7 @@
         <span class="full">豆瓣备份器 · Douban Backup</span>
       </div>
     </div>
-    <p class="badge"><span class="dot"></span>扩展 v1.4.0 已发布</p>
+    <p class="badge"><span class="dot"></span>扩展 v1.4.1 已发布</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
       这不是一个工具，而是一整条数据链路：把豆瓣抓下来、存成十几年后还打得开的档案、
@@ -100,15 +100,20 @@
       <strong>不用装任何别的软件</strong>。凭据和数据全程不离开你的设备。
       长什么样不用想象——<a href="https://sample.doubak.com">sample.doubak.com</a> 就是这么来的。
     </p>
-    <!-- 两个商店的链接都只写扩展 ID、不带名字那一段（`/detail/豆备-doubak/<id>`）：
-         带名字的那种在改名之后就失效了，而只有 ID 的这个永远跳得过去。 -->
+    <!-- 两个 Chromium 商店的链接都只写扩展 ID、不带名字那一段
+         （`/detail/豆备-doubak/<id>`）：带名字的那种在改名之后就失效了，
+         而只有 ID 的这个永远跳得过去。
+
+         三格并成一整块（见 main.css 的 .install）。主标题只写浏览器名字，
+         「安装到」由 .sr-only 那一段带着——版式收窄了，读屏软件念到的
+         仍然是「安装到 Chrome」。 -->
     <div class="install">
       <a class="btn btn-primary btn-store btn-chrome" href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">
-        <span class="label">安装到 Chrome</span>
+        <span class="label"><span class="sr-only">安装到 </span>Chrome</span>
         <span class="store">Chrome 应用商店</span>
       </a>
       <a class="btn btn-outline btn-store btn-edge" href="https://microsoftedge.microsoft.com/addons/detail/jfaancfhcbfebmlphapaifkpijlcgnpf">
-        <span class="label">安装到 Edge</span>
+        <span class="label"><span class="sr-only">安装到 </span>Edge</span>
         <span class="store">Microsoft Edge 加载项</span>
       </a>
       <!-- AMO 的地址**不带语言段**：实测它按 Accept-Language 301 到访客自己的
@@ -117,7 +122,7 @@
            与上面两个商店那条「只写扩展 ID、不带名字那一段」是同一条规矩：
            别把一个会变的段写死。 -->
       <a class="btn btn-outline btn-store btn-firefox" href="https://addons.mozilla.org/firefox/addon/doubak/">
-        <span class="label">安装到 Firefox</span>
+        <span class="label"><span class="sr-only">安装到 </span>Firefox</span>
         <span class="store">Firefox 附加组件</span>
       </a>
     </div>
@@ -759,7 +764,7 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
             <td>浏览器扩展。抓取，产出原始档案（bundle）。整个项目的入口都在这里。</td>
-            <td class="ok">v1.4.0</td>
+            <td class="ok">v1.4.1</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
