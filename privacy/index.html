@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>隐私政策 —— 豆备 Doubak</title>
-<meta name="description" content="豆备（Doubak）的隐私政策：不收集、不上传、不传输任何数据。没有服务器，没有统计，没有 cookie。所有数据留在你自己的设备上。">
+<meta name="description" content="豆备（Doubak）的隐私政策：不收集、不上传、不传输任何个人数据。无后端服务器、无统计埋点、无第三方 Cookie，所有数据完整保留在用户本地设备。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -38,8 +38,8 @@
   <div class="wrap">
     <h1>隐私政策</h1>
     <p class="lede">
-      一句话：<strong>豆备不收集任何数据，因为它没有地方可收。</strong>
-      没有服务器，没有账号，没有统计脚本，没有 cookie。
+      简而言之：<strong>豆备不会收集任何数据，因为本项目压根没有用于接收数据的后端服务。</strong>
+      无服务器、无账号体系、无统计脚本、亦不设任何追踪 Cookie。
     </p>
     <p class="small muted">最后更新：2026-08-09 · 适用于浏览器扩展「豆备 Doubak」与本站 doubak.com</p>
   </div>
@@ -75,9 +75,9 @@
     </div>
 
     <p class="muted">
-      扩展只向 <code>douban.com</code> 与 <code>doubanio.com</code> 发请求 ——
-      也就是你本来就在访问的那个网站。除此之外它不连接任何第三方，
-      <strong>包括本站</strong>：安装之后 doubak.com 挂掉也不影响它工作。
+      扩展仅向 <code>douban.com</code> 与 <code>doubanio.com</code> 发起网络请求——
+      即用户正常访问豆瓣时所请求的官方域名。除此之外绝不连接任何第三方服务，
+      <strong>亦不依赖本站</strong>：即使 doubak.com 离线，也不影响扩展的正常使用。
     </p>
   </div>
 </section>
@@ -86,21 +86,21 @@
   <div class="wrap">
     <h2>明确没有的东西</h2>
     <ul>
-      <li><strong>没有服务器。</strong>这个项目没有后端，也就没有任何地方能接收你的数据。</li>
-      <li><strong>没有账号、没有登录。</strong>扩展本身不需要你注册任何东西。</li>
-      <li><strong>没有统计与遥测。</strong>不上报使用情况、不上报崩溃、不做 A/B。</li>
-      <li><strong>没有第三方代码。</strong>零运行时依赖，没有 CDN、没有分析脚本、没有广告。</li>
-      <li><strong>不出售、不共享、不用于训练。</strong>没有数据到手，也就无从谈起。</li>
-      <li><strong>本站不设 cookie</strong>，也不加载任何第三方资源。</li>
+      <li><strong>无后端服务器：</strong>本项目完全由前端构成，没有任何接收或存储用户数据的远程服务端。</li>
+      <li><strong>无独立账号体系：</strong>扩展本身无需注册或登录任何额外账号。</li>
+      <li><strong>无数据埋点与遥测：</strong>不收集使用日志、不上报崩溃堆栈、不做任何 A/B 测试。</li>
+      <li><strong>无第三方依赖代码：</strong>零运行时外部依赖，不引入第三方 CDN、无分析统计脚本、无广告。</li>
+      <li><strong>绝不出售、共享或用于 AI 训练：</strong>由于从未获取你的任何数据，自然完全不存在任何转让或使用可能。</li>
+      <li><strong>官网不设追踪 Cookie：</strong>本站为纯静态页面，不引入任何第三方外链资源。</li>
     </ul>
 
     <div class="callout">
       <p>
-        <strong>为什么可以不只是相信这段话。</strong>
-        扩展的全部源码是公开的，权限清单逐条写了理由，而且它声明的网络权限
-        <em>只包含</em> <code>https://*.douban.com/*</code> 与
-        <code>https://*.doubanio.com/*</code> —— 浏览器不会允许它连接别处。
-        安装时的权限警告就是这份承诺的技术兑现。
+        <strong>这项承诺不仅停留在文字上，技术实现完全可供审查：</strong>
+        扩展源码完全公开开源，各项权限的用途在文档中均有逐条说明；更关键的是，扩展声明的网络通信权限
+        <em>仅包含</em> <code>https://*.douban.com/*</code> 与
+        <code>https://*.doubanio.com/*</code>——现代浏览器从底层严格杜绝其向其他域名通信。
+        在安装时浏览器弹出的权限提示，即是这项承诺最直接的技术证明。
       </p>
       <p>
         <a href="https://github.com/Doubak/doubak-extension/blob/main/docs/permissions.md">看权限审计 →</a>
@@ -115,13 +115,13 @@
   <div class="wrap">
     <h2>数据在你手里，也由你负责</h2>
     <p>
-      备份下来的档案是<strong>你的文件</strong>。豆备把它写到你指定的文件夹之后就不再管它 ——
-      我们既看不到它，也删不掉它。相应地：
+      备份生成的归档数据是<strong>完全属于你的个人本地文件</strong>。豆备将其写入你所指定的文件夹后便不再介入——
+      我们既无法访问，也无权修改或删除。具体权责如下：
     </p>
     <ul>
-      <li><strong>删除</strong>：删掉那些文件即可；扩展内的副本可以在「存储」页删除。卸载扩展会连同浏览器里的存储一起清掉。</li>
-      <li><strong>导出</strong>：档案是标准 WARC 加 JSON 索引，用 <code>jq</code>、pywb、ReplayWeb.page 都能直接打开，不依赖本工具。</li>
-      <li><strong>如果你把生成的站点公开发布</strong>：那是你的主动行为。发布前请自己确认里面没有你不想公开的内容 —— 短评、日记与广播里可能包含个人信息。</li>
+      <li><strong>删除数据：</strong>直接从本地磁盘删除对应文件夹即可；扩展内部的暂存副本可在扩展面板的「存储」页一键清除。卸载浏览器扩展也会连带清空其内部存储。</li>
+      <li><strong>数据迁移：</strong>档案采用国际标准的 WARC 格式配合 JSON 索引，通过 <code>jq</code>、pywb、ReplayWeb.page 等通用工具均可直接解析，绝不与本工具强绑定。</li>
+      <li><strong>公开发布站点：</strong>若你选择将生成的静态站点发布至公网，请在部署前仔细确认内容中是否包含不便公开的隐私信息——短评、日记与广播正文中可能提及真实姓名或私密动态。</li>
     </ul>
   </div>
 </section>
@@ -130,12 +130,12 @@
   <div class="wrap">
     <h2>关于别人的数据</h2>
     <p>
-      豆备<strong>刻意不抓第三方内容</strong>：别人在你广播下的回复、你的关注与被关注列表、
-      豆邮、别人上传的图片，都不在抓取范围内。这既是隐私边界，也是一条工程边界。
+      豆备在设计之初便严格限定了采集范围，主动排除第三方内容：他人发表的回复、关注与粉丝列表、
+      豆邮往来、他人上传的图片等均不在采集范围之内。这既是保护他人隐私的边界，也是理清数据归属的工程边界，
       详见首页的<a href="/#not-collected">「它刻意不抓什么」</a>。
     </p>
     <p class="muted">
-      即便如此，你自己写的内容里仍然可能提到别人。这一点在你决定是否公开发布时需要自己判断。
+      即便如此，你自己创作的内容中仍可能提及他人，在决定是否公开发布时请自行审慎权衡。
     </p>
   </div>
 </section>
@@ -144,9 +144,9 @@
   <div class="wrap">
     <h2>变更与联系</h2>
     <p>
-      这份政策如有变更，会更新本页顶部的日期，并记录在
-      <a href="https://github.com/Doubak/doubak-website/commits/main/privacy/index.html">Git 提交历史</a>里 ——
-      改了什么、什么时候改的，都可以自己核对。
+      本政策若有任何修订，均会在此更新顶部的生效日期，并完整记录于
+      <a href="https://github.com/Doubak/doubak-website/commits/main/privacy/index.html">Git 提交历史</a>
+      中——具体修改内容与提交时间皆公开透明、有据可查。
     </p>
     <p>
       有疑问：<a href="mailto:admin@doubak.com">admin@doubak.com</a>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>抓完之后，先让你看见自己的东西 —— 开发日志</title>
-<meta name="description" content="扩展 1.2.0：档案页多了「查看内容」，把存下来的页面就地解析成条目。抽取器是从解析器仓库整份抄过来的，不是另写一份——那 220 行适配代码买的是「只有一份实现」。">
+<meta name="description" content="扩展 1.2.0：档案页多了「查看内容」，把存下来的页面就地解析成条目。抽取器是从解析器仓库整份抄过来的，不是另写一份——编写 220 行胶水适配代码的意义在于保证业务逻辑仅有一处真实源头。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -39,7 +39,7 @@
     <div class="post-head">
       <time datetime="2026-08-16">2026-08-16</time>
       <h1>抓完之后，先让你看见自己的东西</h1>
-      <p class="summary">扩展 1.2.0：档案页多了「查看内容」，把存下来的页面就地解析成条目。抽取器是从解析器仓库整份抄过来的——那 220 行适配代码买的是「只有一份实现」。</p>
+      <p class="summary">扩展 1.2.0：档案页多了「查看内容」，把存下来的页面就地解析成条目。抽取器是从解析器仓库整份抄过来的——编写 220 行胶水适配代码的意义在于保证业务逻辑仅有一处真实源头。</p>
     </div>
 
     <div class="post-body">
@@ -95,7 +95,7 @@
       <p>
         那 221 行里，真正在做「把解析结果变成界面要的形状」的只有 68 行：
         四类各一小段，intent 怎么匹配、调哪个抽取器、标题和正文各取哪个字段。
-        <strong>用 220 行接线，换掉 401 行会漂的重复实现。</strong>
+        <strong>以 220 行胶水适配代码为代价，彻底消除了 401 行容易产生逻辑漂移的重复实现。</strong>
       </p>
 
       <h2>然后发现同一条规则本来就有两份</h2>
@@ -146,7 +146,7 @@
         按钮上是「173 页」，清单顶上是「解析了前 30 页（共 173 页），列出 812 条」。
       </p>
 
-      <h2>另外几处界面上的账</h2>
+      <h2>界面交互细节的排查与优化</h2>
 
       <p>
         <strong>35 张消息卡一点颜色都没有。</strong> 面板里并存着两套语气词

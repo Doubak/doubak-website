@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>豆瓣把它锁了，不是你把它藏了 —— 开发日志</title>
-<meta name="description" content="一篇日记读作「仅自己可见」，而豆瓣在同一页上写着理由：含有违规内容。存档把正文原样留住了，却把「豆瓣拿下了它」整件事漏掉——而第一版的修法差点让这份存档替豆瓣把它二次消音。">
+<meta name="description" content="一篇日记显示为「仅自己可见」，而豆瓣在同一页上给出的理由是含有违规内容。存档完整保留了正文，却遗漏了「被平台锁定」的关键事实——最初的设计险些让归档工具反过来替平台隐匿内容。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -39,7 +39,7 @@
     <div class="post-head">
       <time datetime="2026-09-07">2026-09-07</time>
       <h1>豆瓣把它锁了，不是你把它藏了</h1>
-      <p class="summary">一篇日记读作「仅自己可见」，而豆瓣在同一页上写着理由：含有违规内容。存档把正文原样留住了，却把「豆瓣拿下了它」整件事漏掉——而第一版的修法差点让这份存档替豆瓣把它二次消音。</p>
+      <p class="summary">一篇日记显示为「仅自己可见」，而豆瓣在同一页上给出的理由是含有违规内容。存档完整保留了正文，却遗漏了「被平台锁定」的关键事实——最初的设计险些让归档工具反过来替平台隐匿内容。</p>
     </div>
 
     <div class="post-body">
@@ -87,16 +87,16 @@
 
       <div class="callout warn">
         <p>
-          那个设计一旦落地，这份存档会在<strong>唯一还能重新发表它的地方</strong>替豆瓣把它
-          二次消音——而且是静默的：一条被藏起来的记录，不留任何痕迹给人发现。
+          那个设计一旦落地，这份存档就会在<strong>唯一能让它重新面世的独立站点上</strong>，
+          顺从平台的意愿将其隐匿——更严重的是，这种隐匿是静默无痕的。
         </p>
       </div>
 
       <p>
-        「仅自己可见」是个<strong>替身</strong>，它替的是「作者不想公开」。两者在绝大多数
-        日记上等价，而这一篇正是它们分家的那天。这个项目
-        <a href="/log/2026-08-07-parser-and-fake-edits.html">已经为替身式的判据付过几次账</a>，
-        这一条是唯一在落地前被人拦下来的。
+        「仅自己可见」在逻辑上被当成了<strong>代理指标</strong>，它替代的是「作者意图私密」。
+        在绝大多数日记中两者看似等价，但在遭遇内容审查时这一假设瞬间瓦解。
+        本项目此前<a href="/log/2026-08-07-parser-and-fake-edits.html">已多次为这种间接推导踩坑</a>，
+        而这一处是在上线前被及时纠偏的。
       </p>
 
       <h2>两个字段，不是一个</h2>
@@ -108,7 +108,7 @@
 
       <div class="table-wrap">
       <table>
-        <thead><tr><th>判什么</th><th>判据</th></tr></thead>
+        <thead><tr><th>判定目标</th><th>判定依据</th></tr></thead>
         <tbody>
           <tr><td>不公开</td><td>页面的隐私容器里有标记（两种日记模板各有各的位置）</td></tr>
           <tr><td>豆瓣锁的</td><td><strong>豆瓣自己出面解释了</strong>——那条违规通告是正面证据</td></tr>
@@ -118,7 +118,7 @@
       </div>
 
       <p>
-        判据是<strong>结构</strong>不是文字——正文里写着「仅自己可见」这几个字的日记不算，
+        判定依据严格依赖<strong>DOM 结构</strong>而非纯文本匹配——日记正文中哪怕恰好包含「仅自己可见」字样也不会被误判，
         与「（全文）必须结构性地认」是同一条。而容器<strong>找不到</strong>时答案是「说不准」，
         <strong>不是「公开」</strong>：把「认不出来」并进「公开」，等于豆瓣改一次页面模板就把
         所有私密日记静默变成公开，而发出去的东西撤不回来。
