@@ -115,7 +115,7 @@ index.ndjson
         所以缺口现在多存一份<strong>结构化的 URL</strong>：
         <code>detail</code> 照旧给人读，<code>url</code> 给机器用来精确比对。
         成功捕获时按完全相等去抹，只在本次抓取内生效。
-        <strong>抹掉缺口等于放宽完整性声明，判据必须严。</strong>
+        <strong>消除缺口相当于放宽完整性断言，校验条件必须极其严格。</strong>
         不带 URL 的那些缺口（中途停下、抽取器坏了）永远不会被碰到——
         它们说的本来就不是某一个 URL。
       </p>
@@ -130,7 +130,7 @@ index.ndjson
       </p>
 
       <p>
-        顺手把这条判据也写进了校验器：<strong>一处带 URL 的
+        顺手把这条判定规则也写进了校验器：<strong>一处带 URL 的
         <code>fetch_failed</code> 缺口，如果同一份档案的索引里就有那个 URL 的
         <code>verdict: ok</code> 捕获，报错。</strong>它跟规范里另一条老规矩是同一枚硬币的两面——
         <a href="/log/2026-07-28-counts-lie.html">豆瓣自己报的数字不能用来<em>证明</em>抓全了</a>，

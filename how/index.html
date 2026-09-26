@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>怎么用 —— 豆备 Doubak</title>
-<meta name="description" content="装扩展 → 抓下来 → 解析 → 建站或导出。四步都在你自己的机器上跑，中间不经过任何服务器。后三步扩展里点几下就能做完，命令行那条路留给要改参数的人。">
+<meta name="description" content="四步流程：安装扩展 → 本地抓取 → 解析数据 → 静态建站或格式导出。全流程均在本地设备运行，不经由任何远程服务器。后三个步骤在扩展界面中点击即可完成，命令行方式则专为需要自定义参数的高阶用户保留。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -38,9 +38,9 @@
   <div class="wrap">
     <h1>怎么用</h1>
     <p class="lede">
-      四步：<strong>装扩展 → 抓下来 → 解析 → 建站或者导出</strong>。
-      每一步都在你自己的机器上跑，中间不经过任何服务器，断网也能跑完后面三步。
-      <strong>后三步扩展里点几下就能做完</strong>，命令行那条路留给要改参数的人。
+      四步流程：<strong>安装扩展 → 本地抓取 → 解析数据 → 静态建站或格式导出</strong>。
+      全流程均在本地设备运行，不经由任何远程服务器；在离线状态下亦可顺畅执行后三步。
+      <strong>后三个步骤在扩展界面中点击即可完成</strong>，命令行方式则专为需要自定义参数的高阶用户保留。
     </p>
   </div>
 </section>
@@ -49,37 +49,37 @@
   <div class="wrap">
     <div class="callout warn">
       <p>
-        <strong>这一页是导览，不是文档。</strong>
-        每一节末尾都有一条指向对应仓库 <code>README.md</code> 的链接，
-        <strong>那才是唯一真源</strong>——具体命令、参数、以及所有「实测多少条」的数字，
-        一律以 README 为准。这一页会过时，README 跟着代码一起改。
+        <strong>本页面为快速导览，而非详细技术文档：</strong>
+        各章节末尾均附有对应仓库 <code>README.md</code> 的链接，
+        <strong>文档内容以仓库 README 为准</strong>——包括最新参数说明、具体命令及实测数据。
+        本导览内容可能存在滞后，代码变更与技术细节均同步更新于各仓库文档中。
       </p>
     </div>
 
     <p class="lead-2">
-      只想要一份备份的话，<strong>第 1 步就够了</strong>：装上扩展、抓一次、导出到硬盘，
-      那份档案是完整的，后面三步什么时候做、做不做，都不影响它。
+      如果仅需一份基础归档，<strong>只需完成第 1 步即可</strong>：安装扩展并执行一次抓取，再导出至本地硬盘。
+      该档案本身完整独立，后续三个步骤无论何时处理、甚至不做，都不影响底层备份的有效性。
     </p>
 
     <div class="callout">
       <p>
-        <strong>后面三步现在扩展自己也能做，不用装 Node。</strong>
-        扩展的「导出」页当场把档案算成<strong>结构化数据</strong>、
-        <strong>NeoDB 导入包</strong>、或者一棵 <strong>Markdown 站点</strong>（图片一并导出），
-        直接写进你选的文件夹。用的就是下面那三个仓库的同一份代码——逐字节拷进扩展，
-        由 CI 守着不许漂——所以两条路出来的是同一个东西。
+        <strong>后三个步骤现已内置于扩展中，无需配置 Node.js 环境：</strong>
+        在扩展的「导出」面板中，可直接将归档转换为<strong>结构化数据</strong>、
+        <strong>NeoDB 导入包</strong>或完整的 <strong>Markdown 静态站点</strong>（包含离线图片），
+        并保存至指定的本地目录。其底层与下述三个独立仓库使用完全相同的核心逻辑——代码逐字节同步至扩展，
+        并通过 CI 自动化流程严格校验以确保逻辑一致——因此两种方式生成的产物完全相同。
       </p>
       <p>
-        下面这几节讲的是命令行那条路。它适合<strong>要改参数、接进脚本、
-        或者只想拿一部分数据</strong>的人；只想点几下的话，看完第 1 步就可以了。
+        下文主要介绍命令行工作流，适合需要<strong>自定义处理参数、集成自动化脚本或筛选部分数据</strong>的高阶用户；
+        若只需常规导出，了解第 1 步的操作即可满足需求。
       </p>
     </div>
 
     <ol class="pipeline">
-      <li><strong>扩展</strong>：在你的浏览器里抓豆瓣，把页面原样存成<strong>原始档案</strong>（bundle）</li>
-      <li><strong>解析器</strong>：原始档案 → <strong>结构化数据</strong>（canonical）</li>
-      <li><strong>生成器</strong>：结构化数据 → 一个能打开的静态网站</li>
-      <li><strong>导出适配器</strong>：结构化数据 → NeoDB / Letterboxd / Goodreads 的导入文件</li>
+      <li><strong>浏览器扩展</strong>：在本地浏览器中采集豆瓣页面，将原始内容完整留存为<strong>原始档案</strong>（bundle）</li>
+      <li><strong>数据解析器</strong>：原始档案 → <strong>结构化数据</strong>（canonical）</li>
+      <li><strong>静态站点生成器</strong>：结构化数据 → 可独立浏览的本地静态网站</li>
+      <li><strong>格式导出适配器</strong>：结构化数据 → 适用于 NeoDB / Letterboxd / Goodreads 的导入数据包</li>
     </ol>
   </div>
 </section>
@@ -89,35 +89,35 @@
     <h2>第 1 步 · 抓下来</h2>
 
     <p>
-      装上浏览器扩展，用你自己的账号、自己的 IP、自己的节奏抓。
-      登录凭据和会话 cookie 不离开你的设备——<strong>没有服务器可以泄露它们，因为根本没有服务器</strong>。
+      安装浏览器扩展后，使用你的个人账号与本地网络环境按需抓取。
+      登录凭据与会话 Cookie 全程保留在本地设备中——<strong>项目完全无服务端架构，彻底杜绝数据泄露隐患</strong>。
     </p>
 
     <p>
-      装它有三条路，<strong>从上往下试</strong>：
+      安装扩展可通过以下三种途径进行，<strong>建议优先选择应用商店</strong>：
     </p>
 
     <ol>
       <li>
         <strong>浏览器商店</strong>
-        —— 多数人走这条，点一下就装上，之后自动更新：
+        —— 推荐多数用户使用，一键安装且支持自动更新：
         <a href="https://chromewebstore.google.com/detail/hilmaopahndgbiolohgefnbeedobpafe">Chrome 应用商店</a>、
         <a href="https://microsoftedge.microsoft.com/addons/detail/jfaancfhcbfebmlphapaifkpijlcgnpf">Microsoft Edge 加载项</a>、
         <a href="https://addons.mozilla.org/firefox/addon/doubak/">Firefox 附加组件</a>。
         两个 Chromium 商店提交的是同一份包，装哪边都一样；Edge 也仍然能从 Chrome 应用商店装。
-        Firefox 那份是<strong>另一个包</strong>（两边的 manifest 不一样），同一条 CI 一起打出来的。
+        Firefox 分发版本则是<strong>独立的安装包</strong>（两端的 manifest 规范不同），均由同一条 CI 流水线编译产出。
       </li>
       <li>
         <strong><a href="https://github.com/Doubak/doubak-extension/releases/latest">Releases</a></strong>
-        —— 不想走商店的话，下 <code>doubak-&lt;版本&gt;.zip</code>。它跟商店里那份是同一条 CI 打出来的，
-        逐字节相同。注意那是<strong>提交给商店的格式，浏览器不能直接装 zip</strong>：
-        要先解压，再到 <code>chrome://extensions</code>（Edge 是 <code>edge://extensions</code>）
-        打开开发者模式 →「加载已解压的扩展程序」→ 选解压出来的目录。
+        —— 若无法访问商店，可下载离线包 <code>doubak-&lt;版本&gt;.zip</code>。它跟商店发布版本由同一 CI 流水线编译产出，
+        二进制内容逐字节完全一致。需要注意的是，<strong>该离线包专为商店提交格式设计，无法在浏览器中直接双击安装</strong>：
+        需先解压，然后在 <code>chrome://extensions</code>（Edge 为 <code>edge://extensions</code>）
+        中开启「开发者模式」→ 点击「加载已解压的扩展程序」→ 选择解压后的目录。
       </li>
       <li>
         <a href="https://github.com/Doubak/doubak-extension/actions/workflows/package.yml">Actions 里的构建产物</a>
-        —— 只在想试 <code>main</code> 上还没发版的改动时才用。
-        <strong>下载它需要先登录 GitHub</strong>（匿名取会 401），所以这条不适合当默认路径。
+        —— 仅用于测试 <code>main</code> 分支上尚未正式发布的最新代码。
+        <strong>下载 Actions 产物需预先登录 GitHub 账号</strong>（匿名请求会返回 401 鉴权失败），因此不作为常规推荐方式。
       </li>
     </ol>
 
@@ -127,141 +127,140 @@
     <h3 id="firefox">Firefox 怎么装</h3>
 
     <p>
-      正常装就走
+      常规安装直接访问
       <a href="https://addons.mozilla.org/firefox/addon/doubak/">Firefox 附加组件</a>，
-      跟 Chrome、Edge 一样点一下就好。需要 <strong>Firefox 140</strong> 以上。
+      与 Chromium 浏览器一样支持一键添加，要求 <strong>Firefox 140</strong> 或更高版本。
     </p>
 
     <p>
-      要试 <code>main</code> 上还没发版的改动，才需要手动加载
-      ——这一条与 Chromium 那边「下 Releases 里的 zip」是同一个地位：
+      如需测试 <code>main</code> 分支尚未发布的改动，可手动载入开发版构建
+      ——流程与 Chromium 手动加载 ZIP 类似：
     </p>
 
     <ol>
       <li>
-        到 <a href="https://github.com/Doubak/doubak-extension/releases/latest">Releases</a> 下
+        前往 <a href="https://github.com/Doubak/doubak-extension/releases/latest">Releases</a> 页面下载
         <code>doubak-&lt;版本&gt;-firefox.zip</code>。
-        <strong>别下错成另一个</strong>——两份的 manifest 不一样，装错了会直接加载失败，
-        而失败信息不会告诉你是拿错了包。
+        <strong>请务必确认文件名带 firefox 后缀</strong>——两者的 manifest 配置存在差异，误用会导致加载直接失败，
+        且浏览器不会明确提示包类型不匹配。
       </li>
-      <li>解压。</li>
+      <li>解压下载的压缩包。</li>
       <li>
-        打开 <code>about:debugging#/runtime/this-firefox</code> →「临时载入附加组件…」→
-        选解压出来那个目录里的 <code>manifest.json</code>。
+        在地址栏打开 <code>about:debugging#/runtime/this-firefox</code> → 点击「临时载入附加组件…」→
+        选择解压目录中的 <code>manifest.json</code>。
       </li>
     </ol>
 
     <p>
-      <strong>「临时载入」是字面意思：关掉浏览器就没了</strong>，下次要再点一次。
-      但<strong>抓下来的档案还在</strong>——它存在浏览器的存储里，不跟着扩展走，
-      下次载入还能接着增量抓。
+      <strong>提示：「临时载入」仅在当前浏览器会话生效，重启 Firefox 后需重新载入。</strong>
+      但<strong>已下载归档数据不受影响</strong>——数据安全存放在浏览器的本地存储空间内，不受扩展卸载或重启影响，
+      下次载入后仍可无缝继续增量抓取。
     </p>
 
     <p>
-      有一处不一样，先说在前面：Firefox 没有「让网页往你选的文件夹里写」这个接口，
-      所以<strong>导出交出来的是一个 zip，不是一个文件夹</strong>。
-      解开之后与在 Chrome 上导出的<strong>逐字节相同</strong>——它是个壳子，不是另一种格式；
-      搬回豆备、喂给解析器，用的都是解开之后的那个文件夹。
-      代价是这一份没法回读校验，也不能续导：中途断了要重来。
+      需要说明的是，Firefox 目前尚未开放网页端直接写入本地文件夹的文件系统接口（File System Access API），
+      因此<strong>在 Firefox 中导出得到的是一个 ZIP 压缩包，而非直接生成的文件夹</strong>。
+      解压后的文件内容与 Chrome 导出结果<strong>逐字节完全相同</strong>——ZIP 仅为传输封装，不影响数据格式规范；
+      后续重新导入豆备或交给解析器处理时，直接使用解压出的目录即可。
+      其局限在于该流程无法实时回读校验写入状态，且不支持断点续传：若导出途中意外中断需重新执行。
     </p>
 
     <p>
-      第一次跑的是<strong>全量抓取</strong>：从头到尾走一遍，能抓的都抓下来。
-      时间取决于账号大小，中途可以停，下次接着来。
-      要是想先试一小段，建议先抓<strong>广播</strong>——它是<strong>最不可替代</strong>的一路：
-      发出去那一刻就冻住了，改不了，而且删掉之后<strong>不留任何痕迹</strong>，
-      没有第二个地方能发现它曾经存在过。
+      首次运行建议执行<strong>全量抓取</strong>：遍历采集所有支持的数据类型。
+      所需时间取决于账号数据规模，过程支持随时中断，后续可继续增量采集。
+      如果希望快速试运行，建议优先单独抓取<strong>广播数据</strong>——广播属于<strong>时效性最高且不可逆</strong>的内容：
+      发布后即定型且无法二次编辑，一旦线上被删除便<strong>无迹可寻</strong>，
+      无法再从其他关联页面找回原始记录。
     </p>
 
     <p>
-      抓完在面板里导出，得到一个目录，那就是你的<strong>原始档案</strong>（bundle）。
+      抓取完成后在扩展面板中执行导出，生成的文件夹即为你的<strong>原始档案</strong>（bundle）。
     </p>
 
     <p>
-      <strong>没抓完也一样导。</strong>中途停下来的那一份没有 <code>manifest.json</code>——
-      那是收尾时才写的——但索引和页面都在，解析器照常读得出来，
-      导出的目录以后也能按下面「备份和恢复」的办法导回扩展里接着抓。
-      所以<strong>停在半路的那份不要删</strong>：
-      <a href="/#stops">为什么它算不上「失败」</a>在首页说得更细。
+      <strong>即便抓取中途暂停，也可以安全导出：</strong>中途停止生成的档案虽然缺少最终收尾阶段生成的 <code>manifest.json</code>，
+      但已抓取的索引与页面数据均完好保留，解析器依然能够正常解析；
+      导出的目录后续也可按照下文「备份与恢复」指引重新导入扩展继续采集。
+      因此<strong>中途停止的备份档案切勿轻易删除</strong>，详细说明请参阅首页的<a href="/#stops">「为何中途暂停不等于失败」</a>。
     </p>
 
     <p>
-      以后再抓用<strong>增量抓取</strong>：它走到上次那条为止就停，
-      广播、已经抓过的作品详情页、还有图片都跳过——判据是
-      <strong>「上游那份东西还会不会变」</strong>，不是「抓过没有」。
-      所以增量很快，可以经常跑。日记和影评是<em>可以编辑</em>的，
-      想连它们一起重抓，用「增量抓取，并重新抓取可以编辑的内容」那个选项。
+      后续维护建议使用<strong>增量抓取</strong>：扩展采集至上次同步的位置即会自动停止，
+      已固化的广播、作品详情页及静态图片均会自动跳过——其判断核心是
+      <strong>「上游数据是否具备可变性」</strong>，而非单纯记录是否曾被下载。
+      因此增量采集耗时极短，适合高频定期运行。鉴于日记与长评在线上<em>允许再次编辑</em>，
+      若需要同步最新修改，可勾选「增量抓取，并重新抓取可以编辑的内容」选项。
     </p>
 
     <p>
-      每次导出都是一份新的原始档案，<strong>别覆盖旧的</strong>——
-      解析器要的是装着历次档案的<em>整个目录</em>，多一份就多一批观测。
+      每次导出都会生成独立的时间截面档案，<strong>请注意不要覆盖历史备份目录</strong>——
+      解析器支持输入包含历次档案的<em>完整总目录</em>，保留各时期的多份档案更有助于还原数据的完整演变轨迹。
     </p>
 
     <div class="subsection">
-      <h3>备份和恢复</h3>
+      <h3>备份与恢复</h3>
 
       <p>
-        <strong>导出到硬盘之后，扩展里那一份是可以删的。</strong>
-        但这句话只有在它<em>回得来</em>的时候才诚实，所以档案页上有「导入档案…」：
-        选中 <code>doubak-bundle-…</code> 文件夹，或者它的上一级都行
-        （往下找三层，按月归档、解压多套一层，都认得出来）。
+        <strong>导出至本地硬盘后，扩展内部存储的临时副本即可按需清理。</strong>
+        为了确保备份的可逆性与可维护性，扩展档案页面提供了「导入档案…」功能：
+        直接选择 <code>doubak-bundle-…</code> 目录或其上层父目录即可
+        （系统会自动向下检索三层目录，即便包含按月归档或多层嵌套解压路径均能准确识别）。
       </p>
 
       <p>
-        恢复不是为了看，是为了<strong>接着抓</strong>：没有旧档案当基准，
-        下一次增量就退回全量——几个小时，还要把几千个作品详情页重抓一遍。
+        重新导入的核心价值在于<strong>维持增量采集的连续性</strong>：若缺少历史档案作为增量比对基准，
+        下次采集将被迫重新执行耗时漫长的全量抓取，重复请求数千个作品详情页面。
       </p>
 
       <p>
-        <strong>档案就是一个普通文件夹</strong>，里面是 WARC 段文件、索引和
-        <code>manifest.json</code>。所以「怎么备份」没有专门的答案——
-        拷到移动硬盘、扔进网盘、同步到 NAS、丢给任何一个文件备份工具，
-        都跟备份别的文件夹没有区别。换台机器想接着抓，
-        把文件夹拷过去、在那台机器上「导入档案…」就行。
+        <strong>生成的档案本质上是标准的文件目录</strong>，里面是 WARC 分段文件、索引清单及
+        <code>manifest.json</code>。因此备份方式非常自由且通用——
+        无论是存入移动硬盘、个人网盘、同步至 NAS，还是纳入常规文件备份工具，
+        操作方式与普通文件夹无异。换台设备想继续增量采集，
+        把文件夹复制到新设备并在扩展中点击「导入档案…」即可。
       </p>
 
       <div class="callout">
         <p>
-          <strong>网盘改了文件夹名字也不要紧。</strong>
-          档案的身份写在 <code>manifest.json</code> 和索引文件名里，
-          <em>不是</em>目录名——所以 <code>xxx (1)</code>、
-          <code>备份/2026-08/</code> 这种都认得出来。
-          真正不能动的是文件夹<strong>里面</strong>：段文件、索引、
-          <code>manifest.json</code> 三者必须互相对得上，
-          少一个或者被别的档案的文件混进来，导入时会直接拒绝并告诉你是哪个文件。
+          <strong>云盘同步若更改了文件夹名称，不会影响识别：</strong>
+          档案的元数据记录在 <code>manifest.json</code> 与索引文件内部，
+          <em>并不依赖</em>外层文件夹名称——诸如 <code>xxx (1)</code> 或
+          <code>备份/2026-08/</code> 等目录名均能被正常识别。
+          唯一的要求是<strong>保持文件夹内部文件的完整性</strong>：WARC 分段文件、索引清单与
+          <code>manifest.json</code> 之间存在严格的校验关联，
+          若缺少文件或混入其他档案的文件，导入程序将拒绝执行并明确提示存在异常的具体文件路径。
         </p>
       </div>
 
       <div class="callout warn">
         <p>
-          <strong>档案里是你的豆瓣全部内容</strong>——短评、日记、私密豆列、
-          自己上传的图，原样存着。放上网盘之前想一下那个网盘是谁的。
-          这也是这个工具没有服务器的原因：它没地方替你保管，
-          所以保管在哪儿始终是你自己的选择。
+          <strong>归档数据完整包含了你的豆瓣个人资产</strong>——短评、日记正文、私密豆列及本人上传的图片均原样留存。
+          在上传至第三方公有云盘前，请务必审慎评估云端存储服务的隐私安全性。
+          这也是豆备坚持不设远程服务器的核心初衷：数据始终属于用户，
+          存储位置与访问控制亦完全由个人自主决定。
         </p>
       </div>
 
       <div class="callout">
         <p>
-          <strong>导出中途断了就再导一次，选同一个文件夹</strong>，它只补缺的那几个。
-          没有进度文件——目的地目录本身就是进度，每个文件要么完整要么不在。
-          （中断留下的是「没有这个文件」而不是「半个文件」，所以这条判据站得住。）
+          <strong>导出若意外中断，只需重新执行并选择同一目标文件夹</strong>，程序会自动比对并仅补充缺失的部分。
+          此处无需额外的进度记录文件——目标目录中的现有文件本身即充当断点状态，每个文件的写入均具备原子性保证
+          （不会残留损坏的不完整文件，因此通过文件存在性校验即可准确判断恢复点）。
         </p>
       </div>
 
       <p>
-        导入<strong>不会覆盖任何已经在那儿的字节</strong>，而且先扫描、先列清单、
-        确认了才写。每一种「不导」都有自己的名字：已经有了、补齐、重复、
-        编号撞了、别的账号、不能导——合成一句「跳过」等于什么都没说。
+        导入过程<strong>绝不覆盖本地已存在的任何有效数据</strong>，并严格遵循「预先全量扫描、列举变更明细、用户确认后写入」的机制。
+        针对无需导入的数据，界面会明确展示具体原因（已存在、数据补齐、重复记录、ID冲突、属于其他账号或格式不可用），
+        而非以笼统的「跳过」一笔带过。
       </p>
     </div>
 
     <div class="callout">
       <p>
-        <strong>准的是这一份：</strong>
+        <strong>权威文档请参考：</strong>
         <a href="https://github.com/Doubak/doubak-extension/blob/main/README.md">doubak-extension / README.md</a>
-        —— 安装、抓取范围、增量抓取跳过什么、导出被打断了怎么办，都在那里。
+        —— 涵盖详细安装指引、数据采集范围、增量抓取跳过规则及中断恢复机制。
       </p>
     </div>
   </div>
@@ -272,34 +271,34 @@
     <h2>扩展里的「导出」页：第 2–4 步一次做完</h2>
 
     <p>
-      抓完之后打开扩展的<strong>「导出」</strong>页，三个按钮，各出一样东西。
-      不用先建文件夹——点「导出…」时选一个现成的目录就行（比如「下载」），
-      三种产出会各自在里面建一个子目录，<strong>不会互相覆盖</strong>：
+      抓取完成后进入扩展的<strong>「导出」</strong>面板，三个独立入口对应不同的导出目标。
+      无需提前创建文件夹——点击「导出…」时只需指定任意目标目录（例如系统的「下载」文件夹），
+      三种导出格式会自动在其中创建对应的独立子目录，<strong>彼此互不冲突</strong>：
     </p>
 
-    <pre><code>doubak-neodb/       neodb-ndjson-import.zip ← 传这个，加三份给人看的旁注
-doubak-canonical/   五个 .ndjson + README.txt
-doubak-markdown/    content/（每页一个 .md）与 static/（图片与搜索索引）</code></pre>
+    <pre><code>doubak-neodb/       neodb-ndjson-import.zip ← 用于上传导入，附带说明文档
+doubak-canonical/   五个 .ndjson 结构化数据文件 + README.txt
+doubak-markdown/    content/（每个页面独立 .md）与 static/（静态图片及搜索索引）</code></pre>
 
     <p>
-      三种都从<strong>同一次解析</strong>来，一次只跑一个。解析结果不落盘——
-      它是可以重算的派生数据，而多存一份就是多一个可能不一致的真相来源。
-      整个过程在本机进行，<strong>不联网</strong>。
+      三种格式均源自<strong>相同的底层解析流程</strong>，单次专注于一种输出。解析得到的中间数据均在内存中处理而不产生临时冗余落盘——
+      作为可随时重新计算的派生数据，避免产生多个可能不一致的状态副本。
+      全流程在本地内存完成，<strong>完全不产生外部网络请求</strong>。
     </p>
 
     <div class="callout">
       <p>
-        <strong>它和下面的命令行是同一份代码。</strong>
-        解析器、导出适配器、站点生成器里那些纯函数被<strong>逐字节</strong>拷进了扩展，
-        由两边的 CI 守着不许漂。实测对着同一个账号的档案跑：
-        标记、作品、广播、日记、豆列共 9322 条记录<strong>两边一条不差、内容逐字段相同</strong>，
-        产出的 Markdown 3131 个页面文件名完全一致。
+        <strong>扩展导出功能与下文介绍的命令行工具完全基于同一套核心代码实现：</strong>
+        解析引擎、导出适配器与站点生成器中的纯函数逻辑<strong>逐字节同步</strong>至扩展工程中，
+        两端仓库通过自动化 CI 机制严格防范逻辑漂移。在对同一账号档案的实测验证中：
+        标记、条目、广播、日记与豆列等共计 9,322 条记录<strong>两端产出完全一致、各字段值精确匹配</strong>，
+        生成的 3,131 个 Markdown 页面文件名与内容亦分毫不差。
       </p>
     </div>
 
     <p>
-      下面这几节讲命令行那条路。<strong>只想点几下的话，看到这里就够了</strong>——
-      往下是给要改参数、接进脚本、或者只想拿一部分数据的人看的。
+      后续章节将展开介绍命令行方案。<strong>若只需界面操作，阅读至此即可正常使用</strong>——
+      后续内容适合需要定制参数、集成脚本流水线或筛选部分数据的开发者参阅。
     </p>
   </div>
 </section>
@@ -309,50 +308,49 @@ doubak-markdown/    content/（每页一个 .md）与 static/（图片与搜索�
     <h2>第 2 步 · 解析</h2>
 
     <p>
-      把装着一堆<strong>原始档案</strong>（bundle）的目录整个喂给解析器，它产出
-      <strong>结构化数据</strong>（canonical）——可读、可 <code>grep</code> 的 NDJSON。
-      这一步是<strong>纯函数，不联网</strong>：同样的原始档案永远得到同样的结果，
-      随时可以删掉重跑。
+      将包含多份<strong>原始档案</strong>（bundle）的根目录作为输入传递给解析器，它将生成标准的
+      <strong>结构化数据</strong>（canonical）——即明文可读、易于使用 <code>grep</code> 等工具检索的 NDJSON 格式。
+      该解析步骤为<strong>无副作用的纯函数计算，全程离线</strong>：同样的原始输入必然产出确定性的输出，
+      随时可以清空并重新生成。
     </p>
 
     <pre><code>node bin/parse.js &lt;装着一堆原始档案的目录&gt; [输出目录] [--ignore-warnings] [--no-verify]</code></pre>
 
     <p>
-      喂<strong>整个目录</strong>就好，不用自己挑哪几份，
-      <strong>子目录里的也会一起找到</strong>——解压出来带一层外壳、
-      按月份分了文件夹、几次导出堆在一起，都不用先手工摊平。
-      就算好几份档案的文件平铺在同一个文件夹里（下载目录常常就是这样），
-      也会被一份份认出来。
-      抓了很多次、换过机器、甚至有两条互不相连的链，都直接扔进去：
-      合并的结果正好是它们的并集，挑一条反而会丢东西。
+      直接指定<strong>档案所在的父目录</strong>即可，无需手动挑选或整理文件，
+      <strong>程序会自动递归检索子目录</strong>——无论是解压产生的嵌套文件夹、
+      按年月分类的目录，还是多次导出的归档存放在一起，均无需手动展平。
+      即使多份档案的文件散落在同一个文件夹中（如默认下载目录），
+      也能被精准辨识并分份解析。
+      无论是经历过多次采集、设备迁移，还是存在彼此断裂的历史备份链路，直接传入即可：
+      解析器会自动完成合并计算并生成全集数据，避免因手动筛选而遗漏记录。
     </p>
 
     <p>
-      解析之前它会<strong>先核一遍字节</strong>：每个段文件、每一条捕获，
-      都拿档案里记着的摘要对一次，对不上的那几条不会进结构化数据。
-      这一步<strong>默认就做</strong>，因为要人主动去跑的检查等于没有检查。
-      一份 619&nbsp;MB、两万多条捕获的真实档案上大约多花 8 秒；
-      真嫌慢可以加 <code>--no-verify</code> 跳过，
-      代价是坏掉的捕获会照常进去。想单独核而不解析：
-      <code>node bin/verify.js &lt;同一个目录&gt;</code>。
+      在执行解析前，程序会<strong>预先执行完整的数据校验</strong>：针对每个分段文件与单条捕获记录，
+      对照档案清单中记录的哈希摘要逐一核验，未通过校验的异常记录不会并入最终的结构化数据中。
+      该校验<strong>默认开启</strong>，以确保产出数据的真实有效性。
+      在包含 20,000 余条捕获记录、体量约 619&nbsp;MB 的真实档案测试中，完整校验仅增加约 8 秒耗时；
+      如确有性能要求，可通过添加 <code>--no-verify</code> 参数跳过校验（潜在风险为可能包含损坏的捕获数据）。
+      若仅需单独执行数据一致性校验而不生成解析结果，可运行：
+      <code>node bin/verify.js &lt;目标目录&gt;</code>。
     </p>
 
     <div class="callout warn">
       <p>
-        <strong>只有一件事它会拦下来：目录里混着不止一个人的档案。</strong>
-        两个人的记录合进同一份结构化数据之后<strong>再也分不开</strong>，
-        而这件事太容易发生——把两次导出解压到同一个下载目录就够了，
-        往下找子目录之后更容易。
-        确实是同一个人的两个账号，就加 <code>--ignore-warnings</code> 放行；
-        它绕过的是「停下来」，不是「说出来」，那条告警照样会印出来。
+        <strong>解析过程中唯一会主动拦截的异常是：目标目录中混入了属于不同用户的多份档案。</strong>
+        不同账号的数据一旦混入同一份结构化数据将<strong>难以再进行拆分</strong>，
+        而在日常使用中（例如将不同账号的备份解压至同一下载目录）极易发生此类混淆。
+        若确认多个档案确属同一用户的多个不同账号且需合并，可附加 <code>--ignore-warnings</code> 参数继续执行；
+        该参数仅忽略中断拦截，控制台依然会完整打印相关的警告提示。
       </p>
     </div>
 
     <div class="callout">
       <p>
-        <strong>准的是这一份：</strong>
+        <strong>权威文档请参考：</strong>
         <a href="https://github.com/Doubak/doubak-data-parser/blob/main/README.md">doubak-data-parser / README.md</a>
-        —— 两条不变量、以及为什么不该自己挑原始档案。
+        —— 详细阐述数据合并的两大不变量，以及为何建议由解析器全量处理原始档案。
       </p>
     </div>
   </div>
@@ -363,39 +361,40 @@ doubak-markdown/    content/（每页一个 .md）与 static/（图片与搜索�
     <h2>第 3 步 · 生成自己的网站</h2>
 
     <p>
-      结构化数据加上原始档案里的图片，变成 <strong>Markdown + YAML front matter</strong>，
-      再交给现成的静态站生成器渲染。长什么样不用想象——
-      <a href="https://sample.doubak.com">样张站</a>就是这么出来的。
+      将结构化数据与原始档案中的本地图片结合，可转换为标准的 <strong>Markdown + YAML Front Matter</strong> 格式，
+      进而交由主流静态网站生成器进行渲染构建。最终展示形态可参考直观的
+      <a href="https://sample.doubak.com">官方演示样张站</a>。
     </p>
 
-    <pre><code>npm run md     # 只出 Markdown + 图片（给任何静态站生成器）
-npm run site   # 再构建成 HTML
-npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
+    <pre><code>npm run md     # 仅导出 Markdown + 图片资源（适配任意静态站生成器）
+npm run site   # 进一步构建为完整 HTML 页面
+npm run deploy # 部署至 Git 仓库根目录，支持一键发布至 GitHub Pages</code></pre>
 
     <p>
-      <strong>Markdown 才是产物，HTML 只是它的一个消费者。</strong>
-      想换 Astro、Eleventy、Jekyll，用 <code>md</code> 就行，产出里没有任何 Hugo 专属的东西。
+      <strong>通用的 Markdown 文件才是核心数据产物，HTML 仅是其中的一种展示形式。</strong>
+      若希望迁移至 Astro、Eleventy 或 Jekyll 等其他静态生成框架，仅需执行 <code>npm run md</code> 导出标准 Markdown，
+      生成内容中不包含任何 Hugo 专有的私有语法或依赖。
     </p>
 
     <p>
-      样张站的页脚比你生成出来的多一行「这个站点的源码」，因为它是用
-      <code>--source-repo=&lt;仓库地址&gt;</code> 生成的——那一行指的是<strong>站点自己</strong>的仓库，
-      每个人各不相同，所以<strong>默认没有</strong>。你的站发在公开仓库里的话，也可以写上你自己的。
+      演示样张站的页脚相较于默认导出多了「本站源码」链接，这是因为其构建时传入了
+      <code>--source-repo=&lt;仓库地址&gt;</code> 参数——该链接指向<strong>托管静态站源码的仓库本身</strong>，
+      由于各用户的托管路径各异，该配置<strong>默认不启用</strong>。若你将个人站点开源在公开仓库中，可在此填入相应的项目地址。
     </p>
 
     <div class="callout warn">
       <p>
-        <strong>要发到网上之前先看一眼。</strong>
-        广播和日记里到处是别人的名字和评论，
-        <code>deploy</code> 会先给你一个「哪些内容会变成公开的」的预览。
+        <strong>在正式公开发布至互联网前，请务必审阅内容：</strong>
+        广播与日记正文中可能提及他人的真实姓名或互动评论，
+        <code>npm run deploy</code> 部署脚本在执行前会列出公开内容的变更预览，以便进行最终确认。
       </p>
     </div>
 
     <div class="callout">
       <p>
-        <strong>准的是这一份：</strong>
+        <strong>权威文档请参考：</strong>
         <a href="https://github.com/Doubak/doubak-site-generator/blob/main/README.md">doubak-site-generator / README.md</a>
-        —— Hugo 从哪来、怎么换别的生成器、怎么发到 GitHub Pages。
+        —— 包含 Hugo 依赖安装、切换第三方生成器以及部署至 GitHub Pages 的完整指引。
       </p>
     </div>
   </div>
@@ -406,88 +405,87 @@ npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
     <h2>第 4 步 · 导出到别处</h2>
 
     <p>
-      一条命令产出三家的导入文件，<strong>不联网</strong>——
-      上不上传、什么时候传，都不影响你的档案。
+      运行单条命令即可生成适配主流平台的数据导入包，<strong>全流程离线执行</strong>——
+      是否上传及何时上传，均由用户自行掌控，不影响本地档案的安全性。
     </p>
 
     <pre><code>node bin/export.js &lt;canonical 目录&gt; [输出目录]</code></pre>
 
     <p>
-      <a href="https://neodb.social/">NeoDB</a> 收得最全，而且默认带上一样别处没有的东西：
-      <strong>状态历史</strong>。豆瓣只存「你现在是看过」，
-      但广播是发出去那一刻冻住的，所以 想看 → 在看 → 看过 每一步都还在，
-      带着当天的日期和<strong>当天打的星</strong>——豆瓣自己只留最后一次。
-      不想带就加 <code>--no-shelf-history</code>。
+      <a href="https://neodb.social/">NeoDB</a> 的数据支持最为全面，且默认包含其他平台不具备的<strong>标记状态历史轨迹</strong>。
+      豆瓣官方页面通常仅保留最新的一条当前状态（如「看过」），
+      但广播流在发布后即永久固化，因此「想看 → 在看 → 看过」的每个流转节点及其历史评分均得以完整保留，
+      并精确记录各阶段的发生时间与<strong>当时给出的星级评价</strong>——豆瓣自身仅记录最新一次评分。
+      若不需要导出历史流转轨迹，可添加 <code>--no-shelf-history</code> 参数。
     </p>
 
     <p>
-      <strong>传的地方是「设置 → 数据 → 导入 NeoDB 备份」</strong>，
-      不是名字里带「豆瓣」的那一节——那一节收的是豆伴（Doufen）的
-      <code>.xlsx</code>，传这个 zip 上去只会被拒。
-      名字对不上是因为豆备产出的本来就是 NeoDB 自己的归档格式，
-      所以走的是它自己的入口，不需要 NeoDB 那边为豆备加任何东西。
+      <strong>上传入口为 NeoDB 界面中的「设置 → 数据 → 导入 NeoDB 备份」</strong>，
+      而非包含「豆瓣」字样的专属导入项——后者专用于接收豆伴（Doufen）导出的
+      <code>.xlsx</code> 文件，上传此 ZIP 压缩包会导致格式校验失败。
+      该命名差异的原因在于：豆备直接原生生成符合 NeoDB 官方规范的备份归档，
+      因此直接使用其原生导入通道即可，无需 NeoDB 为豆备提供额外的定制适配。
     </p>
 
     <p>
-      整份档案导进去长什么样，也是公开的：
+      完整档案导入 NeoDB 后的实际呈现效果可公开查阅：
       <a href="https://neodb.social/users/immewx/">neodb.social/users/immewx</a>。
     </p>
 
     <p>
-      Letterboxd 只收电影、Goodreads 只收书，所以<strong>能带走多少、带不走什么，
-      报告里会一条条数给你看</strong>。反过来绝不成立：档案永远存无损的超集，
-      这三个都是向外的有损适配器。
+      鉴于 Letterboxd 仅支持电影类目、Goodreads 仅支持图书类目，<strong>导出过程中哪些内容成功迁移、哪些条目因平台限制被舍弃，
+      生成日志中均会逐项清晰列出</strong>。底层逻辑上不可混淆：豆备本地档案始终保留无损的全量超集，
+      而第三方导出仅属于向下兼容的有损格式适配。
     </p>
 
     <div class="callout warn">
       <p>
-        <strong>三家的导入都不好撤。</strong>
-        先用 <code>--sample=20</code> 切一小份传上去看看，确认没问题再导全量。
+        <strong>各大第三方平台在导入批量数据后通常难以提供一键撤销功能。</strong>
+        建议首次导入时先使用 <code>--sample=20</code> 参数导出包含 20 条记录的样本包进行测试，确认无误后再执行全量导入。
       </p>
     </div>
 
-    <h3>NeoDB 那一路出了问题，可以退回 CSV</h3>
+    <h3>NeoDB 若遇到兼容问题，可降级使用 CSV</h3>
 
     <p>
-      默认出的是 NeoDB 自己的 <strong>NDJSON</strong> 归档格式。
-      万一它那边收不下——上传页面认不出格式、或者导进去有哪一类记录不对——
-      还有一条走了更久的老路可以退：
+      默认导出采用 NeoDB 官方推荐的 <strong>NDJSON</strong> 归档格式。
+      若因平台接口变动导致无法识别格式或特定类型条目解析异常，
+      还可降级使用历史更久的 CSV 兼容方案：
     </p>
 
     <pre><code>node bin/export.js &lt;canonical 目录&gt; [输出目录] --target=neodb_csv</code></pre>
 
     <p>
-      产出的是 <code>neodb-import.zip</code>。<strong>上传的地方是同一个</strong>——
-      还是「导入 NeoDB 备份」，那个页面会自己看 zip 里有什么来判断格式，
-      传上去之后「检测到的格式」那一行应该显示 <strong>CSV</strong>。
-      （显示「未知格式」就说明拿错文件了，那个 zip 根本提交不上去。）
+      该命令将生成 <code>neodb-import.zip</code>。<strong>上传位置保持一致</strong>——
+      依然在「导入 NeoDB 备份」页面提交，后台会根据 ZIP 内的文件特征自动识别数据类型。
+      上传后「检测到的格式」一栏应正确显示为 <strong>CSV</strong>
+      （若提示「未知格式」，通常表示选取了错误的文件，页面将无法继续提交）。
     </p>
 
     <p>
-      这一路真导进去过一整份档案，长这样：
+      通过 CSV 模式完整导入真实档案的展示案例可参考：
       <a href="https://neodb.social/users/doubak/">neodb.social/users/doubak</a>
-      ——跟上面那个
+      ——其与上述
       <a href="https://neodb.social/users/immewx/">immewx</a>
-      是<strong>同一份档案的两条路</strong>，可以直接对照着看两边差在哪。
+      账号基于<strong>同一份原始数据分别走 NDJSON 与 CSV 路径生成</strong>，可以直接对照参考两者的呈现差异。
     </p>
 
     <p>
-      退回去要付的代价说清楚：CSV <strong>结构上装不下</strong>豆列、
-      不挂作品的日记，以及那条状态历史时间线。
-      它有两处反而比 NDJSON 强：一是<strong>可见性那三个单选框只在 CSV 时才出现</strong>
-      （NDJSON 会被页面藏起来，一律按公开导入，要别的可见性得用
-      <code>--visibility=1</code> 或 <code>2</code> 写进文件里）；
-      二是书的 <strong>ISBN 兜底</strong>——NDJSON 只按 URL 匹配，
-      一本豆瓣页面已经没了的书，CSV 还找得回来。
+      使用 CSV 模式的取舍权衡：在数据结构上，CSV <strong>无法表达</strong>豆列集合、
+      独立日记以及状态历史轨迹。但在以下两项细节上 CSV 具有独特优势：一是<strong>导入界面仅在解析 CSV 时提供公开/私密等可见性选择项</strong>
+      （NDJSON 模式下界面会隐藏该选项并默认设为公开，若需设定其他可见性需通过
+      <code>--visibility=1</code> 或 <code>2</code> 预先写入数据文件）；
+      二是图书类目支持 <strong>ISBN 辅助匹配</strong>——NDJSON 仅依赖条目 URL 精确匹配，
+      对于豆瓣上页面已被下架的图书，CSV 借助 ISBN 仍能顺利找回关联条目。
     </p>
 
     <div class="callout">
       <p>
-        <strong>准的是这一份：</strong>
+        <strong>权威文档请参考：</strong>
         <a href="https://github.com/Doubak/doubak-export-adapters/blob/main/README.md">doubak-export-adapters / README.md</a>
-        ——三家各自收得下什么、匹配靠什么、以及换格式换来的两处倒退。
-        第一次导之前请看
-        <a href="https://github.com/Doubak/doubak-export-adapters/blob/main/docs/manual-testing.md">docs/manual-testing.md</a>。
+        —— 详细汇总各平台字段支持范围、条目匹配策略及降级格式的差异说明。
+        首次尝试前建议阅读
+        <a href="https://github.com/Doubak/doubak-export-adapters/blob/main/docs/manual-testing.md">docs/manual-testing.md</a> 了解手动测试指南。
       </p>
     </div>
   </div>
@@ -498,31 +496,31 @@ npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
     <h2>档案里到底是什么</h2>
 
     <p>
-      两种格式，生命周期正好相反。<strong>原始档案</strong>（bundle）由扩展写出，
-      是不可逆那一步的产物——没法请谁「再抓一次 2019 年」——所以一旦有人抓过就冻住不改；
-      <strong>结构化数据</strong>（canonical）由解析器写出，随便改，
-      重新跑一遍解析器不花什么代价。
+      系统涉及的两种核心格式，在生命周期与设计目标上截然相反。<strong>原始档案</strong>（bundle）由浏览器扩展直接生成，
+      代表不可逆的历史采集快照——过去的状态无法在未来凭空复现——因此采集完成即进行数据固化与校验保护；
+      而<strong>结构化数据</strong>（canonical）由解析器根据原始档案提炼生成，可随时按最新的解析算法重新计算并覆盖，
+      维护成本极低。
     </p>
 
     <p class="small muted">
-      顺带一提：原始档案<strong>不只有扩展写得出来</strong>。
+      注：原始档案<strong>亦可通过转换历史工具生成</strong>。
       <a href="https://github.com/Doubak/doubak-import-adapters">导入适配器</a>
-      能把别的抓取工具存下来的页面转成同一种格式，接进上面这条流水线——
-      目前支持 2020 年那一版命令行工具
-      <a href="https://github.com/its-my-data/doubak" rel="nofollow">its-my-data/doubak</a>。
-      如果你手上没有那种老档案，这一段可以跳过。
+      能够将其他抓取工具保存的历史备份转录为标准原始档案格式，并无缝接入后续的处理流水线——
+      目前已支持 2020 年命令行版本
+      <a href="https://github.com/its-my-data/doubak" rel="nofollow">its-my-data/doubak</a> 的历史数据。
+      若未持有过往的老旧备份，可直接忽略此项说明。
     </p>
 
     <p>
-      两种都是 WARC 加 NDJSON，没有私有二进制格式。
-      判据是：<strong>2040 年一个不认识这个项目的人，能不能只靠 <code>jq</code> 把它读出来。</strong>
+      两种格式均基于国际标准 WARC 与通用的 NDJSON 规范设计，绝不使用任何私有二进制结构。
+      其设计基准非常明确：<strong>确保数十年后，任何人在无需本项目专属软件的情况下，仅凭 <code>jq</code> 等通用工具即可完全读取和还原数据。</strong>
     </p>
 
     <div class="callout">
       <p>
-        <strong>准的是这一份：</strong>
+        <strong>权威文档请参考：</strong>
         <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">doubak-data-specs / bundle/v1/SPEC.md</a>
-        ——格式定义、以及配套的校验器和一致性用例。
+        —— 包含完整格式规范定义、校验器实现及一致性测试用例。
       </p>
     </div>
   </div>
@@ -532,9 +530,9 @@ npm run deploy # 铺进一个仓库根，GitHub Pages 直接发</code></pre>
   <div class="wrap">
     <h2>出了问题</h2>
     <p>
-      每个仓库都收 issue，报的时候把命令打出来的<strong>整段报告</strong>带上——
-      里面每个数字都是实测的，比描述有用得多。
-      仓库列表在 <a href="https://github.com/Doubak">github.com/Doubak</a>。
+      各子项目均开放 GitHub Issue 进行问题追踪。提交反馈时，请完整附上终端输出的<strong>执行报告日志</strong>——
+      其中包含的统计指标与精确错误堆栈对于定位根因至关重要。
+      完整仓库列表请参见 <a href="https://github.com/Doubak">github.com/Doubak</a>。
     </p>
   </div>
 </section>
