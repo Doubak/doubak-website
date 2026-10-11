@@ -316,7 +316,7 @@
       <li>
         <span class="step-k">04</span>
         <h3>结构化数据 <span class="pill pill-now">已可用</span></h3>
-        <p>输出五个标准的 NDJSON 文件，可用 <code>jq</code> 直接检索。每次观测保留版本修订，用户创作内容与豆瓣条目资料解耦存储。</p>
+        <p>输出八个标准的 NDJSON 文件，可用 <code>jq</code> 直接检索。每次观测保留版本修订，用户创作内容与豆瓣条目资料解耦存储。</p>
       </li>
       <li>
         <span class="step-k">05</span>
@@ -398,7 +398,7 @@
         <li>
           <span class="name">解析成结构化数据 <span class="pill pill-now">已可用</span></span>
           <p class="desc">
-            档案 → 四个 NDJSON（标记 / 作品 / 广播 / 长文），纯函数、不联网，<code>jq</code> 直接查。
+            档案 → 八个 NDJSON（标记 / 作品 / 广播 / 长文 / 豆列 / 相册 / 小组话题 / 加入的小组），纯函数、不联网，<code>jq</code> 直接查。
             每次观察留一份修订，逐字段比对，所以「改了评分」和「改了短评」不会混成同一件事。
             <strong>只需指定存放所有档案的目录即可，无需手动挑选链条</strong>——
             实测表明多次归档合并后正是完整的并集，单选任何一条都会遗漏数据。
@@ -651,7 +651,7 @@
           <tr><td>个人相册</td><td class="ok">✅ 能跑</td><td>用户自建相册列表、相册内容与全尺寸原图；作品公共相册属于条目资产不予收录</td></tr>
           <tr><td>豆瓣小组</td><td class="ok">✅ 能跑</td><td>小组主页、加入与管理的小组、本人发布的讨论列表、正文与上传附图；他人回帖不予收录</td></tr>
           <tr><td>中断续导</td><td class="ok">✅ 能跑</td><td>导出被打断后再导一次，只补缺的那些；没有进度文件，目的地目录本身就是进度</td></tr>
-          <tr><td>解析成结构化数据</td><td class="ok">✅ 能跑</td><td>原始档案（bundle）→ 结构化数据（canonical）：标记、作品、广播、长文、豆列，带修订历史</td></tr>
+          <tr><td>解析成结构化数据</td><td class="ok">✅ 能跑</td><td>原始档案（bundle）→ 结构化数据（canonical）：标记、作品、广播、长文、豆列、相册、小组，带修订历史</td></tr>
           <tr><td>生成静态网站</td><td class="ok">✅ 能跑</td><td>结构化数据 → Markdown + 图片 → HTML，见<a href="https://sample.doubak.com">样张</a></td></tr>
         </tbody>
       </table>
