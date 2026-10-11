@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>断点恢复只记下了未完成的，漏掉了已经抓过的 —— 开发日志</title>
+<meta name="description" content="开跑后重载扩展，自动恢复的增量抓取把历史所有作品详情和封面重新抓了一遍。真凶是 checkpoint 为了紧凑只记了未完成队列，而把历史条目的跳过名单留在了上一次的内存里。顺带聊聊刚发布的 v1.5.0 与 v1.5.1：相册、小组，以及站点生成器的跟进。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-11-resume-dropped-the-finished.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-11">2026-10-11</time>
+      <h1>断点恢复只记下了未完成的，漏掉了已经抓过的</h1>
+      <p class="summary">开跑后重载扩展，自动恢复的增量抓取把历史所有作品详情和封面重新抓了一遍。真凶是 checkpoint 为了紧凑只记了未完成队列，而把历史条目的跳过名单留在了上一次的内存里。顺带聊聊刚发布的 v1.5.0 与 v1.5.1：相册、小组，以及站点生成器的跟进。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        今天发布了 <a href="https://github.com/Doubak/doubak-extension/releases/tag/v1.5.0">v1.5.0</a>，
+        正式带来了个人相册与小组这两大块呼声极高的资产备份。但在真机上验证增量抓取时，
+        撞上了一个极隐蔽却很危险的异常。
+      </p>
+
+      <h2>案发：一次重载，增量变成了全量</h2>
+
+      <p>
+        复现过程很简单：发起一次增量抓取，刚完成身份探测、进度还是 0% 的时候，
+        在浏览器扩展管理页中点击重载。后台 service worker 与离屏文档随后被重新拉起，
+        <code>runner.resume()</code> 如期自动触发，控制台日志一行行正常滚过——直到眼前出现这几行：
+      </p>
+
+      <pre><code>2026-10-11 12:22:11 · capture · interest.item · ok · https://book.douban.com/subject/34614824/
+2026-10-11 12:22:14 · capture · interest.item · ok · https://book.douban.com/subject/30562760/
+2026-10-11 12:22:16 · capture · interest.item · ok · https://book.douban.com/subject/1066579/
+2026-10-11 12:22:19 · capture · interest.item · ok · https://book.douban.com/subject/5273955/</code></pre>
+
+      <p>
+        这几本书全是几年前看过的旧条目。<strong>这是一次增量抓取</strong>：上次备份里它们就已经完整躺在档案里了，
+        本次增量本该只读列表页新增的部分，作品详情和封面应当全部跳过。
+      </p>
+
+      <p>
+        然而它却在不知疲倦地把成百上千个历史作品详情和封面原图一张张全抓了一遍——一次本该两三分钟搞定的增量，
+        就因为开跑时重载了一下扩展，瞬间变成了一场漫长数小时的伪增量。
+      </p>
+
+      <h2>真凶：去重名单只活在上一次的内存里</h2>
+
+      <p>
+        去翻 <code>runner.js</code> 和 <code>frontier.js</code> 的逻辑：
+      </p>
+
+      <ul>
+        <li>
+          <strong>正常启动时（<code>start</code>）</strong>：扩展通过 <code>incrementalOptions</code>
+          扫描既有档案链，计算出历史上已经抓取过的作品 URL（<code>knownSubjectUrlKeys</code>）
+          和图片 URL（<code>knownAssetUrlKeys</code>），一口气灌进 <code>frontier.markCaptured()</code>
+          打底。随后遍历列表页时，凡是在集合里的链接直接忽略，只有新作品才会入队。
+        </li>
+        <li>
+          <strong>检查点只记未完成项</strong>：<code>checkpoint</code> 是要频繁写进 IndexedDB 的。
+          历史条目往往有成千上万条，如果每次写入都把庞大的已知集合带上，磁盘 I/O 和序列化成本不可接受。
+          因此 checkpoint 里<strong>只存了待抓队列（<code>cp.frontier</code>）</strong>，
+          以及当前批次刚抓完的极少数几条（<code>repair.capturedUrlKeys</code>）。
+        </li>
+        <li>
+          <strong>恢复时漏掉了历史</strong>：重载扩展后，<code>runner.resume(cp)</code>
+          被调用。它一丝不苟地重建了队列，也把当前批次已抓的条目打进了去重底——
+          <strong>唯独没有重新读取既有档案里的历史条目跳过名单。</strong>
+        </li>
+      </ul>
+
+      <div class="callout warn">
+        <p>
+          <strong>上一次打底的历史跳过集合，随着前一个进程的消亡彻底丢了。</strong>
+          恢复后的待抓队列虽然无缺，但底层的「已抓过」集合却是空的。当它继续处理「读过的书」列表页时，
+          页面上的所有历史条目在去重表里都查不到，于是全部被判定为「新发现作品」，老老实实全排进了抓取队列。
+        </p>
+      </div>
+
+      <h2>修复：在 resume 时动态打底</h2>
+
+      <p>
+        既然庞大的跳过名单不适合常驻 checkpoint，那就在<strong>恢复的那一刻按需读出并补上</strong>：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>改动点</th><th>具体做法</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>记录模式</td>
+            <td><code>runner.start</code> 将抓取模式（<code>mode: incremental / full / refresh</code>）写入 <code>setCurrentRun</code> 持久化指针，确保恢复时知道自己的意图。</td>
+          </tr>
+          <tr>
+            <td>恢复时注入名单</td>
+            <td><code>runner.resume</code> 在身份探测确认之后，调用 <code>resolveKnown(session.account)</code> 重新加载历史捕获名单，再次注入 <code>frontier.markCaptured()</code>。</td>
+          </tr>
+          <tr>
+            <td>全量与刷新分支</td>
+            <td>如果是 <code>full</code> 模式，名单保持为空正常全量；如果是 <code>refresh</code> 模式，作品详情不跳过以允许刷新；增量模式则准确跳过已抓条目。</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        在测试套件中补上真实模拟用例：在开跑进度为 0 时强行销毁 runner 并触发恢复，断言所有历史条目零网络请求、仅新增作品入队。
+        这组修复已在紧随其后的 <strong><a href="https://github.com/Doubak/doubak-extension/releases/tag/v1.5.1">v1.5.1</a></strong> 中发布。
+      </p>
+
+      <h2>同时到来的 v1.5.0：相册、小组与站点更新</h2>
+
+      <p>
+        除了续传修复，今天最重要的进展是 <strong>v1.5.0 完整支持了个人相册与小组</strong>：
+      </p>
+
+      <ul>
+        <li><strong>个人相册（<code>photo.album</code>）</strong>：抓取你创建的所有公开与隐私相册列表，以及其中每一张照片的高清大图（<code>large/public</code>）。</li>
+        <li><strong>小组发言与加入（<code>group.*</code>）</strong>：抓取你加入的小组列表（带小组高清头像）、你发表的小组讨论主题（帖子）、正文内嵌插图。</li>
+        <li><strong>NDJSON 导出</strong>：规范化导出 <code>albums.ndjson</code>、<code>photos.ndjson</code> 与 <code>groups.ndjson</code>，方便跨平台迁移与数据分析。</li>
+        <li><strong>离线静态站生成器同步升级</strong>：样张站与生成器现已支持相册网格与全尺寸照片浏览；小组讨论区沿用日记与短评风格排版，首页聚合卡片带缩略图预览。</li>
+      </ul>
+
+      <p>
+        扩展现已更新至 <code>v1.5.1</code>。如果你之前习惯在中途暂停或重载扩展，强烈建议升级，避免跑出不必要的重复请求。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-09-10-same-poster-different-shard.html">更早：同一张海报，换个服务器地址，档案里就多一条「改过」 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

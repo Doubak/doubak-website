@@ -23,7 +23,7 @@
      刻意不写的：aggregateRating 和 review。没有真实评分就编一个出来，是这类
      标记最常见的用法，也是最不该学的那一种。
 
-     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.4.1 是同一个数字，
+     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.5.1 是同一个数字，
      一共三处。发版时三处一起改——忘了改不会有任何症状，页面照常渲染，
      只是机器读到的版本停在上一版。tools/check-links.py 会把三处比对一遍。 -->
 <script type="application/ld+json">
@@ -36,7 +36,7 @@
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Windows, macOS, Linux, ChromeOS",
   "browserRequirements": "Chrome, Edge or Firefox 140+. Safari is not supported.",
-  "softwareVersion": "1.4.1",
+  "softwareVersion": "1.5.1",
   "description": "在本地浏览器中把豆瓣原样保存为标准 WARC 档案，支持解析结构化数据、生成离线静态豆瓣站点或导出到 NeoDB 等平台。凭据与数据全程不离开个人设备。",
   "inLanguage": "zh-Hans",
   "isAccessibleForFree": true,
@@ -85,7 +85,7 @@
         <span class="full">豆瓣备份器 · Douban Backup</span>
       </div>
     </div>
-    <p class="badge"><span class="dot"></span>扩展 v1.4.1 已发布</p>
+    <p class="badge"><span class="dot"></span>扩展 v1.5.1 已发布</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
       这不单是一个孤立的备份工具，而是一套完整的数据链路方案：把豆瓣抓下来、存成十几年后依然打得开的标准档案、
@@ -729,6 +729,11 @@
     <h2>最近的开发日志</h2>
     <ul class="log-list">
       <li>
+        <time datetime="2026-10-11">2026-10-11</time>
+        <h3><a href="/log/2026-10-11-resume-dropped-the-finished.html">断点恢复只记下了未完成的，漏掉了已经抓过的</a></h3>
+        <p>开跑后重载扩展，自动恢复的增量抓取把历史所有作品详情和封面重新抓了一遍。真凶是 checkpoint 为了紧凑只记了未完成队列，而把历史条目的跳过名单留在了上一次的内存里。顺带聊聊刚发布的 v1.5.0 与 v1.5.1：相册、小组，以及站点生成器的跟进。</p>
+      </li>
+      <li>
         <time datetime="2026-09-10">2026-09-10</time>
         <h3><a href="/log/2026-09-10-same-poster-different-shard.html">同一张海报，换个服务器地址，档案里就多一条「改过」</a></h3>
         <p><strong>111 条</strong>作品修订是凭空的，两版之间只差一个字符。而去修它之前先重量了当初记下的两个数字——两个都是错的，其中一个还把问题的性质说反了。</p>
@@ -738,12 +743,7 @@
         <h3><a href="/log/2026-09-10-spec-says-no.html">桌面浏览器放行了规范禁止的东西，于是那条路看起来是通的</a></h3>
         <p>安卓 Edge 上一按开始就抛出一句规范原文。是我上一版引入的：两条分支都用了动态加载，而<strong>只有一条需要</strong>——桌面 Chrome 开了口子，所以本机全绿、CI 全绿、真浏览器里跑得好好的。</p>
       </li>
-      <li>
-        <time datetime="2026-09-09">2026-09-09</time>
-        <h3><a href="/log/2026-09-09-firefox-cant-hand-you-a-folder.html">Firefox 能抓、能存，就是交不出一个文件夹</a></h3>
-        <p>「Firefox 的存储接口不太一样，不好移植」这句判断<strong>对了一半，而且指的是错的那一半</strong>：存储那一格原样可用，卡住的是把字节交到磁盘上那一步。</p>
-      </li>
-</ul>
+    </ul>
     <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>
   </div>
 </section>
@@ -762,7 +762,7 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
             <td>浏览器扩展。抓取，产出原始档案（bundle）。整个项目的入口都在这里。</td>
-            <td class="ok">v1.4.1</td>
+            <td class="ok">v1.5.1</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
