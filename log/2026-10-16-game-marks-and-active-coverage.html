@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>游戏评分成了访问者的：条目边界、缺席权威，与抓取中途的覆盖率 —— 开发日志</title>
+<meta name="description" content="在公开或未登录归档中，游戏列表把访问者的「修改」按钮错当成了主人的评分；公开观测中缺失标签绝不能草率判定为用户删除了标签；而抓取中途的覆盖率面板，更不应因当前任务尚未收尾就扣下所有历史账号的成绩单。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-16-game-marks-and-active-coverage.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-16">2026-10-16</time>
+      <h1>游戏评分成了访问者的：条目边界、缺席权威，与抓取中途的覆盖率</h1>
+      <p class="summary">在公开或未登录归档中，游戏列表把访问者的「修改」按钮错当成了主人的评分；公开观测中缺失标签绝不能草率判定为用户删除了标签；而抓取中途的覆盖率面板，更不应因当前任务尚未收尾就扣下所有历史账号的成绩单。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        随着多账号支持、主页输入以及未登录抢救机制在主线铺开，越来越多的真实边界被激荡了出来。
+      </p>
+
+      <p>
+        在纯粹的「单账号、本人登录态」时代，许多潜在的代码暗病被掩盖在「操作者恰好等于数据主人」的假象下。
+        一旦跨入「公开归档」与「并发状态共存」的真实场景，我们遭遇了三个极富启发性的技术隐患：
+      </p>
+
+      <ol>
+        <li><strong>游戏标记的「李代桃僵」</strong>：为什么公开归档时，目标游戏评分竟然被读成了访问者的？</li>
+        <li><strong>数据契约的严谨性</strong>：当公开页面缺失标签等字段时，为什么绝不能授予它「缺席权威」（Absence Authority）？</li>
+        <li><strong>抓取中途看覆盖率</strong>：当前任务正在抓取尚未收尾，怎么能把所有已归档账号的成绩单全都扣下？</li>
+      </ol>
+
+      <h2>案发一：游戏标记的「李代桃僵」与结构解析陷阱</h2>
+
+      <p>
+        豆瓣各个媒介（书影音、游戏、舞台剧）的前端结构并非一套统一的标准体系，而是十余年历史地质层堆叠的结果。
+        书影音在列表页的星级评分，统一带有语义清晰的类名（如 <code>class="rating4-t"</code>）；
+        但游戏列表（<code>douban.com/game/...</code>）却沿用了一套完全独立的遗留结构：
+      </p>
+
+      <ul>
+        <li>条目主人的星级写在：<code>&lt;div class="rating-info"&gt;&lt;span class="rating-star allstar40"&gt;&lt;/span&gt;&lt;/div&gt;</code>；</li>
+        <li>条目主人的短评在一个<strong>没有任何 class 的裸 <code>&lt;div&gt;</code></strong> 中；</li>
+        <li>而在登录用户访问时，条目底部还会多出一行属于当前访问者的操作栏：<code>&lt;div class="user-operation"&gt;&lt;a data-rating="4"&gt;修改&lt;/a&gt;&lt;/div&gt;</code>。</li>
+      </ul>
+
+      <p>
+        早先解析器（<code>extract.js</code>）在提取游戏标记时，走了一条自以为聪明的捷径：
+        它直接去读 <code>data-rating="(\d)"</code>，并用正则把「<code>user-operation</code> 前面那个 div」判定为短评。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>当用户登录自己的账号备份自己时：</strong>
+          操作者就是主人，<code>user-operation</code> 里显示的就是自己的评分，解析结果碰巧完全正确，隐患被天衣无缝地掩盖了。
+        </p>
+        <p>
+          <strong>但当开启未登录归档或公开抓取时，灾难降临了：</strong>
+          <br>
+          1. 如果是纯匿名公开页面，页面根本没有 <code>user-operation</code> 这个操作栏！解析器找不到 <code>data-rating</code>，导致全部游戏评分直接报废清零；
+          <br>
+          2. 如果用户在浏览器里登录着小号，<code>user-operation</code> 展现的是<strong>小号访问者</strong>对该游戏的操作控件！解析器不仅没读到目标账号的真实评分，反而把小号访问者的打分甚至单字短评塞进了目标档案中——发生了荒诞的「李代桃僵」；
+          <br>
+          3. 末项越界：如果最后一项原本没有短评，正则一路往后贪婪扫描，甚至能把页面底部的访问者表单、推荐栏强行当成最后一项的内容补上。
+        </p>
+      </div>
+
+      <p>
+        在刚刚发布的 <code>doubak-data-parser/0.15.1</code> 中，我们彻底重构了游戏标记的抽取基石：
+      </p>
+
+      <ul>
+        <li><strong>正文星级才是真身</strong>：严格从 <code>class="rating-info"</code> 下的 <code>allstar([1-5])0</code> 提取目标主人的真实评分；</li>
+        <li><strong>裸 div 短评脱钩</strong>：直接提取 <code>common-item</code> 内唯一的独立正文 <code>&lt;div&gt;</code>，彻底废除对 <code>user-operation</code> 操作栏的依赖；</li>
+        <li><strong>条目闭合边界守卫（<code>gameItem</code>）</strong>：引入基于 <code>&lt;div&gt;</code> 嵌套深度的闭合截断，确保提取逻辑严格锁死在当前 <code>common-item</code> 内，绝不向后贪婪借取，不完整的页面宁可不解释。</li>
+      </ul>
+
+      <h2>案发二：公开观测的「缺席权威」（Absence Authority）</h2>
+
+      <p>
+        解决了解析器的字段提取之后，一个更深层次的数据哲学问题浮出了水面：
+        <strong>在公开页面上「没有看到 tags 标签」，到底意味着「用户没打标签」，还是「豆瓣没展示标签」？</strong>
+      </p>
+
+      <p>
+        答案显而易见：豆瓣出于反爬与界面简洁考量，在外部公开列表页上<strong>直接裁剪掉了用户的个人私密标签（tags）与备忘信息</strong>。
+      </p>
+
+      <p>
+        在规范体系（<code>doubak-data-specs</code> #5）中，我们必须界定这种「视界缺失」的权威性：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>观测类型</th><th>适用场景</th><th>缺席权威（Absence Authority）</th><th>合并（Merge）策略</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>本人登录态观测</strong></td>
+            <td>用户登录目标账号本人抓取</td>
+            <td><code>full</code>（完全权威）</td>
+            <td>页面无 tags，确证为用户已删除或从未添加 tags，下游覆盖同步清空。</td>
+          </tr>
+          <tr>
+            <td><strong>公开/未登录观测</strong></td>
+            <td>抢救被封账号、归档他人主页</td>
+            <td><code>none</code>（无缺席权威）</td>
+            <td>页面无 tags，视为「不可观测」，<strong>绝不能</strong>覆盖抹除历史上由登录态记录下的私密标签。</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        如果合并引擎（<code>mergeRecords</code>）不加区分，一次被封账号的公开紧急抢救，就会成为一块残酷的橡皮擦，
+        把用户多年来在登录态下沉淀的私密标签全部洗劫一空。
+        明确了 <code>absence_authority: 'none'</code> 后，公开归档即便在不完整的视野下推进，也能确保既有高权限档案的数据安全。
+      </p>
+
+      <h2>案发三：抓取中途看覆盖率：不能因当前未收尾，就扣押全部账号的成绩单</h2>
+
+      <p>
+        在扩展层面，随着大家开始尝试备份多个不同账号，有用户提出了一个看似微小却令人窒息的体验问题：
+      </p>
+
+      <blockquote>
+        <p>
+          「后台开着一个账号的抓取，我随手切到『覆盖率』Tab 想看看之前备份完的其他账号的覆盖率。
+          结果页面直接显示『备份来源待确认 / 暂无已收尾的档案』，而且账号下拉框直接不见了！
+          连我早就已经备份好的账号的覆盖率也全看不了了？这符合设计吗？」
+        </p>
+      </blockquote>
+
+      <p>
+        这当然不符合设计，而是一个典型的实现层短路：
+      </p>
+
+      <p>
+        面板在加载覆盖率时，默认读取 OPFS 磁盘上按时间戳排序的最新目录。
+        而当前正在进行的抓取任务，恰好就是磁盘上最新的目录！
+        但这个任务正在热跑中，只存在实时增量的 <code>checkpoint.json</code> 与 WARC 数据块，
+        <strong>根本还没有经过最终的双向对账，没有生成 <code>manifest.json</code></strong>
+        （覆盖率是收尾阶段生成的权威连续性证据）。
+      </p>
+
+      <p>
+        旧的覆盖率前端代码一旦发现最新的目录 <code>hasManifest: false</code>，便仓促判定「整台机器没有任何有效档案」，
+        隐藏了账号切换下拉框，直接给用户贴上了「暂无已收尾档案」的冷板凳。
+      </p>
+
+      <p>
+        在刚刚合并入主线的 PR #24 中，我们将覆盖率展现层做了彻底解耦：
+      </p>
+
+      <ol>
+        <li><strong>收尾驱动的选择器</strong>：账号与来源选择框只由<strong>已收尾且具备 manifest 的有效档案</strong>驱动（<code>items.filter(e =&gt; e.manifest)</code>），未收尾的进行中目录不参与扰动选择项；</li>
+        <li><strong>随时自由审查历史</strong>：无论当前后台是否正在热火朝天地抓取，用户随时可以切换到任何历史账号，完整查阅其覆盖率与归档链；</li>
+        <li><strong>进行中状态友好告知</strong>：如果用户选中的恰好是当前正在抓取的账号，面板给出明确提示：
+          <em>「本次抓取正在进行中……覆盖率基于上一份已收尾档案计算」</em>，若全盘仅有这一份未收尾档案，则提示<em>「本次抓取尚未收尾——覆盖率证据在收尾时生成，目前尚不可用」</em>。
+        </li>
+      </ol>
+
+      <p>
+        从解析器的字符边界，到规范层的观测权威，再到面板上的多任务状态共存——
+        每一次深水区的交汇，都在让豆备离真正的稳健与可靠更近一步。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-10-15-dormant-scripts-and-pacer-reset.html">更早：脚本里的验证码不是风控：假阳性、降速与恢复原速 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
