@@ -339,6 +339,12 @@ https://www.douban.com/accounts/login?redir=https%3A//www.douban.com/people/6930
 
       <ul>
         <li>
+          <strong>支持抓取广播详情与评论互动（<a href="https://github.com/Doubak/doubak-extension/issues/26" target="_blank" rel="noreferrer noopener">Issue #26</a>）</strong>：
+          目前扩展的广播路线是按时间线列表页抓取（<code>broadcast.timeline</code>）。列表页忠实记录了「这条广播有 1 条回应」以及转发引用的图文，但折叠在详情页里的多轮评论对话并未被拉取。
+          许多时候，广播本身可能只是一句感慨或一张图片，真正触动人心的话题交锋与老友接梗，往往全在下方的评论区里。
+          我们已经在扩展仓库建立了 Issue #26，计划针对存在回复的广播进一步抓取其详情页面（<code>status/:id</code>），把珍贵的评论对话也完整封存进 WARC；
+        </li>
+        <li>
           <strong>广播引言的结构化规范</strong>：在 <code>doubak-data-specs</code> 与 <code>doubak-data-parser</code> 中，推进 <code>repost_source</code> / <code>quote</code> 字段的解析标准，把广播被引用的作者、昵称与正文以第一等公民沉淀入 <code>broadcasts.ndjson</code>；
         </li>
         <li>
