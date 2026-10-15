@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>当好友注销了账号：从「页面不存在」到 WARC 里复活的高中同桌 —— 开发日志</title>
+<meta name="description" content="一位高中好友注销了豆瓣，原始广播化作「呃...你想访问的页面不存在」，当年的转发引用沦为「[ 该广播仅作者本人可见 ]」；但翻开四年前打下的 Doubak WARC 档案，当年的同桌回忆、原始头像与 62 部书影音短评，原封不动地在本地醒来。这就是为什么我们坚持归档原始网页。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-16-when-a-friend-deletes-account.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-16">2026-10-16</time>
+      <h1>当好友注销了账号：从「页面不存在」到 WARC 里复活的高中同桌</h1>
+      <p class="summary">一位高中好友注销了豆瓣，原始广播化作「呃...你想访问的页面不存在」，当年的转发引用沦为「[ 该广播仅作者本人可见 ]」；但翻开四年前打下的 Doubak WARC 档案，当年的同桌回忆、原始头像与 62 部书影音短评，原封不动地在本地醒来。这就是为什么我们坚持归档原始网页。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        前几天，我想在豆瓣上找一位老朋友。
+      </p>
+
+      <p>
+        在关注列表（<code>contacts</code>）和被关注列表（<code>rev_contacts</code>）里反复翻了几遍，一无所获。
+        记忆里我们明明曾在很多条广播和电影下互动过，但人就像从数字世界里蒸发了一样。
+      </p>
+
+      <p>
+        凭借当年残存的线索，我终于顺着数字 UID 摸到了 TA 的豆瓣个人主页（<code>douban.com/people/69305634/</code>）。
+        然而迎面而来的，不是熟悉的动态，而是一块冰冷的灰色墓碑：
+      </p>
+
+      <pre><code>该用户已经主动注销账号。
+注销时间：2025-05-31 13:13:34
+&gt;取消关注</code></pre>
+
+      <p>
+        注销时间定格在 2025 年 5 月底。
+        主动注销后，豆瓣系统抹掉了 TA 的一切公开展示。
+      </p>
+
+      <h2>坍塌的语境：「呃...你想访问的页面不存在」</h2>
+
+      <p>
+        我试着点开 TA 当年在 2018 年发出的那条广播原链接（<code>douban.com/people/69305634/status/2181565157/</code>）。
+        浏览器直接跳出了豆瓣经典的 404 页面：
+      </p>
+
+      <div class="callout warn">
+        <p><strong>呃...你想访问的页面不存在</strong></p>
+        <p>觉得这里有点误导？要不，去豆瓣首页看看？或者搜索其他内容？</p>
+      </div>
+
+      <p>
+        原帖已经彻底消失了。
+        那么我自己的广播时间线呢？
+        顺着历史，我找到了自己在 2018 年 6 月 28 日发出的那条转发广播（<a href="https://www.douban.com/people/mewcatcher/status/2181605815/" rel="noreferrer noopener" target="_blank">status/2181605815</a>）：
+      </p>
+
+      <blockquote>
+        <p><em>“我也一直觉得我高三同桌就你了 哈哈哈哈 恃才傲物的咱俩一个人坐”</em></p>
+      </blockquote>
+
+      <p>
+        我的附言还在，照片还在。
+        但在今天的豆瓣线上页面上，上方被转发引用的原文区域，已经被替换成了一串冰冷的系统占位符：
+      </p>
+
+      <pre><code>[ 该广播仅作者本人可见 ]</code></pre>
+
+      <p>
+        <strong>语境被彻底切断了。</strong>
+        若干年后，如果一个不知情的人（甚至多年后记忆模糊的我本人）重新翻看这条广播，
+        只会看到一句突兀的「我也一直觉得我高三同桌就你了」，却再也看不到上一句是什么、是谁在回忆高三同桌、为什么会提到「男女不允许同坐」。
+        平台通过把原内容置换为 404 与遮罩，不仅抹去了离开者的痕迹，也在无声无息中侵蚀了留下者的记忆上下文。
+      </p>
+
+      <h2>从 2022 年的 WARC 琥珀中苏醒</h2>
+
+      <p>
+        万幸的是，豆备（Doubak）从第一天起就坚持抓取并封存标准的原始网页档案（WARC）。
+      </p>
+
+      <p>
+        我翻出了自己在 2022 年底打下的全量归档包（<code>doubak-bundle-20221225T181500Z-98e6c6</code>）。
+        那时候是 2022 年 12 月，距离这位好友注销账号还有整整两年半。
+      </p>
+
+      <p>
+        打开其中的广播归档切片 <code>data-20221225T181500Z-98e6c6-00001.warc.gz</code>，定位到第 80 页广播（<code>statuses?p=80</code>），
+        四年前服务器返回的原始 HTML 字符，在终端中原汁原味地重现了：
+      </p>
+
+      <blockquote>
+        <p>
+          <strong>了凡</strong>（原广播 <a href="https://www.douban.com/people/69305634/status/2181565157/" rel="noreferrer noopener" target="_blank">status/2181565157</a>）：<br>
+          <em>“高中，我们都不允许男女坐……不过我觉得高中最后阶段，老夏也算是我同桌了吧！ @MewX”</em>
+        </p>
+        <p>
+          <strong>MewX 转发附言</strong>（<a href="https://www.douban.com/people/mewcatcher/status/2181605815/" rel="noreferrer noopener" target="_blank">status/2181605815</a>）：<br>
+          <em>“我也一直觉得我高三同桌就你了 哈哈哈哈 恃才傲物的咱俩一个人坐”</em>
+        </p>
+      </blockquote>
+
+      <p>
+        在这一份 2022 年的本地快照里：
+      </p>
+
+      <ul>
+        <li>TA 当时的豆瓣昵称：<strong>「了凡」</strong>；</li>
+        <li>TA 当时的头像图片：<code>https://img9.doubanio.com/icon/u69305634-14.jpg</code>；</li>
+        <li>TA 当时的原话、艾特符号、被转发的广播 ID、那一刻的点赞数与回应数；</li>
+        <li>甚至包含转播卡片里渲染的完整 DOM 结构。</li>
+      </ul>
+
+      <p>
+        在由豆备静态站点生成器离线渲染的公开样张站上，这条广播在时间线上的记录同样得到了永恒的安放：<br>
+        👉 <a href="https://sample.doubak.com/broadcast/2018-06.html#2018-06-28-202052">sample.doubak.com/broadcast/2018-06.html#2018-06-28-202052</a>
+      </p>
+
+      <p>
+        无论豆瓣线上如何删改、替换或者注销，这枚离线生成的页面不发出一个外部网络请求，永远停驻在那个 2018 年夏天的夜晚。
+      </p>
+
+      <h2>不止广播：书影音里 62 处未被磨灭的共鸣</h2>
+
+      <p>
+        广播只是一次偶发的对话，但在豆瓣这样的兴趣社区，真正的精神共鸣散落在书影音的长河里。
+      </p>
+
+      <p>
+        当一位用户注销后，豆瓣数据库将 TA 的所有历史评论重命名为 <code>豆友69305634</code> 或匿名散列，头像全黑；而在很多公域条目下，注销账号的短评甚至会被彻底折叠。
+      </p>
+
+      <p>
+        但由于豆备在登录态下抓取条目作品详情页时，忠实地将包含个人社交视角的原始页面写入了 <code>catalog-*.warc.gz</code>，详情页右侧边栏的<strong>「好友评价 / 我关注的人的评价」</strong>模块把这位好友当年的足迹完整冻结了下来。
+      </p>
+
+      <p>
+        在我的档案库里，一共有 <strong>62 部作品</strong>记录下了「了凡」当年的打分与真实短评。在我们的样张库和归档底片中，随时可以查阅这些珍贵的印记：
+      </p>
+
+      <ul>
+        <li>
+          读书 · <a href="https://sample.doubak.com/book/4820710.html">《1984》</a>（豆瓣原页 <a href="https://book.douban.com/subject/4820710/" rel="noreferrer noopener" target="_blank">subject/4820710</a>）：<br>
+          评价：★★★★☆（推荐，2017-12-29）· <em>“读起来心肝颤……”</em>
+        </li>
+        <li>
+          电影 · <a href="https://sample.doubak.com/movie/1292365.html">《活着》</a>（豆瓣原页 <a href="https://movie.douban.com/subject/1292365/" rel="noreferrer noopener" target="_blank">subject/1292365</a>）：<br>
+          评价：★★★★★（力荐，2018-02-14）· <em>“看不下去，太惨了”</em>
+        </li>
+        <li>
+          电影 · <a href="https://sample.doubak.com/movie/1889243.html">《星际穿越》</a>：<br>
+          评价：★★★★★（力荐）· <em>“脑洞打开，这种片只有电影院看才过瘾”</em>
+        </li>
+        <li>
+          电影 · <a href="https://sample.doubak.com/movie/21318488.html">《消失的爱人》</a>：<br>
+          评价：★★★★★（力荐）· <em>“看完不想结婚了，如果婚姻都到了这种地步，还能说什么呢？后面的日子，两个人互相折磨”</em>
+        </li>
+        <li>
+          电影 · <a href="https://sample.doubak.com/movie/26303622.html">《大空头》</a>：<br>
+          评价：★★★★☆（推荐）· <em>“专业词汇比较多，说实话没怎么理解……( ･᷄ὢ&#x155;惕)”</em>
+        </li>
+        <li>
+          电影 · <a href="https://sample.doubak.com/movie/26357307.html">《花木兰》</a>：<br>
+          评价：★★★★☆（推荐，2020-09-12）· <em>“从哪里找了这么多中国景色，太厉害了。迪士尼免费给中国做的大外宣……”</em>
+        </li>
+        <li>
+          电影 · <a href="https://sample.doubak.com/movie/30176393.html">《误杀》</a>：<br>
+          评价：★★★☆☆（还行）· <em>“翻拍得没有原版好，虽然原版我是后看的。结局为了主旋律作了生硬改动……”</em>
+        </li>
+      </ul>
+
+      <p>
+        以及《哆啦A梦》下的<em>“怎么能少了你！”</em>、《侏罗纪公园》下的<em>“老片子的配音不是很喜欢…”</em>……<br>
+        62 部作品，跨越近十年。
+        这些文字在当下的互联网上已经难觅踪影，但在本地的 WARC 档案里，TA 的喜怒哀乐如同昨日。
+      </p>
+
+      <h2>技术底线：为什么「抽取字段」无法替代「原始网页」</h2>
+
+      <p>
+        这件事情在技术上给了我们极大的震撼与启发。
+      </p>
+
+      <p>
+        市面上绝大多数备份工具，其实现逻辑都是「抽取当下关心的字段」：
+        写几行正则或 CSS 选择器，提取 <code>title</code>、<code>content</code>、<code>rating</code>，然后导出一张 Excel 表格或者存入一个私有数据库。
+      </p>
+
+      <div class="callout">
+        <p><strong>抽取型备份的天然盲区：</strong></p>
+        <p>
+          在编写爬虫工具的那一刻，开发者会预设「哪些属于你的数据」——
+          你的广播正文属于你，你的评分属于你；但别人被转播的话呢？别人的头像呢？条目侧边栏里好友的短评呢？<br>
+          它们会被当作「第三方冗余」毫不留情地丢弃。
+          而一旦对方注销或平台屏蔽，这份只剩孤零零单向输出的抽取文件，立刻沦为一段失去上下文的断章残句。
+        </p>
+      </div>
+
+      <p>
+        这正是我们坚持将 <a href="/log/2026-07-23-why-warc.html">WARC 作为豆备核心格式</a>的根本原因：
+      </p>
+
+      <ol>
+        <li>
+          <strong>WARC 是不可篡改的「胶卷底片」</strong>：
+          它忠实保存了网络请求在 wire protocol 上的每一个字节。它不预设立场，不猜度你未来想看什么，而是把那一刻浏览器接收到的整个 DOM 视界完整封存；
+        </li>
+        <li>
+          <strong>冲洗权永远在本地</strong>：
+          今天的 <code>doubak-data-parser</code> 可能只提取了正文和标记动作；
+          但在未来任何时候，只要我们升级解析器，就能直接在本地离线重跑——无需任何网络请求，也不用担心页面变成了 404，就能随时从历史 WARC 底片中重新冲洗出「被转发引言」、「好友短评网络」与「互动树」。
+        </li>
+      </ol>
+
+      <h2>后续演进</h2>
+
+      <p>
+        这次偶发的寻人经历，直接促成了我们对后续工具链的规划：
+      </p>
+
+      <ul>
+        <li>
+          <strong>广播引言的结构化规范</strong>：在 <code>doubak-data-specs</code> 与 <code>doubak-data-parser</code> 中，推进 <code>repost_source</code> / <code>quote</code> 字段的解析标准，把广播被引用的作者、昵称与正文以第一等公民沉淀入 <code>broadcasts.ndjson</code>；
+        </li>
+        <li>
+          <strong>静态站的引言卡片渲染</strong>：在 <code>doubak-site-generator</code> 中，补全转发广播的嵌套卡片视图，即使线上原文已逝，离线镜像依然能展现完整的对话脉络；
+        </li>
+        <li>
+          <strong>条目好友互动的离线索引</strong>：探索从 <code>catalog-*.warc.gz</code> 中离线聚合「好友共读共看」视角的可能性。
+        </li>
+      </ul>
+
+      <p>
+        互联网不是坚固的石碑，它是一片不断流动的沙滩。
+        账号会注销，帖子会被删，链接会 404，曾经形影不离的朋友也会在数字浪潮里悄然走散。
+      </p>
+
+      <p>
+        但只要你亲手把网页原样存进本地硬盘，
+        那个并肩坐在高三教室里、恃才傲物的阳光午后，就永远不会被风吹走。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-10-16-game-marks-and-active-coverage.html">更早：游戏评分成了访问者的：条目边界、缺席权威，与抓取中途的覆盖率 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
