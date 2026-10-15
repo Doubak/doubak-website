@@ -102,21 +102,32 @@
         平台通过把原内容置换为 404 与遮罩，不仅抹去了离开者的痕迹，也在无声无息中侵蚀了留下者的记忆上下文。
       </p>
 
-      <h2>从 2022 年的 WARC 琥珀中苏醒</h2>
+      <h2>从 2022 年的 WARC 琥珀与 GitHub 抓取历史中苏醒</h2>
 
       <p>
         万幸的是，豆备（Doubak）从第一天起就坚持抓取并封存标准的原始网页档案（WARC）。
+        而且早在这个独立备份体系成型前，作者就在自己的博客生成器仓库中完整留存了历史抓取的原始 HTML 网页。
       </p>
 
       <p>
-        我翻出了自己在 2022 年底打下的全量归档包（<code>doubak-bundle-20221225T181500Z-98e6c6</code>）。
-        那时候是 2022 年 12 月，距离这位好友注销账号还有整整两年半。
+        翻开 GitHub 上的历史仓库：<br>
+        👉 <a href="https://github.com/MewX/mewx.github.io-Generator/tree/master/data/doubak/collector" target="_blank" rel="noreferrer noopener">MewX/mewx.github.io-Generator 的 data/doubak/collector 历史抓取目录</a>
       </p>
 
       <p>
-        打开其中的广播归档切片 <code>data-20221225T181500Z-98e6c6-00001.warc.gz</code>，定位到第 80 页广播（<code>statuses?p=80</code>），
-        四年前服务器返回的原始 HTML 字符，在终端中原汁原味地重现了：
+        在四年前的这份快照文件 <a href="https://github.com/MewX/mewx.github.io-Generator/blob/master/data/doubak/collector/20221225.1826_broadcast_p80.html#L2336-L2352" target="_blank" rel="noreferrer noopener">20221225.1826_broadcast_p80.html 第 2336-2352 行</a>中（以及 2022 年底打下的全量归档包 <code>doubak-bundle-20221225T181500Z-98e6c6</code> 广播切片 <code>data-20221225T181500Z-98e6c6-00001.warc.gz</code> 中），
+        那段已被线上永久抹杀的同桌对话，白纸黑字地公开留存在版本库中：
       </p>
+
+      <div style="display:flex;align-items:center;gap:14px;margin:1.2em 0 1.2em;padding:12px 16px;background:var(--bg-alt);border-radius:var(--radius);border:1px solid var(--line);">
+        <img src="/assets/screenshots/2026-10-16-friend-avatar-liaofan.jpg" alt="了凡当时的豆瓣头像" width="48" height="48" style="border-radius:50%;display:block;border:1px solid var(--line);flex:none;">
+        <div>
+          <div style="font-weight:600;font-size:1.05rem;">了凡 <span class="dim" style="font-size:0.85rem;font-weight:normal;">(UID: 69305634 · 2025-05-31 注销)</span></div>
+          <div class="dim" style="font-size:0.85rem;margin-top:2px;">
+            原头像地址：<a href="https://img9.doubanio.com/icon/u69305634-14.jpg" target="_blank" rel="noreferrer noopener">img9.doubanio.com/icon/u69305634-14.jpg</a>（本地存档完好保存）
+          </div>
+        </div>
+      </div>
 
       <blockquote>
         <p>
@@ -130,18 +141,76 @@
       </blockquote>
 
       <p>
-        在这一份 2022 年的本地快照里：
+        顺着原始 HTML 的 DOM 结构深挖，我们甚至还原出了整场对话的起因：<br>
+        当年引发这段感慨的，其实是友邻 29° 发的一条广播（<a href="https://www.douban.com/people/43079046/status/2181490141/" rel="noreferrer noopener" target="_blank">status/2181490141</a>），标题叫<strong>「这才是真正的天台喊话吧」</strong>，附带了整整 8 张高中生在天台上呼喊青春的组图。
+        了凡看到天台喊话后想起了高中岁月，便转发并 @ 了老夏；老夏随即转发附言，并将这 8 张图片一起转播到了自己的时间线上。
       </p>
 
-      <ul>
-        <li>TA 当时的豆瓣昵称：<strong>「了凡」</strong>；</li>
-        <li>TA 当时的头像图片：<code>https://img9.doubanio.com/icon/u69305634-14.jpg</code>；</li>
-        <li>TA 当时的原话、艾特符号、被转发的广播 ID、那一刻的点赞数与回应数；</li>
-        <li>甚至包含转播卡片里渲染的完整 DOM 结构。</li>
-      </ul>
+      <p>
+        这 8 张当年的天台喊话照片，如今在豆瓣线上同样被层层设障，但豆备已经在样张库中将它们完整下载并持久化（支持点击查阅大图）：
+      </p>
+
+      <div class="shots" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 1.5em 0;">
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/ecb2ef21f472b23.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/ecb2ef21f472b23.jpg" alt="天台喊话 1" loading="lazy">
+          </a>
+        </figure>
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/7ef16f04fb9e62e.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/7ef16f04fb9e62e.jpg" alt="天台喊话 2" loading="lazy">
+          </a>
+        </figure>
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/dfafca69527c6dd.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/dfafca69527c6dd.jpg" alt="天台喊话 3" loading="lazy">
+          </a>
+        </figure>
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/44a649da151f79e.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/44a649da151f79e.jpg" alt="天台喊话 4" loading="lazy">
+          </a>
+        </figure>
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/66ae8da4c25936f.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/66ae8da4c25936f.jpg" alt="天台喊话 5" loading="lazy">
+          </a>
+        </figure>
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/4de1e8fbc49033e.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/4de1e8fbc49033e.jpg" alt="天台喊话 6" loading="lazy">
+          </a>
+        </figure>
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/5b5fae34d3f0135.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/5b5fae34d3f0135.jpg" alt="天台喊话 7" loading="lazy">
+          </a>
+        </figure>
+        <figure class="shot">
+          <a href="https://sample.doubak.com/uploads/d041cb52de4d2e7.jpg" target="_blank" rel="noreferrer noopener">
+            <img src="https://sample.doubak.com/uploads/d041cb52de4d2e7.jpg" alt="天台喊话 8" loading="lazy">
+          </a>
+        </figure>
+      </div>
+
+      <div class="callout">
+        <p><strong>技术插曲：关于图片的 HTTP Referer 防盗链</strong></p>
+        <p>
+          为什么直接打开豆瓣图床的图片地址（如 <code>img2.doubanio.com/view/status/...</code>）会经常报错？<br>
+          因为豆瓣 CDN（TencentEdgeOne）配置了严格的防盗链规则：如果请求头中不含 <code>Referer</code>，或者 <code>Referer</code> 来源不是 <code>douban.com</code>，服务器会直接掐断连接或返回 <code>HTTP 418: I'm a Teapot</code> / <code>HTTP 403: Forbidden</code>；只有带上 <code>Referer: https://www.douban.com/</code> 才能正常获取。<br>
+          这也是为什么任何依赖「仅保存图片链接」的轻量工具都会迅速失效——一旦账号注销或防盗链收紧，所有外链就会集体变成破损图标。而豆备通过抓取并将真实图片实体落地，彻底消除了对第三方 CDN 的任何依赖。
+        </p>
+      </div>
 
       <p>
-        在由豆备静态站点生成器离线渲染的公开样张站上，这条广播在时间线上的记录同样得到了永恒的安放：<br>
+        在随后的连续两年归档（
+        <a href="https://github.com/MewX/mewx.github.io-Generator/blob/master/data/doubak/collector/20231218.1037_broadcast_p96.html#L2697-L2725" target="_blank" rel="noreferrer noopener">2023 年快照</a> 与
+        <a href="https://github.com/MewX/mewx.github.io-Generator/blob/master/data/doubak/collector/20240811.1216_broadcast_p107.html#L2553-L2580" target="_blank" rel="noreferrer noopener">2024 年快照</a>
+        ）中，这条广播都清晰无误地存在着。
+      </p>
+
+      <p>
+        而在由豆备静态站点生成器离线渲染的公开样张站上，这条广播在时间线上的记录同样得到了永恒的安放：<br>
         👉 <a href="https://sample.doubak.com/broadcast/2018-06.html#2018-06-28-202052">sample.doubak.com/broadcast/2018-06.html#2018-06-28-202052</a>
       </p>
 
