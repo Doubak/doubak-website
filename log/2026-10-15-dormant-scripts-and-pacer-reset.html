@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>脚本里的验证码不是风控：假阳性、降速与恢复原速 —— 开发日志</title>
+<meta name="description" content="正常主页脚本源码里的「请输入验证码」让分类器如临大敌，默默触发了退避降速；排查假挑战之余，我们给面板补上了「恢复原速」按钮，并彻底梳理了断点恢复中的死锁。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-15-dormant-scripts-and-pacer-reset.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-15">2026-10-15</time>
+      <h1>脚本里的验证码不是风控：假阳性、降速与恢复原速</h1>
+      <p class="summary">正常主页脚本源码里的「请输入验证码」让分类器如临大敌，默默触发了退避降速；排查假挑战之余，我们给面板补上了「恢复原速」按钮，并彻底梳理了断点恢复中的死锁。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        昨天一位深度用户在实地抓取时报来了一连串让人匪夷所思的现象：
+      </p>
+
+      <blockquote>
+        <p>
+          「resume 的时候出现了 challenge 的输出，但是实际上根本没看到验证码，打开豆瓣网页访问也完全正常？
+          然后好像每输出一次这个 log 都会自动降速一级？最主要的是遇到这个 error 它也没有停下来让我处理，而是降速继续抓……
+          后来抓完了其他所有页面，它卡在最后一条，后台心跳不断刷屏『不自动恢复：豆瓣暂时限制了访问』，按继续毫无反应，
+          非得手动点一次暂停再点继续才终于跑完。」
+        </p>
+      </blockquote>
+
+      <p>
+        这串症状把好几个不同模块的毛病串在了一起。借着这起典型现场，我们把分类器判定、节奏退避以及断点恢复的全链路做了一次彻底大修。
+      </p>
+
+      <h2>案发一：脚本代码里的「验证码」不是风控</h2>
+
+      <p>
+        在反爬对抗中，豆瓣不仅会返回 HTTP 403 或 418，<strong>经常还会以 HTTP 200 返回包含验证码或限制提示的阻断页</strong>。
+        因此豆备的分类器（<code>classifier.js</code>）必须审视 HTML 正文，一旦发现「请输入验证码」、「有异常请求」或「访问过于频繁」，
+        必须将其拦截并标记为 <code>challenge</code> 或 <code>blocked</code>，绝不能当作正常数据存进 WARC。
+      </p>
+
+      <p>
+        但问题就出在「审视正文」上：早先的实现直接用正则搜索整份 HTML 字符串。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>豆瓣在未登录或正常公开个人主页中，嵌入了一段弹窗脚本：</strong>
+          这段脚本用于在用户点击「关注此人」时弹出人机校验弹窗。而在未压缩的 JavaScript 源码里，
+          白纸黑字写着：<code>请输入验证码</code>。
+        </p>
+      </div>
+
+      <p>
+        这段脚本只是一段躺在 <code>&lt;script&gt;</code> 标签里的静态源码，页面本身是一个 100% 正常的个人主页！
+        然而正则一扫，命中了关键字，分类器当场判定为 <code>verdict: 'challenge'</code>。
+      </p>
+
+      <p>
+        <strong>修复：只看渲染内容，不看沉睡的脚本。</strong>
+        我们在分类判定前引入 <code>stripScriptAndStyle</code>，先行抹掉 <code>&lt;script&gt;</code>、
+        <code>&lt;style&gt;</code>、<code>&lt;template&gt;</code> 以及所有 HTML 注释块。
+        脚本源码里的字符串不再构成风控证据。
+      </p>
+
+      <h2>案发二：遇到真挑战绝不能「偷偷降速继续抓」</h2>
+
+      <p>
+        排查顺带引出了一个更严重的违背设计行为：
+        为什么之前判定为 <code>challenge</code> 后，抓取循环没有停下来让人处理，反而降速继续抓其他页面？
+      </p>
+
+      <p>
+        翻看抓取主循环（<code>loop.js</code>）：
+        早先在 <code>awaiting_human</code> 分支中，它只是调用了 <code>pacer.slowDown()</code> 并记录了事件，
+        但<strong>漏掉了调用 <code>frontier.stop()</code></strong>，并直接返回了 <code>'failed'</code>。
+      </p>
+
+      <p>
+        这导致主循环以为这只是一次普通的单页抓取失败，于是接着从队列里取下一个条目继续发请求！
+        而在豆瓣已经明确阻断的情况下继续发起请求，正是把软限制升级成永久封号的标准危险路径。
+      </p>
+
+      <p>
+        我们在 <code>loop.js</code> 中将其纠正：<strong>遇到 <code>awaiting_human</code>，立即停机（<code>this._frontier.stop(...)</code>）并中断批次循环</strong>，
+        同时将当前条目记录为带 URL 的等待缺口，保证整场抓取立即刹车，等待用户在真浏览器里人工处理。
+      </p>
+
+      <h2>新功能：给用户一把「恢复原速」的扳手</h2>
+
+      <p>
+        Pacer（节奏控制器）是豆备的防撞墙中枢，为了防御风控，它的退避层级设计为<strong>只增不减</strong>：
+        从基准的 1 秒依次翻倍到 2 秒、4 秒、8 秒……
+      </p>
+
+      <p>
+        这种保守在面对真实风控时是对的。但一旦遭遇偶发的假阳性、或短暂的网络抖动后，
+        抓取节奏被永远锁死在很慢的层级，几千张封面可能要爬上好几个小时。
+      </p>
+
+      <p>
+        我们在扩展面板概览中增加了 <strong><code>[ 恢复原速 ]</code></strong> 按钮：
+      </p>
+
+      <ul>
+        <li>只要当前处于降速状态（<code>backoffLevel &gt; 0</code>），无论是运行中还是暂停中，均醒目展示「已降速 N 级」与恢复按钮；</li>
+        <li>后台提供安全的 <code>resetPacer</code> RPC 通道，一键将 Pacer 等级重置为 0（恢复 1 秒基准间隔），并同步更新到 OPFS 断点。</li>
+      </ul>
+
+      <h2>案发三：只剩等待条目时的心跳死锁</h2>
+
+      <p>
+        最精彩的则是最后那个死锁：
+        为什么抓到最后只剩 1 个等待条目时，后台心跳会不断循环「不自动恢复：豆瓣暂时限制了访问」，
+        点击「继续」毫无反应，非得手动「暂停」再「继续」才跑通？
+      </p>
+
+      <p>
+        沿着状态机排查，还原出了这条令人啼笑皆非的死锁链条：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>步骤</th><th>发生了什么</th><th>深层后果</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1. 队列只剩 1 条</td>
+            <td>其他 25 条封面全部成功，唯一剩下主页条目处于 <code>awaiting_human</code>。</td>
+            <td><code>frontier.hasReady()</code> 为 false，驱动层判定这一批 <code>done = true</code>，但 <code>stoppedBy</code> 却是 <code>null</code>。</td>
+          </tr>
+          <tr>
+            <td>2. 后台盲目降级</td>
+            <td><code>background.js</code> 收到 <code>done &amp;&amp; awaitingHuman</code>，见 <code>stoppedBy</code> 为空，直接降级为 <code>pauseRun('blocked')</code>。</td>
+            <td>Supervisor 镜像被记成永久封锁。根据策略，心跳每 30 秒判一次「不可自动恢复」。</td>
+          </tr>
+          <tr>
+            <td>3. 用户点击继续被拒</td>
+            <td>用户按下了「继续」，调用 <code>runner.resume()</code>。</td>
+            <td>在内存中，<code>frontier.stopped</code> 实际为 false！代码判定 <code>if (!stopped) return alreadyRunning</code>，<strong>直接退出了，没有把等待条目重排入队！</strong></td>
+          </tr>
+          <tr>
+            <td>4. 暂停打破死锁</td>
+            <td>用户被逼无奈，按了「暂停」，再按「继续」。</td>
+            <td>暂停把 <code>frontier.stopped</code> 强行置为了 true。下一次继续时，才终于触发了 <code>frontier.clearStop({ resumeHuman: true })</code>，把卡住的条目放回 pending，成功抓完收尾！</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        找到了症结，修复便水到渠成：
+      </p>
+
+      <ol>
+        <li><strong>停滞时显式停机</strong>：<code>runBatch</code> 当检测到无 ready 条目但存在 <code>awaitingHuman</code> 时，准确取其具体原因（如 <code>challenge</code>）停机并返回 <code>stoppedBy</code>，不再遗留 null。</li>
+        <li><strong>内存恢复放行</strong>：<code>runner.resume()</code> 不再单纯以 <code>frontier.stopped</code> 为门槛，只要存在 <code>awaitingHumanItems</code>，必须执行 <code>clearStop({ resumeHuman: true })</code> 将其重新放回队首。</li>
+        <li><strong>断点冷恢复补齐</strong>：从本地磁盘断点重新拉起抓取时（<code>!loadOnly</code>），同样调用 <code>clearStop({ resumeHuman: true })</code>，杜绝死锁。</li>
+        <li><strong>治愈连续性缺口</strong>：<code>awaiting_human</code> 条目采用带 URL 的 <code>recordGap</code> 记录，在用户解决验证码并成功重试抓取后，能够被 <code>resolveGap</code> 准确消除，完好无损地证明归档连续性。</li>
+      </ol>
+
+      <p>
+        一套在真实浏览器里跑出来的工具，最宝贵的就是这些在复杂多变的网络现实中撞出来的边角用例。
+        所有改动与 4 项新增回归测试现已合并入分支，感谢大家的细心反馈与现场日志！
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-10-14-nickname-and-site-title.html">更早：叫「MewX的豆瓣存档」，以及多账号公开归档 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

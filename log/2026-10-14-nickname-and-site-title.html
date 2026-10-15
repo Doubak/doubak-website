@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>叫「MewX的豆瓣存档」，以及多账号公开归档 —— 开发日志</title>
+<meta name="description" content="不只是用户名与 UID：从数据规范、解析器到站点生成器，全链路沉淀用户昵称；支持以公开主页网址快速开启他人归档，并确立全局单任务互斥与凭据隔离底线。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-14-nickname-and-site-title.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-14">2026-10-14</time>
+      <h1>叫「MewX的豆瓣存档」，以及多账号公开归档</h1>
+      <p class="summary">不只是用户名与 UID：从数据规范、解析器到站点生成器，全链路沉淀用户昵称；支持以公开主页网址快速开启他人归档，并确立全局单任务互斥与凭据隔离底线。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        在过去几版的豆备中，生成的离线静态站点首页顶部赫然印着一行大字：
+        <code>154611037 的豆瓣存档</code>（或者一个冷冰冰的拼音用户名 slug）。
+        对人来说，这是令人出戏的：我们在网络空间里被朋友呼唤、在书影音讨论区被认出的名字，
+        从来都不是那一串阿拉伯数字或 URL 路径，而是我们亲手填写的<strong>昵称</strong>。
+      </p>
+
+      <p>
+        「能不能直接叫『MewX的豆瓣存档』？」
+        一句看似简单的直觉需求，落到多仓库、跨链路的体系里，其实是一次系统性的演进。
+      </p>
+
+      <h2>三位一体的身份体系：UID、用户名与昵称</h2>
+
+      <p>
+        豆瓣的账号标识长期存在三种形态，各自承担完全不同的职责：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>标识</th><th>形态</th><th>特点</th><th>在豆备中的职责</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>数字 UID</td>
+            <td><code>154611037</code></td>
+            <td><strong>全局唯一、终身不可变</strong></td>
+            <td>档案链（chain）、增量比对与去重的唯一权威锚点。</td>
+          </tr>
+          <tr>
+            <td>用户名（Slug）</td>
+            <td><code>mewx</code></td>
+            <td>可自定义、可注销再占用</td>
+            <td>构成个人主页 URL，用于定位与翻页入口路由。</td>
+          </tr>
+          <tr>
+            <td>昵称（Nickname）</td>
+            <td><code>MewX</code></td>
+            <td><strong>用户展示名、富文本、可频繁修改</strong></td>
+            <td>人机可读标识；站点标题、NDJSON 导出与归档人称呼。</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        早先为了追求确定性，数据格式与解析器将数字 UID 奉为唯一真神，而丢弃了展示昵称。
+        现在我们为它补齐了完整的生命周期：
+      </p>
+
+      <ul>
+        <li>
+          <strong>规范先行（<code>doubak-data-specs</code> #5）</strong>：
+          在 Bundle v1 规范与 Canonical NDJSON 规范中，正式加入 <code>account.nickname</code> 字段；
+          明确昵称为 <code>string | null</code>，空值不假造。
+        </li>
+        <li>
+          <strong>抽取与增量合一（<code>doubak-data-parser</code> #8）</strong>：
+          从主页 <code>#db-usr-profile</code> 区域的 <code>&lt;h1&gt;</code> 文本或头像 <code>alt</code> 中稳定抽取昵称，
+          经过单趟 HTML 实体解码还原。在增量合并（<code>mergeRecords</code>）时，按数字 UID 将最新确认的昵称向下游稳定继承。
+        </li>
+        <li>
+          <strong>站点动态标题（<code>doubak-site-generator</code> #5）</strong>：
+          站点生成器按级联规则确定站点名：优先取 <code>--site-title</code> 显式指定值，
+          其次取档案中的 <code>&lt;nickname&gt;的豆瓣存档</code>，无昵称时优雅回退为 <code>&lt;username&gt;的豆瓣存档</code>，
+          最后兜底为「豆瓣存档」。同时在全站导航栏、页头与 HTML <code>&lt;title&gt;</code> 中保持一致。
+        </li>
+      </ul>
+
+      <h2>公开他人归档与凭证隔离</h2>
+
+      <p>
+        既然要生成像「MewX的豆瓣存档」这样有个人印记的展示站，很多用户提出的另一个高频场景是：
+        <strong>「我想为好友（或某个已退网豆友的公开主页）做一份镜像备份」</strong>。
+      </p>
+
+      <p>
+        这在技术上是可行的，因为豆瓣的标记列表、日记、动态大多处于公开可读状态。
+        我们在扩展面板中加入了统合的账号输入能力：不仅支持数字 UID，还支持直接粘贴完整的个人主页 URL
+        （如 <code>https://www.douban.com/people/mewx/</code>）。扩展会自动探测主页、核实 UID 与昵称，
+        并建立独立的档案集合。
+      </p>
+
+      <p>
+        但这里潜藏着一个极危险的陷阱：<strong>操作者会话污染</strong>。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>当你在浏览器里登录着自己的账号 A，去公开抓取他人账号 B 时：</strong>
+          如果扩展发出的所有请求都带上你的登录 Cookie，豆瓣对某些作品详情页会返回「你的已读标记」、「你的评分」或仅对好友可见的内容。
+          最终产出的「B 的档案」，里面悄悄混入了「A 的个人私密数据」——这是一次灾难性的数据污染。
+        </p>
+      </div>
+
+      <p>
+        为此，扩展引擎（<code>doubak-extension</code>）建立了<strong>操作者与目标账号的隔离契约</strong>：
+        在公开归档模式（<code>visibility: 'public'</code>）下，请求作品目录、通用条目时主动剥离操作者的身份凭据，
+        并在 manifest 中显式声明 <code>operator_user_id</code> 与 <code>visibility</code>，
+        保证公开档案里只存真正的公开可见数据。
+      </p>
+
+      <h2>铁律：绝不允许同时抓取多个账号</h2>
+
+      <p>
+        随着多账号支持的完善，有人问过：「既然我可以为不同的账号备份，那能不能开两个任务同时抓？」
+      </p>
+
+      <p>
+        答案在设计文档里被定为了不可逾越的<strong>绝对铁律：全局单抓取互斥，即使是不同账号也坚决不允许并发。</strong>
+      </p>
+
+      <p>
+        理由非常现实：
+      </p>
+
+      <ol>
+        <li>
+          <strong>豆瓣的风控是以 IP、会话与设备特征综合衡量的</strong>。
+          即使在不同账号间切分任务，来自同一个浏览器实例的并发请求在豆瓣眼里就是翻倍的频率攻击。
+          自适应退避器（Pacer）好不容易维持的平稳节奏会被瞬间打乱。
+        </li>
+        <li>
+          <strong>风控关联风险</strong>。
+          如果账号 B 的抓取动作踩中了豆瓣的人机验证或软封锁，浏览器 Cookie 容器中的账号 A
+          极可能随之一同被标记甚至封号。保护用户的豆瓣资产安全，永远高于跑得快。
+        </li>
+      </ol>
+
+      <p>
+        在代码实现上，全局互斥锁横跨 Service Worker 调度层、Offscreen 驱动层与面板 UI：
+        任何新抓取启动前，必须确认无任何处于活跃或未收尾状态的任务；
+        已有任务必须显式「收尾」或「中止」后，才允许开启下一个目标。
+      </p>
+
+      <p>
+        这一系列底层体系已全部合并进主线并在扩展中铺开。下一篇日志，我们将聊聊在实地抓取中踩到的另一个隐蔽坑：
+        为什么正常页面里的脚本源码会让抓取器如临大敌。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-10-15-dormant-scripts-and-pacer-reset.html">← 更新：脚本里的验证码不是风控：假阳性、降速与恢复原速</a>
+      <a href="/log/2026-10-11-resume-dropped-the-finished.html">更早：断点恢复只记下了未完成的，漏掉了已经抓过的 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
