@@ -282,7 +282,7 @@
     </p>
 
     <pre><code>doubak-neodb/       neodb-ndjson-import.zip ← 用于上传导入，附带说明文档
-doubak-canonical/   八个 .ndjson 结构化数据文件 + README.txt
+doubak-canonical/   九个 .ndjson 结构化数据文件 + README.txt
 doubak-markdown/    content/（每个页面独立 .md）与 static/（静态图片及搜索索引）</code></pre>
 
     <p>
@@ -388,8 +388,8 @@ npm run deploy # 部署至 Git 仓库根目录，支持一键发布至 GitHub Pa
 
     <p>
       站名默认使用账号昵称，缺失时回退到用户名或 UID；可用 <code>--site-title</code> 覆盖。
-      topic 广播的独立标题会显示并进入搜索。账号头像下载、favicon 和页眉 logo 尚待实现，
-      当前主页 HTML 中的头像链接不等于已保存头像文件。
+      topic 广播的独立标题会显示并进入搜索。仓库 main 已支持目标头像归档；Markdown 包含本地头像，Hugo 离线生成 favicon 和页眉图。
+      旧档案缺图时使用文字站名，不联网补图；主页 HTML 中的链接不等于已保存头像文件。
     </p>
 
     <div class="callout warn">
