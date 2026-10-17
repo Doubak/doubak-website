@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>舞台剧封面的漏网之鱼，与全链路多账号防线审计 —— 开发日志</title>
+<meta name="description" content="用 3.2 万条真实记录跑完爬虫、解析、多端导出与站点生成的完整闭环后，我们抓出了一张漏网的舞台剧封面；更重要的，是对三套 CLI 工具在面对多账号数据时的碰撞、铁律阻断与协同缺陷做了一次彻底的体检，并给出统一演进提案。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-17-full-flow-audit-and-multi-account-defenses.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-17">2026-10-17</time>
+      <h1>舞台剧封面的漏网之鱼，与全链路多账号防线审计</h1>
+      <p class="summary">用 3.2 万条真实记录跑完爬虫、解析、多端导出与站点生成的完整闭环后，我们抓出了一张漏网的舞台剧封面；更重要的，是对三套 CLI 工具在面对多账号数据时的碰撞、铁律阻断与协同缺陷做了一次彻底的体检，并给出统一演进提案。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        在软件工程里，合成数据和单元测试总是温文尔雅的。
+        字段排列整齐、字符编码干净、URL 格式永远标准规范。
+        但在真实世界里，豆瓣这个走过二十余年沧桑的网站，
+        它的每一处旧角落下都沉淀着历史的沉积岩。
+      </p>
+
+      <p>
+        今天，我们组织了一场覆盖全生态工具链的端到端大考：
+        从浏览器抓取扩展（<code>doubak-extension</code>）、规范解析器（<code>doubak-data-parser</code>）、
+        跨平台导出适配器（<code>doubak-export-adapters</code>）到离线静态站点生成器（<code>doubak-site-generator</code>）。
+      </p>
+
+      <p>
+        投入测试的两份真实档案，构成了绝佳的对照组：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>数据集</th><th>账号 UID / 昵称</th><th>归档模式</th><th>规模与特征</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>exports/</code></td>
+            <td><code>82160871</code>（MewX）</td>
+            <td>本人全量归档（<code>skip_catalog: false</code>）</td>
+            <td>34 份 Bundle、852 MB WARC、30,911 条捕获；横跨 15 年，含书影音游、日记（豆瓣私密+自定义私密）、长文、相册、豆列、加入小组与头像。</td>
+          </tr>
+          <tr>
+            <td><code>exports_3rd/</code></td>
+            <td><code>154611037</code>（三岐闻）</td>
+            <td>第三方公开轻量（<code>skip_catalog: true</code>）</td>
+            <td>3 份 Bundle、27 MB WARC、1,167 条捕获；跳过详情页快速抢救，包含图书、电影、早年舞台剧、广播、长文与豆列。</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h2>第一幕：一张舞台剧封面的奇幻漂流</h2>
+
+      <p>
+        在对第三方档案 <code>exports_3rd/</code> 进行解析时，一条 2012 年的标记吸引了注意：
+        那是百老汇经典音乐剧《妈妈咪呀！》（舞台剧条目 ID <code>10944605</code>）。
+      </p>
+
+      <p>
+        令人困惑的是：在生成的离线网页中，所有的图书和电影海报都完好无损地显示在本地，
+        唯独这部音乐剧的封面，在卡片上是一片空白。
+      </p>
+
+      <p>
+        翻看 WARC 捕获记录与爬虫规则，谜底瞬间解开：
+      </p>
+
+      <ul>
+        <li>豆瓣常规电影的海报路径形如：<code>img9.doubanio.com/view/photo/s_ratio_poster/public/p...jpg</code></li>
+        <li>常规图书与唱片的封面路径形如：<code>img1.doubanio.com/view/subject/m/public/s...jpg</code> 或 <code>.../spic/...</code></li>
+        <li>但早期的<strong>舞台剧专属海报</strong>，豆瓣服务器给出的路径却是：<br>
+        <code>https://img9.doubanio.com/pview/drama_subject_poster/small/public/8972fded86c3674.jpg</code></li>
+      </ul>
+
+      <p>
+        在扩展的爬虫过滤正则中，过去的匹配模式是：
+      </p>
+
+      <pre><code>/(?:img\d*\.doubanio\.com\/(?:view\/(?:subject|photo)|[blsp]pic)\/[^"'\s\)]+)/i</code></pre>
+
+      <p>
+        它只认 <code>view/</code>，却把以 <code>pview/drama_subject_poster</code> 起首的舞台剧图片，
+        当成了不相关的网页杂质，悄无声息地拒之门外！
+      </p>
+
+      <p>
+        我们在扩展的图片发现逻辑中迅速将正则拓宽为：
+      </p>
+
+      <pre><code>/(?:img\d*\.doubanio\.com\/(?:view\/(?:subject|photo)|pview\/(?:subject|photo|drama_subject_poster)|[blsp]pic)\/[^"'\s\)]+)/i</code></pre>
+
+      <p>
+        并为无论是详情页还是轻量列表页的舞台剧缩略图补充了完整的测试用例。
+      </p>
+
+      <p>
+        但比修补正则更让我们感到欣慰的，是下游工具的<strong>韧性与优雅降级</strong>：
+        面对这份在修复前就已抓取完毕、本地 WARC 确实缺了舞台剧封面的既有旧包，
+        站点生成器在从 WARC 抽取图片未果后，自动将该条目的 <code>douban_cover</code> 降级为 <code>null</code>，
+        无声地呈现为一个优雅的纯文本排版卡片。
+        整个生成过程<strong>零崩溃、零未捕获异常、零非零退出码</strong>。
+        这正是离线归档工具最宝贵的品质：不因任何一张图片的缺席而毁掉整座图书馆。
+      </p>
+
+      <h2>第二幕：端到端四步畅行——真实的 3.2 万条记录</h2>
+
+      <p>
+        在单账号正常流程下，两份数据集顺畅地跑通了全生命周期：
+      </p>
+
+      <h3>1. 解析器（<code>doubak-data-parser</code>）</h3>
+      <p>
+        面对 852 MB 的庞大历史归档，解析器在 10.3 秒内完成了对 67 个 WARC 段文件、30,911 条记录的逐字节 SHA-256 完整性检验。
+        在拓扑图分析中，它自动识别出用户在不同年份备份形成的 6 处分叉与重叠包，剔除重复段，平滑串接起 2,992 条标记、3,470 条广播、6 篇长文与 34 个加入小组，并精确萃取出第九文件 <code>profile.ndjson</code>。
+      </p>
+
+      <h3>2. 跨平台导出器（<code>doubak-export-adapters</code>）</h3>
+      <p>
+        在导出至 NeoDB、Letterboxd 与 Goodreads 时，各个适配器展现了极高的辨识敏锐度：
+      </p>
+      <ul>
+        <li><strong>NeoDB NDJSON</strong>：精准还原了 2,577 条广播状态演变历史；区分出 1 篇豆瓣锁闭日记（按公开导出）与 1 篇用户自定义私密日记（按 <code>visibility: 2</code> 仅提及者可见导出）；</li>
+        <li><strong>针对轻量模式的防御</strong>：在处理未抓取详情页的 <code>exports_3rd/</code> 时，NeoDB 适配器打印出清晰警示：<code>417 条没读到详情页，分不出电影还是剧集，按电影处理</code>；而 Letterboxd 适配器则拒绝猜测，坚决不把未知影视强行导出为电影，将它们全部列入 <code>check</code> 清单，杜绝污染用户的外部观影记录。</li>
+      </ul>
+
+      <h3>3. 站点生成器（<code>doubak-site-generator</code>）</h3>
+      <p>
+        在本地离线环境下，分别生成了 3,182 个页面与 528 个页面。
+        从 WARC 中解压出 3,132 张与 451 张离线图片，两份站点首页与全站标题准确呈现为《MewX的豆瓣存档》与《三岐闻的豆瓣存档》，头像多尺寸栅格化与客户端搜索索引（5,286 条，473 KB）一气呵成。
+      </p>
+
+      <h2>第三幕：撞击测试——当多账号档案放在同一个文件夹</h2>
+
+      <p>
+        如果一位用户在日常使用中，把父母的归档、朋友的归档和自己的归档，随手丢进了同一个 <code>exports/</code> 根目录，会发生什么？
+      </p>
+
+      <p>
+        我们将两份完全属于不同 UID 的档案混在一个目录下，对三款 CLI 工具发起了一场破坏性撞击测试（Chaos Test）。
+        结果揭示出了极有意思的<strong>防御断层</strong>：
+      </p>
+
+      <h3>1. Parser 的守门员铁律：Fail-Fast</h3>
+      <p>
+        运行 <code>node bin/parse.js /mixed/bundles/ /out</code>，控制台瞬间亮起红灯：
+      </p>
+
+      <pre><code>✖ 这个目录（含子目录）里混着 2 个账号的档案（154611037、82160871）。
+  一起解析会把它们合进同一份 canonical，而且事后分不开。
+  请分开放，或者确认它们真的属于同一个人之后加 --ignore-warnings。</code></pre>
+
+      <p>
+        解析器果断以退出码 <code>1</code> 退出，没有在磁盘上写下半个受污染的字节。
+        只有当运维人员明确知晓并附带 <code>--ignore-warnings</code> 时，才允许合并不阻断，但依然在输出报告中记录 <code>multiple_accounts: 1</code>。
+      </p>
+
+      <h3>2. Site Generator 的审美洁癖：拒绝生成双头怪兽</h3>
+      <p>
+        如果不小心把一份包含了两个 UID 的 Canonical 目录喂给站点生成器，
+        哪怕你在命令行里强行传入 <code>--site-title="家庭合集"</code>，它依然会在启动时立即崩溃退出：
+      </p>
+
+      <pre><code>Error: 输入中有多个账号（154611037、82160871）。请按账号分开生成站点。
+    at resolveSiteTitle (...)</code></pre>
+
+      <p>
+        它坚信：一个静态站点只能对应一个灵魂。如果混入了两个人的标记与动态，
+        那么头像算谁的？个人主页链接算谁的？书影音统计又算谁的？
+        坚决不妥协。
+      </p>
+
+      <h3>3. Export Adapters 的沉默盲区：防御链上的缺口</h3>
+      <p>
+        令人意外的是，当我们将这份混合 Canonical 喂给 <code>doubak-export-adapters</code> 时，
+        导出器却<strong>毫无感知、毫无报错地一路绿灯跑完</strong>。
+      </p>
+
+      <p>
+        它默默取了第一条记录命中的账号，将两人的观影历史全部打包塞进了同一个 NeoDB NDJSON 和 Letterboxd CSV 里！
+        如果用户把这个文件导入 NeoDB，另一个人的上千条观影与短评就会直接覆盖、污染他的真实账号。
+      </p>
+
+      <h3>4. 统一过滤参数的缺失</h3>
+      <p>
+        更进一步，当我们在三个 CLI 工具中尝试输入 <code>--account 82160871</code>，希望「只处理该目录下的这一个人」时，
+        现实同样骨感：
+      </p>
+      <ul>
+        <li><code>doubak-data-parser</code> 报 Exit Code 2：不认识 <code>--account</code> 开关；</li>
+        <li><code>doubak-export-adapters</code> 报 Exit Code 2：不认识 <code>--account</code> 开关；</li>
+        <li><code>doubak-site-generator</code> 虽然在参数解析器里有 <code>--account</code> 的占位符，但根本没有接驳到底层过滤逻辑，依然被多账号校验当场拦截。</li>
+      </ul>
+
+      <p>
+        换句话说，当前整个生态在多账号安全上，完全依赖于<strong>用户在文件系统层面肉身维护目录隔离</strong>。
+        一旦目录混杂，CLI 工具既无法安全指定提取，也无法优雅协同。
+      </p>
+
+      <h2>第四幕：推荐的修改方案</h2>
+
+      <p>
+        为抹平三端 CLI 的防御差异，并让豆备在多账号备份与自动化流水线中游刃有余，
+        我们提出以下四步演进方案：
+      </p>
+
+      <h3>第一步：补齐导出端的 Fail-Fast 前置拦截（即时防线）</h3>
+      <p>
+        在 <code>doubak-export-adapters</code> 的 <code>loadCanonical</code> 函数中，
+        读取各 NDJSON 时统一搜集 <code>account.user_id</code> 集合。
+        一旦发现存在多个不同 UID 且未指定单账号，立刻以退出码 <code>1</code> 阻断：
+      </p>
+
+      <pre><code>✖ 输入的 canonical 目录中包含多个账号的数据（154611037、82160871）。
+  直接导出可能导致第三方平台（NeoDB/Letterboxd/Goodreads）数据交叉污染。
+  请使用 --account &lt;uid&gt; 指定账号，或先按账号分别生成 canonical。</code></pre>
+
+      <p>
+        使导出器与解析器、站点生成器保持同一安全水位。
+      </p>
+
+      <h3>第二步：统一打通全链路 <code>--account &lt;uid&gt;</code> 过滤器</h3>
+      <p>
+        将 <code>--account &lt;uid&gt;</code> 确立为三大核心 CLI 的一等公民参数：
+      </p>
+
+      <ul>
+        <li>
+          <strong><code>doubak-data-parser</code></strong>：
+          扫描输入目录下的所有 bundle 时，按 <code>manifest.account.user_id</code> 进行预先过滤。
+          若指定了 <code>--account 82160871</code>，则自动忽略目录下的其他账号 bundle，仅用目标账号的包构建拓扑图并完成解析。
+          若目录中未找到该账号，给出包含已有账号列表的友好报错并退出。
+        </li>
+        <li>
+          <strong><code>doubak-export-adapters</code></strong>：
+          支持 <code>--account &lt;uid&gt;</code>。加载 Canonical 时仅过滤保留匹配该 UID 的 marks、broadcasts 与 profile 记录，从而允许用户直接从混合 Canonical 中安全抽离单账号导出。
+        </li>
+        <li>
+          <strong><code>doubak-site-generator</code></strong>：
+          真正启用 <code>--account &lt;uid&gt;</code>。在内存中对 Canonical 记录和 bundles 图片索引进行预过滤，使多账号混合目录可以直接被单账号站点生成命令消费。
+        </li>
+      </ul>
+
+      <h3>第三步：支持全自动批量分治输出（<code>--all-accounts</code>）</h3>
+      <p>
+        针对需要一次性备份全家或多个账号的脚本化场景，
+        提供 <code>--all-accounts</code> 选项。
+        工具检测到多账号时不再报错，而是自动按 UID 分流：
+      </p>
+      <ul>
+        <li>Parser 写入：<code>&lt;out_dir&gt;/&lt;uid&gt;/canonical/</code></li>
+        <li>Export Adapters 写入：<code>&lt;out_dir&gt;/&lt;uid&gt;/exports/</code></li>
+        <li>Site Generator 写入：<code>&lt;out_dir&gt;/&lt;uid&gt;/site/</code></li>
+      </ul>
+      <p>
+        省去用户编写 Shell 循环与字符串拼接的繁琐心智负担。
+      </p>
+
+      <h3>第四步：爬虫封面识别的前缀白名单泛化</h3>
+      <p>
+        为彻底避免类似舞台剧封面的漏网之鱼再次发生，
+        将扩展爬虫中对封面域名的匹配规则从枚举模式改为安全通配：
+      </p>
+
+      <pre><code>/(?:img\d*\.doubanio\.com\/(?:view\/(?:subject|photo)|pview\/[a-z_]+|[blsp]pic)\/[^"'\s\)]+)/i</code></pre>
+
+      <p>
+        对豆瓣未来可能采用的诸如 <code>music_subject_poster</code>、播客专属海报等新路径形成天然防御。
+      </p>
+
+      <h2>尾声：守住数据的边界与纯粹</h2>
+
+      <p>
+        离线数据备份是一项长跑。
+      </p>
+
+      <p>
+        一个优秀的归档系统，不仅要能在顺风顺水时跑得飞快、把网页和海报一张不落地点缀在本地；
+        更要在面对错综复杂的目录、历史遗留的异构格式以及多人混杂的数据时，
+        拥有守住数据边界、绝不越界制造垃圾数据的清醒与底线。
+      </p>
+
+      <p>
+        从那张漏网的百老汇舞台剧海报，到多账号防线的一体化演进，
+        豆备正在从「能用」，一步步走向真正的「可靠与严密」。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-10-17-account-avatar-and-site-icons.html">更早：从一个名字到一张脸：账号头像的 WARC 归档与纯离线安全栅格化 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
