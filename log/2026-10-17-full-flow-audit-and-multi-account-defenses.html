@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>舞台剧封面的漏网之鱼，与全链路多账号防线审计 —— 开发日志</title>
-<meta name="description" content="用 3.2 万条真实记录跑完爬虫、解析、多端导出与站点生成的完整闭环后，我们抓出了一张漏网的舞台剧封面；更重要的，是对三套 CLI 工具在面对多账号数据时的碰撞、铁律阻断与协同缺陷做了一次彻底的体检，并给出统一演进提案。">
+<meta name="description" content="用 3.2 万条真实记录跑完爬虫、解析、多端导出与站点生成的完整闭环后，我们抓出了一张漏网的舞台剧封面；更重要的，是对三套 CLI 工具在面对多账号数据时的碰撞、铁律阻断与协同缺陷做了一次彻底的体检，并完成全链路多账号隔离与子目录递归的落地与实测验证。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -39,7 +39,7 @@
     <div class="post-head">
       <time datetime="2026-10-17">2026-10-17</time>
       <h1>舞台剧封面的漏网之鱼，与全链路多账号防线审计</h1>
-      <p class="summary">用 3.2 万条真实记录跑完爬虫、解析、多端导出与站点生成的完整闭环后，我们抓出了一张漏网的舞台剧封面；更重要的，是对三套 CLI 工具在面对多账号数据时的碰撞、铁律阻断与协同缺陷做了一次彻底的体检，并给出统一演进提案。</p>
+      <p class="summary">用 3.2 万条真实记录跑完爬虫、解析、多端导出与站点生成的完整闭环后，我们抓出了一张漏网的舞台剧封面；更重要的，是对三套 CLI 工具在面对多账号数据时的碰撞、铁律阻断与协同缺陷做了一次彻底的体检，并完成全链路多账号隔离与子目录递归的落地与实测验证。</p>
     </div>
 
     <div class="post-body">
@@ -297,6 +297,130 @@
       <p>
         对豆瓣未来可能采用的诸如 <code>music_subject_poster</code>、播客专属海报等新路径形成天然防御。
       </p>
+
+      <h2>第五幕：落地成兵——全链路三阶段改造与深层子目录大考</h2>
+
+      <p>
+        审计报告出炉后，我们没有让方案停留在纸面上，
+        而是立即展开了对三套工具链的代码重构、契约同步、单测补全，
+        并用真实的 <code>exports/</code> 与 <code>exports_3rd/</code> 进行了全量破坏性与自动化隔离验证。
+      </p>
+
+      <h3>1. 三阶段核心改造与子目录递归落地</h3>
+
+      <ul>
+        <li>
+          <strong>Stage 1：对齐导出端 Fail-Fast 铁律</strong><br>
+          在 <code>doubak-export-adapters</code> 的 <code>loadCanonical</code> 与 <code>export.js</code> 中引入多账号识别。
+          当 Canonical 包含多个 UID 且未显式指定过滤时，立即以退出码 <code>1</code> 阻断，
+          彻底终结了导出端可能将多人记录混合写入 NeoDB、Letterboxd 或 Goodreads 的安全隐患。
+        </li>
+        <li>
+          <strong>Stage 2：统一全链路 <code>--account &lt;uid&gt;</code> 隔离过滤器</strong><br>
+          三大 CLI 工具全量打通单账号提取能力：
+          <ul>
+            <li><code>doubak-data-parser</code>：拓扑分析前按账号预过滤 bundle，同时智能沿 <code>previous_bundle_id</code> 与 <code>floor_from_bundle_id</code> 回溯保留链条中的无清单祖先包；</li>
+            <li><code>doubak-export-adapters</code>：纯内存高效过滤各类 NDJSON 实体，支持单账号安全导出；</li>
+            <li><code>doubak-site-generator</code>：过滤 Canonical 实体与原始图片索引，使混合数据也能直接生成纯净的个人专属站点。</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Stage 3：全自动批量分流（<code>--all-accounts</code>）与深层子目录递归感知</strong><br>
+          针对用户常见的「多层子文件夹」与「批量自动化」诉求进行深度升级：
+          <ul>
+            <li><strong>子目录递归与环路防护</strong>：将 <code>doubak-site-generator</code> 中的图片扫描（<code>indexImages</code>）重构为完整深层递归，引入 <code>realpathSync</code> 防软链接死循环，排除 <code>.git</code> 与 <code>node_modules</code> 噪音，并在命中 <code>index-*.ndjson</code> 时立即止步，绝不无谓下钻 WARC 段；</li>
+            <li><strong>自动探查 Canonical 目录</strong>：在 <code>export-adapters</code> 与 <code>site-generator</code> 中引入 <code>findCanonicalDirs</code>，不论 Canonical 是位于当前目录还是分散在各个子目录，工具均能自动发现；</li>
+            <li><strong><code>--all-accounts</code> 批量分流</strong>：三大 CLI 检测到多账号时不再报错，而是自动将产物隔离写入 <code>&lt;out_dir&gt;/&lt;uid&gt;/</code>（分账号 Canonical、分账号导出包、分账号独立站点）。</li>
+          </ul>
+        </li>
+      </ul>
+
+      <p>
+        代码改动完成后，全生态单元测试套件全部扩充并跑通：
+        新增了 <code>cli-account.test.js</code>、<code>multi-account-export.test.js</code> 与 <code>multi-account-and-nested-bundles.test.js</code>。
+        全项目 <strong>2,123 个单元测试全量 PASS</strong>（2,122 通过、1 跳过、0 失败），扩展端同步的 Vendor 纯函数逐字节对齐。
+      </p>
+
+      <h3>2. 真实归档大考实测数据</h3>
+
+      <p>
+        我们构造了一个同时包含 MewX 本人 15 年全量归档（含深层嵌套的 <code>20260806/</code> 子目录，共 34 个包、852 MB WARC、30,911 条捕获）与三岐闻第三方归档（3 个包、27 MB WARC、1,167 条捕获）的复杂混合目录，
+        对全链路进行了实地大考：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>测试环节与场景</th><th>执行命令</th><th>实测指标与运行结果</th><th>防线状态</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Parser 混合阻断</strong></td>
+            <td><code>parse.js &lt;mixedDir&gt; &lt;out&gt;</code></td>
+            <td>扫描 74 个段（879 MB）、32,078 条捕获并完成完整性校验；精准检测到混有 <code>154611037</code> 与 <code>82160871</code> 两账号；退出码 <code>1</code> 阻断，磁盘零写入。</td>
+            <td>✅ 成功 Fail-Fast</td>
+          </tr>
+          <tr>
+            <td><strong>Parser 单账号隔离</strong></td>
+            <td><code>parse.js ... --account 154611037</code></td>
+            <td>仅提取三岐闻 3 份档案（439ms），产出标记 448 条、作品 448 个、广播 461 条、长文 2 篇、豆列 2 份、小组 4 个，零串号。</td>
+            <td>✅ 完美隔离</td>
+          </tr>
+          <tr>
+            <td><strong>Parser 深度子目录隔离</strong></td>
+            <td><code>parse.js ... --account 82160871</code></td>
+            <td>成功穿透 <code>mewx_exports/20260806/</code> 嵌套子目录，合并 34 份档案（19s），产出标记 2,992 条、广播 3,470 条、长文 6 篇、相册 1 个、小组话题 3 篇。</td>
+            <td>✅ 完美隔离与递归</td>
+          </tr>
+          <tr>
+            <td><strong>Parser 批量分流</strong></td>
+            <td><code>parse.js ... --all-accounts</code></td>
+            <td>自动识别两账号，顺序分流解析并输出至 <code>canonical_all/82160871/</code> 与 <code>canonical_all/154611037/</code> 独立子目录。</td>
+            <td>✅ 自动化分治</td>
+          </tr>
+          <tr>
+            <td><strong>Export 混合阻断</strong></td>
+            <td><code>export.js &lt;mixedCanonical&gt; &lt;out&gt;</code></td>
+            <td><code>findCanonicalDirs</code> 自动探测到多个 Canonical 归档子目录，退出码 <code>1</code> 阻断，打印防污染警告。</td>
+            <td>✅ 成功 Fail-Fast</td>
+          </tr>
+          <tr>
+            <td><strong>Export 单账号导出</strong></td>
+            <td><code>export.js ... --account 154611037</code></td>
+            <td>自动定位三岐闻子目录，成功导出 NeoDB（标记 448 条、历史 385 条）、Letterboxd（417 条未知影视进 check 防污染）与 Goodreads（30 本图书）。</td>
+            <td>✅ 导出纯净</td>
+          </tr>
+          <tr>
+            <td><strong>Export 批量分流</strong></td>
+            <td><code>export.js ... --all-accounts</code></td>
+            <td>自动分流导出至 <code>exports/82160871/</code> 与 <code>exports/154611037/</code>，各自包含完整的平台导入包与《怎么导入.md》。</td>
+            <td>✅ 批量分流成功</td>
+          </tr>
+          <tr>
+            <td><strong>Site Gen 混合阻断</strong></td>
+            <td><code>generate.js &lt;mixed&gt; &lt;bundles&gt; &lt;out&gt;</code></td>
+            <td>自动识别多子目录与混合 UID，退出码 <code>1</code> 阻断，拒绝生成混乱站点。</td>
+            <td>✅ 成功 Fail-Fast</td>
+          </tr>
+          <tr>
+            <td><strong>Site Gen 单账号+深度图片</strong></td>
+            <td><code>generate.js ... --account 82160871</code></td>
+            <td>成功从 <code>20260806/</code> 深层子目录中递归检索出全部图片，生成 3,182 页、提取 covers 2,964 张与 uploads 168 张，站名与头像（<code>up82160871-12.jpg</code>）精准无误。</td>
+            <td>✅ 深层图片全量捕获</td>
+          </tr>
+          <tr>
+            <td><strong>Site Gen 批量分流</strong></td>
+            <td><code>generate.js ... --all-accounts</code></td>
+            <td>全自动批量构建，在 <code>site_all/82160871/</code>（3,182 页）与 <code>site_all/154611037/</code>（528 页）分别生成两个主题完整、头像独立、互不干扰的静态站点。</td>
+            <td>✅ 批量站点生成</td>
+          </tr>
+          <tr>
+            <td><strong>Flat 混合数据容灾</strong></td>
+            <td>对单目录手工拼合的混合 NDJSON 文件测试</td>
+            <td>针对极端的混合 canonical 文件，Fail-Fast、<code>--account</code> 与 <code>--all-accounts</code> 记录级内存过滤依然 100% 生效，无数据穿透。</td>
+            <td>✅ 极端容灾通过</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
 
       <h2>尾声：守住数据的边界与纯粹</h2>
 
