@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>从一个名字到一张脸：账号头像的 WARC 归档与纯离线安全栅格化 —— 开发日志</title>
+<meta name="description" content="既然有了「MewX的豆瓣存档」，为什么站点页眉还是空的？从扩展捕获父子关系绑定、规范第九文件 profile.ndjson，到 Hugo 本地离线多尺寸安全栅格化与透明内边距；顺带聊聊广播正文链接 unwrap 与 CRLF 换行分裂的防线。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-17-account-avatar-and-site-icons.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-17">2026-10-17</time>
+      <h1>从一个名字到一张脸：账号头像的 WARC 归档与纯离线安全栅格化</h1>
+      <p class="summary">既然有了「MewX的豆瓣存档」，为什么站点页眉还是空的？从扩展捕获父子关系绑定、规范第九文件 profile.ndjson，到 Hugo 本地离线多尺寸安全栅格化与透明内边距；顺带聊聊广播正文链接 unwrap 与 CRLF 换行分裂的防线。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        前几天，我们在《<a href="/log/2026-10-14-nickname-and-site-title.html">叫「MewX的豆瓣存档」，以及多账号公开归档</a>》中，
+        把站名从生硬冰冷的数字 UID 推进到了富有温度的用户昵称。
+      </p>
+
+      <p>
+        但当实际点开样张站 <a href="https://sample.doubak.com">sample.doubak.com</a> 时，
+        一种微妙的落差感依然存在：在浏览器标签页（Tab）上，是一枚空泛的默认网页图标；
+        在首页「MewX的豆瓣存档」这行大字旁边，没有那张熟悉的绿底小怪兽头像；
+        而在手机 Safari 里点击「添加到主屏幕」时，更是一块黑漆漆的占位方块。
+      </p>
+
+      <p>
+        对在豆瓣生活了十几年的人来说，头像从来不是一件可有可无的装饰物。
+        它是好友在广播时间线上一眼认出你的视觉指纹，是你数字身份的灵魂。
+      </p>
+
+      <p>
+        然而，给一份离线静态站点加上头像，远不像在 HTML 里写一行 <code>&lt;img src="..."&gt;</code> 那么轻巧。
+        为了让这张脸能在没有任何外部网络、甚至在数十年后的一块离线冷备份硬盘上原样浮现，
+        我们跨越了五个仓库，筑起了四道防线。
+      </p>
+
+      <h2>第一道防线：头像不是封面，它属于账号身份本身</h2>
+
+      <p>
+        豆备此前抓取图书与影视封面的逻辑十分纯粹：
+        只要列表页上有 <code>&lt;img class="cover" src="..."&gt;</code>，就推入资源队列抓取存入 <code>catalog-*.warc.gz</code>。
+      </p>
+
+      <p>
+        但账号头像<strong>绝不能</strong>混进这个通用的 URL 队列。
+      </p>
+
+      <p>
+        打开任何一个豆瓣页面，上面充斥着形形色色的头像图片：
+        顶部全局导航栏里有当前登录操作者的头像，日记与广播下方有其他豆友的回复头像，
+        豆列详情里有被推荐条目的作者头像……如果仅凭 URL 就把图片拉进仓库，
+        极容易在「登录者 A 抓取公开账号 B」或多账号合并时张冠李戴，把路人的头像当成了站长本人。
+      </p>
+
+      <p>
+        在扩展的爬虫实现中（<code>doubak-extension</code>），我们为头像建立了严格的<strong>父子捕获约束（Parent-Child Capture Evidence）</strong>：
+      </p>
+
+      <ul>
+        <li>
+          <strong>严格绑定主页观察</strong>：头像抓取任务（<code>asset.account_avatar</code>）只能由个人主页总览（<code>profile.overview</code>）的抓取动作派生，其 <code>parent_capture_id</code> 必须精确指向主页的 capture ID；
+        </li>
+        <li>
+          <strong>杜绝不透明跳转（<code>redirect: error</code>）</strong>：
+          浏览器在抓取资源时，如果服务端返回 301/302，默认 follow 无法逐跳拦截，而 manual 模式又受同源策略限制不暴露实际重定向 URL。为防范凭据泄露与未知 URL 污染，头像抓取明确要求 <code>redirect: error</code>，任何跳转直接拒绝；
+        </li>
+        <li>
+          <strong>重载与断点恢复</strong>：
+          头像任务随 bundle 派生并记录去重键。若中途发生页面刷新或 Service Worker 唤醒，已归档的主页不会被粗暴重抓，断点恢复逻辑能直接从已有的主页捕获记录中重新编排未完成的头像下载任务。
+        </li>
+      </ul>
+
+      <h2>第二道防线：规范先行——第九个文件 profile.ndjson</h2>
+
+      <p>
+        许多临时脚本在处理站长资料时，往往随手在生成器根目录写一个 <code>config.json</code> 了事。
+        但豆备的核心原则是：<strong>一切派生数据必须源于可独立自洽的客观观测，必须具备版本修订历史（Provenance &amp; Revision）</strong>。
+      </p>
+
+      <p>
+        在数据规范仓库 <code>doubak-data-specs</code> 中，我们正式发布了 <strong>Canonical 1.3 规范</strong>，确立了规范标准中的第九个核心文件：<code>profile.ndjson</code>。
+      </p>
+
+      <pre><code>{"canonical_version":"canonical/1.3","identity_layer":"upstream_id","upstream_id":"82160871","account":{"user_id":"82160871","username":"mewcatcher","nickname":"MewX"},"url":"https://www.douban.com/people/mewcatcher/","revisions":[{"parser_version":"doubak-data-parser/0.16.0","first_observed_at":"2026-07-31T14:34:37+10:00","last_observed_at":"2026-10-17T14:17:03+11:00","fields":{"username":"mewcatcher","nickname":"MewX","avatar_url":"https://img3.doubanio.com/icon/up82160871-12.jpg"},"observations":[...]}]}</code></pre>
+
+      <p>
+        每一行代表一个独立 UID 的用户资料。它记录了：
+      </p>
+
+      <ol>
+        <li><strong>确定性修订史</strong>：用户何时换过昵称、何时改过头像 URL？每一次变更都成为合法的修订版本，而不是后一次覆盖前一次；</li>
+        <li><strong>观测证据追溯</strong>：即使多次备份中头像 URL 一直未变，系统也会将每次抓取归入 <code>observations</code> 证据列表，清清楚楚记录它在何时、哪份 bundle 里被看见；</li>
+        <li><strong>空缺权威隔离</strong>：如果某次增量抓取由于网络抖动漏掉了头像图片，系统通过 <code>omitted_fields</code> 记录「本次未提供头像证据」，而绝不武断认定为「用户删除了头像」，更不会制造虚假的清空修订。</li>
+      </ol>
+
+      <p>
+        在解析器 <code>doubak-data-parser</code>（v0.16.0）中，新增的 <code>extract-profile.js</code> 仅从主页核心身份块提取信息，
+        严格交叉核验数字 UID，杜绝任何访客控件的干扰，产出洁净的 <code>profile.ndjson</code>。
+      </p>
+
+      <h2>第三道防线：全离线零 CDN 渲染与 Hugo 本地多尺寸栅格化</h2>
+
+      <p>
+        拿到了原始头像字节，静态站点生成器 <code>doubak-site-generator</code> 该怎么用？
+      </p>
+
+      <p>
+        在前端开发中，最偷懒的做法莫过于直接在 HTML 里留下 <code>&lt;img src="https://img3.doubanio.com/icon/up82160871-12.jpg"&gt;</code>。
+        但这彻底违背了豆备的第一立足点：<strong>备份站点必须在没有外网、甚至豆瓣服务器彻底停服时，依然能在本地双击直接浏览</strong>。
+        留下外部图片链接不仅依赖豆瓣 CDN 的存活，还会让用户在离线浏览时向第三方服务器泄露网络请求。
+      </p>
+
+      <p>
+        因此，生成器将头像资源解压至本地内容寻址路径 <code>assets/profile/&lt;UID&gt;/&lt;SHA256&gt;.&lt;ext&gt;</code>，
+        并通过内置的 Hugo 图像处理管道，在<strong>完全不发起任何外部网络请求</strong>的前提下，本地派生出三种标准的规范图：
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>目标尺寸</th><th>用途</th><th>HTML 呈现</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>32×32</code> PNG</td>
+            <td>浏览器 Favicon 标签页图标</td>
+            <td><code>&lt;link rel="icon" type="image/png" sizes="32x32" href="..."&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>180×180</code> PNG</td>
+            <td>iOS / Android 移动端添加到主屏幕</td>
+            <td><code>&lt;link rel="apple-touch-icon" sizes="180x180" href="..."&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>96×96</code> PNG</td>
+            <td>全站顶部页眉品牌大图（CSS 显示为 40×40）</td>
+            <td><code>&lt;img class="account-avatar" width="40" height="40" alt=""&gt;</code></td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        页眉头像按 96×96 渲染并以 40×40 展示，保证在 MacBook Retina 屏或高分手机屏幕上拥有极致细腻的视网膜显示效果。
+        同时，借由 Hugo 的 <code>relativeURLs = true</code>，所有生成的图标路径均为严格的本地相对路径，
+        无论在 <code>sample.doubak.com</code> 域名根目录下、二级子目录托管下、还是直接以 <code>file://</code> 协议双击打开，
+        链接无一例外全部畅通。
+      </p>
+
+      <h2>第四道防线：透明安全内边距、色表保护与坏图安全降级</h2>
+
+      <p>
+        在将头像实际应用到样张站的真实数据测试中，几个藏在图像格式深水区的暗礁浮出了水面：
+      </p>
+
+      <h3>1. 长方形头像的变形与透明补边（Transparent Padding）</h3>
+      <p>
+        用户的历史豆瓣头像不一定是完美的 1:1 正方形（许多十年前上传的头像存在长方形或其他宽高比）。
+        如果直接使用强制缩放，头像会被挤压变形；如果强制居中裁切（Crop），又可能把用户的脸部局部裁掉。
+      </p>
+
+      <p>
+        生成器采取的方案是：<strong>保持原始宽高比等比等比缩放至目标框内，其余空间动态注入安全内边距（Padding）</strong>。
+      </p>
+
+      <div class="callout warn">
+        <p>
+          <strong>为什么绝对不能用纯白底色补边？</strong><br>
+          如果在空白区域填上白色（<code>#ffffff</code>），在浅色背景下看似毫无破绽，但一旦用户切换到系统的<strong>暗色模式（Dark Mode）</strong>，
+          一个顶着刺眼白框的头像就会显得格格不入。
+        </p>
+      </div>
+
+      <p>
+        因此，我们在 Hugo 管道中通过动态几何计算，显式填补带完全 Alpha 通道的透明边框（<code>#00000000</code>）。
+        无论主题如何切换明暗，头像图标始终呈现自然的悬浮感。
+      </p>
+
+      <h3>2. 调色板 PNG 与 GIF 帧保护</h3>
+      <p>
+        在处理部分老旧的调色板（indexed-color）PNG 时，底层的图像库会复用原图像的色表，
+        导致填入的透明边距在缺乏透明通道定义的调色板中意外退化成纯黑色。
+        我们在测试中通过独立的像素扫描断言捕获了这一缺陷，并通过显式透明 process 滤镜彻底修复；
+        对于动图 GIF 头像，生成器精准提取首帧进行静态栅格化，避免静态浏览器标签页发生多帧渲染错乱。
+      </p>
+
+      <h3>3. 损坏图像的优雅降级</h3>
+      <p>
+        如果用户历史档案里的头像字节由于当年的网络丢包造成了损坏，会发生什么？
+      </p>
+
+      <p>
+        在 <code>doubak-site-generator</code> 的架构中，损坏的图片在构建期会被模板层的安全沙箱（<code>try (partial "avatar-icons.html" .)</code>）优雅拦截，
+        并在控制台输出明确告警，<strong>平滑回退为纯文字站名</strong>。
+        它既不会让耗时数分钟的整站构建崩溃中断，也绝不在最终页面上留下一枚碎裂的 <code>&lt;img&gt;</code> 破图标记。
+      </p>
+
+      <h2>插曲：广播里的链接活了，以及 CRLF 换行的幽灵分裂</h2>
+
+      <p>
+        在打磨头像闭环的同时，我们还顺带攻克了一个困扰已久的体验瑕疵：
+        在上一篇日志中提到的注销好友广播里，正文包含了外链与 <code>@豆友</code> 标记，
+        但在静态站上，它们曾是一段纯文本，无法点击。
+      </p>
+
+      <p>
+        为了修好这个问题，我们在数据层引入了 <code>text_parts: { text: string, url?: string }[] | null</code> 分段结构，
+        剥离豆瓣跳转防盗链（<code>link2/?url=...</code>），并在生成器中投影为 Markdown 超链接 <code>[text](url)</code>。
+      </p>
+
+      <p>
+        在这里，我们立下了一条铁律：<strong><code>parts.map(p =&gt; p.text).join('') === text</code></strong>。
+        分段提取绝不能增删或改变任何原始字符，确保旧版本解析器与纯文本摘要计算严格等价。
+      </p>
+
+      <p>
+        但就在这个看似顺理成章的改动中，潜伏进了一个教科书级的跨平台 Bug：
+        豆备的摘要算法（<code>digest.js</code>）有一条核心准则——「统一换行」，所有文本在计算 SHA-256 摘要前必须将 <code>\r\n</code> 替换为 <code>\n</code>，
+        避免 Windows 与 Linux 下因换行符差异产生假修订。
+      </p>
+
+      <p>
+        然而，当结构化对象（如 <code>text_parts</code>）被丢进 <code>JSON.stringify</code> 序列化时，
+        字符串里的回车换行被自动转义成了字面量 <code>\\r\\n</code>！
+        原有的单斜杠替换正则对它视若无睹，导致同一份档案在 Windows 和 Linux 机器上跑出的摘要截然不同，
+        硬生生将原本没有变动的广播劈成了两个互相冲突的修订版本。
+      </p>
+
+      <p>
+        在发现这一端倪后，我们立即在 <code>fieldDigest</code> 中为结构化 JSON 补上了转义换行的统一替换，
+        将这个潜藏已久的平台差异隐患彻底铲除。
+      </p>
+
+      <h2>结语：一张脸，一个名字，一个可以带走的家</h2>
+
+      <p>
+        今天，当你重新打开 <a href="https://sample.doubak.com">sample.doubak.com</a>：
+      </p>
+
+      <p>
+        浏览器标签页上浮现着清晰锐利的 32×32 站点小图标；
+        顶部页眉处，「MewX的豆瓣存档」旁边赫然立着那张熟悉的绿底小怪兽头像；
+        正文广播里提及老友的链接和博客外链轻快地跳转着。
+      </p>
+
+      <p>
+        更令人心安的是：在浏览器的开发者工具 Network 面板里，除了你本地加载的资源，
+        <strong>整个页面没有向豆瓣服务器、没有向任何第三方 CDN 发出哪怕一个网络请求</strong>。
+      </p>
+
+      <p>
+        我们所做的这一切，不是为了追求华丽的视觉效果，
+        而是为了让每一个选择将数据搬回家的豆友，在多年之后重新打开这份归档时，
+        迎面而来的不仅是一串冰冷的数据表，
+        而是一个有名字、有模样、有温度、真正属于你自己的数字精神家园。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-10-16-when-a-friend-deletes-account.html">更早：当好友注销了账号：从「页面不存在」到 WARC 里复活的高中同桌 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
