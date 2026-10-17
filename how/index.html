@@ -319,7 +319,7 @@ doubak-markdown/    content/（每个页面独立 .md）与 static/（静态图�
       随时可以清空并重新生成。
     </p>
 
-    <pre><code>node bin/parse.js &lt;装着一堆原始档案的目录&gt; [输出目录] [--ignore-warnings] [--no-verify]</code></pre>
+    <pre><code>node bin/parse.js &lt;装着一堆原始档案的目录&gt; [输出目录] [--account=&lt;uid&gt;] [--all-accounts] [--ignore-warnings] [--no-verify]</code></pre>
 
     <p>
       直接指定<strong>档案所在的父目录</strong>即可，无需手动挑选或整理文件，
@@ -343,10 +343,9 @@ doubak-markdown/    content/（每个页面独立 .md）与 static/（静态图�
 
     <div class="callout warn">
       <p>
-        <strong>命令行输入请先按数字 UID 分开。</strong>Parser 默认拒绝混合账号，站点生成器也不接受混合账号输入。
-        CLI 尚无统一的 <code>--account</code> 选择器；扩展则在导出前提供账号选择。
-        历史参数 <code>--ignore-warnings</code> 可绕过 parser 的混合账号阻断，但仍记录告警，
-        不应拿它来生成混合账号的个人站点，也不能用它绕过底层字节校验。
+        <strong>多账号混放防线与分流提取：</strong>当输入目录中包含多个不同账号的归档包时，解析器默认执行 Fail-Fast 阻断退出，防止生成混杂的 Canonical 数据。
+        你可以使用 <code>--account &lt;uid&gt;</code> 指定只解析特定账号（自动溯源保留链路历史），或者加上 <code>--all-accounts</code> 自动按账号分流批量输出至 <code>&lt;输出目录&gt;/&lt;uid&gt;/</code>。
+        历史参数 <code>--ignore-warnings</code> 可绕过阻断强行合并，但仍会记录告警，非特殊需求切勿使用。
       </p>
     </div>
 
@@ -370,9 +369,9 @@ doubak-markdown/    content/（每个页面独立 .md）与 static/（静态图�
       <a href="https://sample.doubak.com">官方演示样张站</a>。
     </p>
 
-    <pre><code>npm run md     # 仅导出 Markdown + 图片资源（适配任意静态站生成器）
-npm run site   # 进一步构建为完整 HTML 页面
-npm run deploy # 部署至 Git 仓库根目录，支持一键发布至 GitHub Pages</code></pre>
+    <pre><code>npm run md     -- &lt;canonical 目录&gt; &lt;bundle 目录&gt; [产出目录] [--account=&lt;uid&gt;] [--all-accounts]
+npm run site   -- &lt;canonical 目录&gt; &lt;bundle 目录&gt; [产出目录] [--account=&lt;uid&gt;] [--all-accounts]
+npm run deploy -- &lt;canonical 目录&gt; &lt;bundle 目录&gt; &lt;仓库目录&gt; [--account=&lt;uid&gt;]</code></pre>
 
     <p>
       <strong>通用的 Markdown 文件才是核心数据产物，HTML 仅是其中的一种展示形式。</strong>
@@ -390,6 +389,12 @@ npm run deploy # 部署至 Git 仓库根目录，支持一键发布至 GitHub Pa
       站名默认使用账号昵称，缺失时回退到用户名或 UID；可用 <code>--site-title</code> 覆盖。
       topic 广播的独立标题会显示并进入搜索。仓库 main 已支持目标头像归档；Markdown 包含本地头像，Hugo 离线生成 favicon 和页眉图。
       旧档案缺图时使用文字站名，不联网补图；主页 HTML 中的链接不等于已保存头像文件。
+    </p>
+
+    <p>
+      <strong>多账号隔离与子目录递归：</strong>如果 Canonical 包含了多个账号，站点生成器会果断拦截。
+      你可以传入 <code>--account=&lt;uid&gt;</code> 生成单一专属站点，或使用 <code>--all-accounts</code> 批量生成各账号的独立站点。
+      生成器还会自动对原始 bundle 目录进行<strong>深层子目录递归检索</strong>，无论归档图片分散在哪个历史备份子目录中，都能被完整索引并提取到本地。
     </p>
 
     <div class="callout warn">
@@ -420,7 +425,12 @@ npm run deploy # 部署至 Git 仓库根目录，支持一键发布至 GitHub Pa
       是否上传及何时上传，均由用户自行掌控，不影响本地档案的安全性。
     </p>
 
-    <pre><code>node bin/export.js &lt;canonical 目录&gt; [输出目录]</code></pre>
+    <pre><code>node bin/export.js &lt;canonical 目录&gt; [输出目录] [--account=&lt;uid&gt;] [--all-accounts]</code></pre>
+
+    <p>
+      导出器会自动搜寻子目录中的 Canonical 存档。若数据中包含多个账号且未指定目标，导出器会执行 Fail-Fast 阻断，
+      防止多账号数据交叉污染第三方平台。可通过 <code>--account=&lt;uid&gt;</code> 精准导出单账号，或传入 <code>--all-accounts</code> 自动分流批量导出至各自的子目录下。
+    </p>
 
     <p>
       <a href="https://neodb.social/">NeoDB</a> 的数据支持最为全面，且默认包含其他平台不具备的<strong>标记状态历史轨迹</strong>。
