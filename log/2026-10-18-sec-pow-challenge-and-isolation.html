@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>破解「载入中...」：算力证明挑战、凭据隔离暗坑，与 417 次无声通关 —— 开发日志</title>
+<meta name="description" content="当作品详情页被 302 截留进 sec.douban.com/c，迎面而来的不是验证码，而是一场静悄悄的客户端 SHA-512 算力挑战。从 W3C Fetch 的 credentials 凭据陷阱、CORS 预检暗礁、会话沙盒误报，到 IndexedDB 无 await 竞态日志丢失与 CDN 1/3 延迟倍率；417 次 PoW 挑战全数静默击穿后，下游生态终于迎来了完整的剧集分类与海报归档。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-18-sec-pow-challenge-and-isolation.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-18">2026-10-18</time>
+      <h1>破解「载入中...」：算力证明挑战、凭据隔离暗坑，与 417 次无声通关</h1>
+      <p class="summary">当作品详情页被 302 截留进 sec.douban.com/c，迎面而来的不是验证码，而是一场静悄悄的客户端 SHA-512 算力挑战。从 W3C Fetch 的 credentials 凭据陷阱、CORS 预检暗礁、会话沙盒误报，到 IndexedDB 无 await 竞态日志丢失与 CDN 1/3 延迟倍率；417 次 PoW 挑战全数静默击穿后，下游生态终于迎来了完整的剧集分类与海报归档。</p>
+    </div>
+
+    <div class="post-body">
+      <p>
+        在给公开归档抓取「作品详情页」（<code>interest.item</code>）时，
+        原本平稳推进的爬虫突然停了下来。
+      </p>
+
+      <p>
+        日志面板上刷出了一连串警报：
+        <code>paused · challenge</code>。
+        我们原以为又是那个熟悉的豆瓣滑块或字符验证码——然而把拦截页面 dump 下来一看，
+        屏幕正中央只有一个纯 CSS 旋转的 Loading 动画，页面标题只有简简单单的四个字：
+        <strong>「载入中...」</strong>。
+      </p>
+
+      <p>
+        没有文字点选，没有缺口拼图，甚至没有任何可供人手操作的交互控件。
+        然而右键查看 HTML 源码，在那个旋转的 Loading 背后，藏着一段极不寻常的表单与脚本：
+      </p>
+
+      <pre><code>&lt;form id="sec" action="/c" method="POST"&gt;
+  &lt;input type="hidden" name="tok" value="9d784a..."&gt;
+  &lt;input type="hidden" name="cha" value="b6e82c..."&gt;
+&lt;/form&gt;
+&lt;script&gt;
+  var difficulty = 1;
+  // ...
+&lt;/script&gt;</code></pre>
+
+      <p>
+        这是一场<strong>客户端算力证明（Proof-of-Work，PoW）挑战</strong>。
+        豆瓣安全中心并没有直接封杀请求，而是在要求你的浏览器：
+        「想拿走这一页，先交出你的 CPU 算力。」
+      </p>
+
+      <hr>
+
+      <h2>一、 逆向 PoW：当 WAF 变成了哈希试凑机</h2>
+
+      <p>
+        深入反编译拦截页内的 JavaScript 代码，其风控校验的数学逻辑清晰地浮出水面：
+      </p>
+
+      <ol>
+        <li>服务端在 HTML 中给出一个随机字符串挑战值 <code>cha</code> 和口令 <code>tok</code>，并指定难度等级 <code>difficulty</code>；</li>
+        <li>客户端必须在本地循环试凑一个字符串 <code>sol</code>（solution），使得将 <code>cha + sol</code> 进行 <strong>SHA-512</strong> 哈希运算后，所得二进制哈希值的<strong>前导零字节数恰好等于 difficulty</strong>；</li>
+        <li>试凑成功后，自动向 <code>/c</code> 发起 POST 表单提交，带上 <code>sol</code>、<code>tok</code>、<code>cha</code> 与重定向回退地址 <code>red</code>；</li>
+        <li>服务端验证哈希无误后，返回 302 重定向回到原页面，并在响应中下发一张全站通行的凭据：<br>
+        <code>Set-Cookie: dbsawcv1=...; path=/; domain=.douban.com; max-age=...</code>。</li>
+      </ol>
+
+      <p>
+        这是极具现代风控特征的防御策略：
+        对于普通人类访客，现代电脑的 CPU 算完一次难度 1 的哈希不过几毫秒，页面闪一下「载入中...」便无感跳转；
+        但对于试图每秒发起数十个并发请求的高速爬虫，连续的 SHA-512 试凑会瞬间吃满服务器所有的 CPU 核心，
+        迫使爬虫自我限流。
+      </p>
+
+      <p>
+        然而，<strong>我们的扩展运行在用户的真机浏览器里，且并发请求数严格恒为 1</strong>。
+        只要能够像真实网页一样自动算完这个解并交还给豆瓣，就完全可以在不打扰用户的情况下，
+        完全静默地越过这道关卡。
+      </p>
+
+      <h3>轻量、非阻塞的求解器实现</h3>
+
+      <p>
+        我们在扩展内部基于原生的 Web Crypto API（<code>crypto.subtle.digest</code>）实现了纯 JavaScript 的 PoW 求解器。
+        为了确保在浏览器单线程环境下绝对稳定，代码经过了三次针对性打磨：
+      </p>
+
+      <ul>
+        <li><strong>零字符串格式化开销</strong>：早期 PoW 脚本喜欢把 64 字节哈希值格式化成 128 位的十六进制字符串再跑正则。我们在 <code>Uint8Array</code> 字节流上直接按索引校验 <code>bytes[i] === 0</code>，大幅砍掉 GC 压力，难度 1 下平均 256 次运算只需几毫秒；</li>
+        <li><strong>事件循环让出机制</strong>：在哈希迭代循环中，每 256 轮强制通过 <code>setTimeout(..., 0)</code> 让出一次微任务。这保证了即便是遇到偶发的高难度试凑，扩展的 Keep-Alive 心跳、UI 消息通信以及断点响应也不会发生任何卡顿；</li>
+        <li><strong>算力预算熔断</strong>：任何自动化逻辑都必须有防御上限。我们设定了 <strong>30 秒 / 200 万次尝试</strong>的严格预算（<code>PowBudgetError</code>）。一旦超出预算或服务器返回验证码升级，立刻原样保留响应并转为停机等待，绝不陷入死循环。</li>
+      </ul>
+
+      <hr>
+
+      <h2>二、 四大暗坑连环阵：规范与现实的撞车</h2>
+
+      <p>
+        写出一个能算出正确解的函数只花了半小时；但让整个过程在真实浏览器和抓取引擎里跑通，
+        却撞上了四个教科书级别的技术暗坑。每一个坑都足以让请求静默死锁。
+      </p>
+
+      <h3>暗坑 1：W3C Fetch 的 credentials: 'omit' 凭据黑洞</h3>
+
+      <p>
+        在公开模式下，为了防止把当前登录操作者的个人评价、短评或收藏标记收录进目标账号的归档，
+        作品详情请求被特意设计为 <code>credentials: 'omit'</code>。
+      </p>
+
+      <p>
+        然而，根据 <strong>W3C Fetch 官方规范</strong>：
+      </p>
+
+      <blockquote>
+        <p>当请求的 <code>credentials</code> 设置为 <code>'omit'</code> 时，浏览器将<strong>无条件丢弃响应中所有的 <code>Set-Cookie</code> 头部</strong>，并且在后续的任何重试或跳转中<strong>禁止发送任何 Cookie</strong>。</p>
+      </blockquote>
+
+      <p>
+        这就形成了一个致命死锁：
+        我们的求解器成功算出了 <code>sol</code>，向 <code>POST /c</code> 提交并得到了 200/302 成功响应；
+        豆瓣也在响应头里递出了通行 Cookie <code>Set-Cookie: dbsawcv1</code>——
+        <strong>但因为继承了 <code>credentials: 'omit'</code>，浏览器引擎把这枚通行证直接扔进了垃圾桶！</strong>
+        随后的重试请求依然裸奔，豆瓣安全中心再次 302 拦截，触发 <code>_powRetried</code> 防死循环保护，爬虫彻底停机。
+      </p>
+
+      <p>
+        <strong>破局之策</strong>：
+        在 PoW 挑战捕获阶段，提交 <code>POST /c</code> 与随后的放行重试<strong>必须显式升级为 <code>credentials: 'include'</code></strong>。
+        只有这样，浏览器统一的 Cookie Jar 才能将 <code>dbsawcv1</code> 写入磁盘，并在后续请求中带给豆瓣。
+      </p>
+
+      <h3>暗坑 2：CORS 预检与 OPTIONS 403 绝杀</h3>
+
+      <p>
+        扩展最初在发起 <code>POST /c</code> 时，顺手带上了传输层统一维护的 <code>X-Override-Referer</code> 自定义头部。
+      </p>
+
+      <p>
+        在同源页面里这毫无问题。但当目标作品在 <code>movie.douban.com</code>，而 PoW 挑战落在 <code>sec.douban.com</code> 时，
+        这构成了一次<strong>跨域跨源请求</strong>。自定义请求头的存在破坏了「简单请求」（Simple Request）的标准，
+        导致浏览器在发起 POST 前强制发送了一次 <code>OPTIONS /c</code> 预检请求。
+      </p>
+
+      <p>
+        而豆瓣安全中心对 <code>OPTIONS</code> 的回应极其冷酷：<strong>直接返回 403 Forbidden</strong>。
+        这导致原本算得完全正确的 PoW 提交连表单正文都没发出去就被浏览器阻断。
+        解决方案非常干净：将提交表单彻底净化为标准的 <code>application/x-www-form-urlencoded</code>，
+        不带任何非常规头，杜绝任何预检触发。
+      </p>
+
+      <h3>暗坑 3：会话守卫的误报与「沙盒提取」的安全性哲学</h3>
+
+      <p>
+        解决了前两个问题后，请求终于成功拿回了 200 OK 的真实作品页面。
+        然而下一毫秒，抓取核心抛出异常：
+        <code>SessionError: operator_switched（无登录凭据的作品目录请求返回了登录者页面）</code>。
+      </p>
+
+      <p>
+        原来，当我们将请求升级为 <code>credentials: 'include'</code> 以携带通行 Cookie 时，
+        浏览器的 Cookie Jar 会同时附带当前操作者的登录会话。
+        豆瓣返回的作品页面顶部，自然多出了操作者的昵称与个人导航条。
+        为了防止操作者身份混淆，原有的 <code>SessionGuard.verify()</code> 极其严格，
+        发现匿名目录请求里出现了登录者导航条，立刻按安全事故紧急停机。
+      </p>
+
+      <p>
+        这就引出了一个核心安全问题：
+        <strong>作品详情页带了操作者的登录态，到底会不会污染被备份目标的归档？</strong>
+      </p>
+
+      <div class="callout"><p>
+        答案是：<strong>绝对不会。</strong><br>
+        我们的解析器在提取作品详情（<code>extractSubjectDetail</code>）时，并不是粗暴地抓取整页文本，
+        而是严格按照 DOM 的 <code>&lt;div&gt;</code> 嵌套闭合深度，<strong>把提取范围死死锁在 <code>&lt;div id="info"&gt;</code> 区域内</strong>。
+        这一区域只包含导演、编剧、主演、类型、语言、上映日期、集数、又名、IMDb 等客观元数据。
+        至于页面底部的操作者打分、短评框和评论区，在解析阶段完全被视作噪声丢弃。<br>
+        而目标用户真正的评分、短评与收藏时间，<strong>100% 只来自于目标用户自己的主页列表（<code>interest.list.*</code>）</strong>。
+      </p></div>
+
+      <p>
+        因此，我们在会话守卫中增加了 <code>powSolved</code> 标记联动：
+        对于经由 PoW 客户端算力证明换取凭据放行的响应，明确豁免操作者导航条检查；
+        而对于未经 PoW 的普通匿名目录响应，继续保持最严苛的隔离红线。
+      </p>
+
+      <h3>暗坑 4：IndexedDB 并发无 await 写入竞态日志蒸发</h3>
+
+      <p>
+        在排查上述问题的过程中，我们还顺手抓出了一只潜伏极深的幽灵 Bug：
+        用户反馈在遇到 challenge 停机时，如果重新刷新面板的「日志」Tab，
+        最关键的那行 <code>capture · interest.item · challenge</code> 竟然神秘消失了！
+      </p>
+
+      <p>
+        排查调用栈后真相大白：当停机发生时，事件循环会瞬间连续抛出 4 个事件：
+        <code>capture</code>、<code>awaiting_human</code>、<code>stopped</code>、<code>paused</code>。
+        在后台页面中，持久化日志的调用是一行无 await 的异步写入：
+        <code>void appendEvent(kv, e);</code>。
+      </p>
+
+      <p>
+        旧的 <code>appendEvent</code> 实现是先 <code>await kv.get()</code> 读出已有数组，再拼上新条目写回。
+        因为是并发异步执行，<strong>后 3 个事件在前 1 个事件尚未落盘之前，就并发读取到了旧的快照！</strong>
+        最终最后一步的 <code>paused</code> 写回数据库时，彻底覆盖掉了前序写入，导致 IndexedDB 里只留下了最后一行。
+        我们在 <code>event-log.js</code> 内部引入了基于 Promise 链的微任务写入队列（<code>appendQueue.then(...)</code>），
+        彻底根治了所有并发落盘竞态。
+      </p>
+
+      <hr>
+
+      <h2>三、 CDN 1/3 延迟倍率：为什么静态资源可以快三倍？</h2>
+
+      <p>
+        在解决了详情页的抓取后，另一个瓶颈凸显出来：
+        一部电影不仅有一个详情页，还有一张高清海报；
+        一份 1,000 部影视的归档，对应着整整 1,000 张封面图片。
+      </p>
+
+      <p>
+        豆瓣主站（<code>movie.douban.com</code>）受防爬风控保护，我们必须谨小慎微地维持 1 秒（公开模式 3~5 秒）的基础间隔；
+        但所有的海报、剧照和头像都托管在 <code>*.doubanio.com</code>（<code>img1/img3/img9/qnmob3.doubanio.com</code>）上。
+        <strong>CDN 边缘节点是纯静态的对象存储缓存，既没有 Python 业务逻辑，也没有 WAF 拦截与 PoW。</strong>
+        如果为每张静态图片都老老实实等满 3 秒，抓完 1,000 张封面需要整整 50 分钟！
+      </p>
+
+      <p>
+        我们在请求闸门（<code>RequestGate</code>）和传输层中引入了 <strong>1/3 延迟倍率</strong>（<code>DOUBANIO_DELAY_MULTIPLIER = 1 / 3</code>）：
+      </p>
+
+      <ul>
+        <li><strong>逐跳域名识别</strong>：当发出的请求目标落在 <code>*.doubanio.com</code> 时，自动将等待间隔缩减为基础间隔的 1/3（自抓模式从 1000ms 降至 ~333ms，公开模式降至 ~1000ms）；</li>
+        <li><strong>自然继承抖动与退避</strong>：倍率直接作用于 <code>Pacer.nextDelayMs()</code>，依然保留 ±30% 的非规律对称抖动；若全局遭遇软封退避，CDN 间隔也会等比降速；</li>
+        <li><strong>主站无缝防护</strong>：因为所有的请求在 <code>RequestGate._tail</code> 里依然<strong>严格单并发串行排队</strong>，当连续多张图片抓完、下一发切回 <code>movie.douban.com</code> 主站时，倍率自动恢复为 1，闸门会从上一张图片完成时刻起等满完整的全额间隔，<strong>绝不会把主站拖入高频</strong>。</li>
+      </ul>
+
+      <hr>
+
+      <h2>四、 大考收官：417 次无声通关与下游生态进化</h2>
+
+      <p>
+        所有修改全部集成完毕后，我们对一份包含完整作品详情的真实第三方归档（<code>exports_3rd/20261017T225057Z-0566fa</code>，目标用户「三岐闻」）
+        进行了全链路贯通检验。
+      </p>
+
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>归档与测试指标</th><th>实测数据</th><th>验证结论与系统表现</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>WARC 段与记录数</strong></td>
+            <td>3 个段（26 MB WARC）、1,019 条捕获</td>
+            <td><code>bin/verify.js</code> 与 <code>validate.py</code> 100% 逐字节校验通过</td>
+          </tr>
+          <tr>
+            <td><strong>PoW 自动通关战绩</strong></td>
+            <td><strong>417 次自动求解通过</strong></td>
+            <td>全量 457 条详情页中，417 条成功自动通关；前期受阻条目全部平滑收回</td>
+          </tr>
+          <tr>
+            <td><strong>账号纯净度审计</strong></td>
+            <td>全表唯一 UID：<code>154611037</code></td>
+            <td>客观元数据沙盒提取生效，无任何操作者评论或会话泄漏</td>
+          </tr>
+          <tr>
+            <td><strong>NeoDB 导出适配</strong></td>
+            <td><strong>电影 259 · 剧集 158 · 图书 30</strong></td>
+            <td>告别此前「分不出电影还是剧集」的降级猜测，精准完成分类！</td>
+          </tr>
+          <tr>
+            <td><strong>Letterboxd 导出适配</strong></td>
+            <td><strong>看过 220 · 想看 39</strong></td>
+            <td>依据详情页类型严格排除 158 部剧集，杜绝污染外部平台观影记录</td>
+          </tr>
+          <tr>
+            <td><strong>离线站点生成</strong></td>
+            <td><strong>528 页静态 HTML · 452 张本地海报</strong></td>
+            <td>457ms 极速生成，作品详情卡片丰富完整，评论与广播完美呼应</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>
+        看着导出的静态网页中，《相反的你和我》与《辉夜大小姐》规整地展示着从详情页提取出的演职员表、首播年份与 IMDb 编号，
+        下方紧跟着三岐闻当年写下的真实广播动态；
+        看着 Letterboxd 导出的 CSV 里，电影与剧集被井井有条地分离归位——
+        我们知道，这场与浏览器规范、网络协议和安全挑战的暗战，终于交出了一份令人安心的答卷。
+      </p>
+    </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-10-17-full-flow-audit-and-multi-account-defenses.html">更早：舞台剧封面的漏网之鱼，与全链路多账号防线审计 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
