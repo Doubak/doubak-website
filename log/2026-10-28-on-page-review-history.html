@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>档案里有四个版本，页面漏了中间那版 —— 开发日志</title>
+<meta name="description" content="sola 的一条短评原本被刻意省略；继续查四版本样本，却发现同日编辑被归并掉了。现在每个原页版本都进入底部时间线，共用原页日期，并与广播分别标明来源。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-28-on-page-review-history.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-28">2026-10-28</time>
+      <h1>档案里有四个版本，页面漏了中间那版</h1>
+      <p class="summary">sola 的一条短评原本被刻意省略；继续查四版本样本，却发现同日编辑被归并掉了。现在每个原页版本都进入底部时间线，共用原页日期，并与广播分别标明来源。</p>
+    </div>
+
+    <div class="post-body">
+      <p>问题从 <code>2332978</code>（sola）开始：页首有一句「不错~」，
+        翻到作品信息下面，却没有它的历史条目。档案里只有一个原页版本，标记日期为
+        2014-01-26，评分四星，也没有关联广播。</p>
+      <p>这是旧代码的明确选择：只有一条原页记录时，省去底部重复内容。
+        但继续查看真正有多个版本的作品，发现还有另一处问题：
+        <strong>档案保存了四个版本，时间线没有逐个显示出来。</strong></p>
+
+      <h2>同一个日期，可以有不同的文字</h2>
+      <p><code>30284835</code>（《二十世纪电气目录》）保存了四个原页版本。
+        两次「在看」的文字不同，原页日期却都停在 2026-07-19：
+        一版以「看完了两集」开头，后来的一版增加了「怎么京阿尼在这也能埋上音乐番的影子！」。</p>
+      <p>旧时间线先按「状态 + 日期」归并，只取第一段非空文字，
+        再按正文去重。那段中间版本因此没有独立条目，
+        只有最新短评引用它时，才能在长段落里找回字句。
+        页脚仍然正确地写着「4 个版本」，却不能代替四个版本本身。</p>
+      <p>把广播全部移出测试输入，这个中间版本仍会消失。
+        原因就在生成器的归并规则；canonical 中的修订已经保留下来，
+        这次无需改解析器，也无需重新抓取。</p>
+
+      <h2>每个原页版本都展示，日期说明它能说明的事</h2>
+      <p>现在，只有一个版本的 sola 也会在「说过什么」中出现：</p>
+      <pre><code>2014-01-26
+原页短评 · 看过 · ★★★★☆
+首次观察：2022-12-26T10:45:00+08:00
+
+不错~</code></pre>
+      <p>2014-01-26 是原页标记日期，2022-12-26 是档案第一次观察到这个版本的时间。
+        两者都不能证明这句话具体在哪一天被编辑。
+        一个已存档版本也只表示我们保存了一个版本，不能推断它从未改过。</p>
+      <p>多个版本仍沿用各自的原页日期。同日的版本共用一个日期标题，
+        按首次观察时间从新到旧排列，每条标注「原页短评」和首次观察时间。
+        清空文字、恢复旧文字、只改评分，也不会再被正文去重吞掉。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>《二十世纪电气目录》的原页日期</th><th>已存档版本</th><th>首次观察日期</th></tr></thead>
+          <tbody>
+            <tr><td>2026-10-04</td><td>看完后的完整评价</td><td>2026-10-05</td></tr>
+            <tr><td>2026-07-19</td><td>新增「怎么京阿尼在这也能埋上音乐番的影子！」</td><td>2026-08-20</td></tr>
+            <tr><td>2026-07-19</td><td>「看完了两集」开头的评价</td><td>2026-07-31</td></tr>
+            <tr><td>2018-08-18</td><td>「吹爆京阿尼」</td><td>2022-12-26</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>删掉再标，保留各自的日期</h2>
+      <p>另一个老样本是 <code>3541415</code>（《盗梦空间》）：
+        2018-01-03 和 2026-09-04 的两次标记，在归档中有不同的记录身份。
+        这两次仍排在各自日期下；测试也覆盖了两次文字完全相同的情况，
+        防止删后重标被误当作重复内容。</p>
+      <p>这延续了
+        <a href="/log/2026-09-04-re-marked.html">此前修复重标覆盖旧记录</a>时的原则：
+        一个作品只生成一个页面，但每次标记留下的证据都应能在里面找到。</p>
+
+      <h2>广播与原页短评分别作证</h2>
+      <p>广播仍保留自己的正文、评分和秒级时间，原页短评保留自己的版本。
+        即使两处文字相同，也分别标注来源；后来观察到的短评或评分，不再被拼到早年的广播时间下面。
+        广播之间只有正文、状态、评分都相同的重复内容才去重。</p>
+      <p>这会让一些页面比以前长，但读者可以直接分辨：哪段是当时的广播，
+        哪段是后来保存的原页版本，而不用根据页首、页脚和几段文字自行拼出历史。</p>
+
+      <h2>修改范围与验证</h2>
+      <p>实现见
+        <a href="https://github.com/Doubak/doubak-site-generator/commit/ddf3977">生成器的时间线修复</a>，
+        日期与来源规则已写入
+        <a href="https://github.com/Doubak/doubak-site-generator/commit/ad50396">README</a>。
+        扩展通过
+        <a href="https://github.com/Doubak/doubak-extension/commit/3597e0b">同步共享代码</a>
+        获得同样的 Markdown 导出行为。</p>
+      <p>本次通过了 156 项页面、可移植性与共享副本检查，以及 43 项扩展管线检查；
+        并用本地档案构建了 sola、四版本样本、《无人生还》和《盗梦空间》的 Hugo 预览，
+        逐一核对版本数、正文和日期标题。完整生成器套件中的 10 项子进程相关检查受当前沙盒限制，
+        未得到全套通过的结果。本次验证与提交没有重新发布样张站点。</p>
+
+      </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-10-26-series-evidence-before-navigation.html">更早：页面上没有标题，档案里却有系列成员：一次导航设计调查 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
