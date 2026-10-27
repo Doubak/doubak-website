@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>页面上没有标题，档案里却有系列成员：一次导航设计调查 —— 开发日志</title>
+<meta name="description" content="从空的系列占位节点追到脚本里的目录数组，旧档案已经记录了成员增加、减少和重排。系列导航仍是设计提案；先厘清证据、时间与本地链接，再决定如何展示。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-26-series-evidence-before-navigation.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-26">2026-10-26</time>
+      <h1>页面上没有标题，档案里却有系列成员：一次导航设计调查</h1>
+      <p class="summary">从空的系列占位节点追到脚本里的目录数组，旧档案已经记录了成员增加、减少和重排。系列导航仍是设计提案；先厘清证据、时间与本地链接，再决定如何展示。</p>
+    </div>
+
+    <div class="post-body">
+      <p>想在《老友记》某一季的归档页上直接跳到其他季，看起来只需要加一排链接。
+        但链接从哪里来、列表是哪一天的、没有收录的作品能不能点开，都会改变这份档案在说什么。
+        10 月 26 日的工作先停在取证与设计：<strong>系列提取和站内导航尚未实现。</strong></p>
+
+      <h2>空节点后面还有数据</h2>
+      <p>第一轮扫描已保存的电影详情页，找不到「同系列作品」这几个字。
+        继续查结构，才发现 <code>series-items</code> 可以只是一个空节点，成员数据放在页尾脚本的
+        <code>_CONFIG.SERIES_OTHER_SUBJECTS</code> 中。页面要执行脚本才显示栏目，
+        但离线解析可以直接读取已经存下来的数组。</p>
+      <p>调查记录中的 12,993 次电影详情 HTML 捕获里，有 8,412 次可以读取相关配置；
+        其中 4,281 次有其他成员，最多的一份数组列了 85 项。
+        这些数字是<strong>捕获次数，不是不同作品或系列的数量</strong>。
+        这次只读取数据字面量，没有执行归档中的页面脚本。</p>
+
+      <h2>历史列表不能取并集</h2>
+      <p>同一作品的目录关系确实会变。已提交的公开配置片段里，
+        《BJ单身日记4》的其他成员从 3 个增至 4 个；
+        《小黄人大眼萌：神偷奶爸前传》从 19 个减至 14 个；
+        《幽灵公主》的两个关联成员则交换了顺序。</p>
+      <p>把历次列表取并集，会让已经移出的成员永远留在「当前列表」里。
+        设计因此把每次详情捕获视为一份目录快照，保留当时的成员、顺序、来源和时间。
+        新页面没展示这一栏，不能直接解释为旧关系已被删除。</p>
+      <p>空数组也要看上下文：没有系列 URL、总数为 0，与有系列 URL、总数为 1，
+        在已有片段中分别表示无系列配置和只有当前作品的系列。
+        它们不能被压成同一个「没有」。</p>
+
+      <h2>导航只连接确实生成的页面</h2>
+      <p>提案沿用现有作品 ID 和永久路径，每季的标记、评分、短评仍各自保留。
+        本地链接以本次实际生成的作品页为准；未收录成员显示名称和「本档案未收录」。
+        目录中的一个关联项不会自动变成用户看过的记录，也不会触发递归抓取。</p>
+      <p>实现还需要先调整解析器的时间处理：详情变化必须由提供证据的那次捕获驱动，
+        不能把最新目录资料塞进较早的标记观测里。旧 canonical 没有系列字段时应继续可用；
+        Node 与扩展两端仍须共用同一份解析和生成逻辑。</p>
+
+      <p>完整证据、兼容顺序和待补测试见
+        <a href="https://github.com/Doubak/doubak-extension/blob/d0cb4b8/docs/designs/subject-series-and-site-navigation.md">系列归档与导航设计</a>，
+        以及带来源清单的
+        <a href="https://github.com/Doubak/doubak-extension/tree/d0cb4b8/docs/designs/fixtures/subject-series">九份公开目录配置片段</a>。
+        这些提交记录了设计依据；本次没有改变抓取行为，也没有为样张站增加系列导航。</p>
+
+      </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-10-18-sec-pow-challenge-and-isolation.html">更早：破解「载入中...」：算力证明挑战、凭据隔离暗坑，与 417 次无声通关 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

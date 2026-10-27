@@ -284,6 +284,13 @@
         迎面而来的不仅是一串冰冷的数据表，
         而是一个有名字、有模样、有温度、真正属于你自己的数字精神家园。
       </p>
+      <h2>2026-10-19 补记：图标可见，还要检查输出目录</h2>
+      <p>后续检查发现，Hugo 的资源挂载与复制组合会在产物中额外留下一个
+        <code>profile/</code> 目录。图标能显示，不代表输出路径已经统一。
+        <a href="https://github.com/Doubak/doubak-site-generator/commit/e814e66bb2f0cf4941eb82b40b5c2cdcb91d3f49">这次修正</a>
+        调整了资源挂载和读取路径，移除了额外复制，让头像派生图直接落到
+        <code>assets/profile/</code> 下；同时在真实 Hugo 构建测试中加入断言，
+        确认不再生成多余的 <code>public/profile/</code>。</p>
     </div>
 
     <div class="post-nav">
