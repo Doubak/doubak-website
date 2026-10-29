@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>广播回复只存首屏，边界留在原始档案 —— 开发日志</title>
+<meta name="description" content="本人账号可以选择保存广播详情与回复首屏，默认关闭。增量补缺、可变内容模式刷新首屏，全量重新捕获；回复不进入个人数据、网站或平台导出。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-30-broadcast-reply-snapshots.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-30">2026-10-30</time>
+      <h1>广播回复只存首屏，边界留在原始档案</h1>
+      <p class="summary">本人账号可以选择保存广播详情与回复首屏，默认关闭。增量补缺、可变内容模式刷新首屏，全量重新捕获；回复不进入个人数据、网站或平台导出。</p>
+    </div>
+
+    <div class="post-body">
+      <p>Issue #26 提醒我们：广播列表里的“回应”数量并不等于回复正文已经备份。
+        实测详情 HTML 中的评论容器也是空的，回复由独立接口加载。
+        因此，保存详情页和保存回复是两项不同的工作。</p>
+
+      <h2>只保存一页上下文</h2>
+      <p>这次 main 分支新增“保存广播回复首屏”，默认不勾选，仅对当前登录者自己的账号开放。
+        只有本人广播根卡片明确显示有回复，才会分别保存详情 HTML 和一个回复 API 首屏。
+        转发来源的回应数不会触发请求，句尾省略号也不会触发。</p>
+      <p>首屏可能包含楼中楼预览，但不会继续翻页、展开楼中楼，也不会请求回复者的主页、头像或附件。
+        topic 详情尚无正常样本，仍列为待支持；没有增加短链域名权限。
+        登录其他账号来备份某人的公开内容，以及匿名备份，均维持原有范围。</p>
+
+      <h2>三种模式各做什么</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>模式</th><th>详情 HTML</th><th>回复首屏</th></tr></thead>
+        <tbody>
+          <tr><td>增量</td><td>补未成功项</td><td>补未成功项，跳过已有成功快照</td></tr>
+          <tr><td>增量＋可变内容</td><td>跳过已有成功捕获</td><td>刷新全部已知合格首屏</td></tr>
+          <tr><td>全量</td><td>从本轮列表发现并重新捕获</td><td>从本轮列表发现并重新捕获</td></tr>
+        </tbody>
+      </table></div>
+      <p>第一次开启时，会从同账号、同视角的历史广播列表离线找出候选，包括水位线以前的广播。
+        无需为此重读所有历史列表。开始任务之后，开关随身份和模式固化到断点；
+        继续抓取不会采用面板后来改过的选择。登录状态变化会暂停，需要确认原账号后才能继续。</p>
+
+      <h2>原始证据和个人内容分开</h2>
+      <p>第三方回复只留在 WARC 原始响应里。解析器报告捕获编号、结果和首屏范围，
+        不把它们生成个人 Canonical 记录，也不加入网站、搜索或 NeoDB 等平台导出。
+        详情 HTML 暂时同样只保留原始证据，没有直接套用列表抽取器来制造新的广播版本。</p>
+      <p>首屏成功不代表整段讨论完整，空首屏也不表示历史回复已删除。
+        原始备份可能含第三方发言与登录视角信息，并不是已经过滤好的公开网站产物。
+        这次没有新增讨论状态文件、回复实体或“包含讨论”发布开关。</p>
+
+      <h2>验证与交付状态</h2>
+      <p>自动化测试核对了实际请求集合、三种模式与访问视角、独立的 HTML/API 成败、
+        历史补抓、会话变化及断点恢复。WARC 导出再导入后回复字节保持一致，
+        加入这些捕获前后的页面、搜索和平台导出相同。</p>
+      <p>另有两个崩溃窗口测试：列表落盘而子任务尚未写入断点时仍能补齐；
+        回复首屏已落盘而断点尚未更新时不会重复请求。
+        Firefox 无头渲染检查了开关布局，Chrome 与 Firefox 安装包均已通过本地打包。</p>
+      <p>实现已分步提交到 main，尚未发布新扩展版本。真实登录会话下的 Chrome/Firefox 抓取
+        仍需在发布前验证；模拟接口测试不等于已经完成线上兼容性验证。</p>
+      <p>实现与依据：
+        <a href="https://github.com/Doubak/doubak-extension/blob/main/docs/designs/broadcast-details-and-replies.md">设计与模式矩阵</a>、
+        <a href="https://github.com/Doubak/doubak-data-specs/commit/c117c5b">原始快照规范</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/a53d278">抓取核心</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/6816f02">面板与运行范围</a>、
+        <a href="https://github.com/Doubak/doubak-data-parser/commit/6ce98d5">解析隔离</a>。</p>
+
+          </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-10-28-on-page-review-history.html">更早：档案里有四个版本，页面漏了中间那版 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
