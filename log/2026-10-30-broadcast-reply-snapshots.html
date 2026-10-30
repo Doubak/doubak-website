@@ -100,7 +100,10 @@
         回复首屏已落盘而断点尚未更新时不会重复请求。
         Firefox 无头渲染检查了开关布局，Chrome 与 Firefox 安装包均已通过本地打包。</p>
       <p>实现已分步提交到 main，尚未发布新扩展版本。本次 Chrome 实际导出已经验证首屏重试成功；
-        身份去重和缺口修正通过真实档案离线复算及自动化测试。新加 topic 的实际扩展抓取与 Firefox 的真实登录抓取仍待验证，
+        身份去重和缺口修正通过真实档案离线复算及自动化测试。后续实际导出已验证 topic HTML 和 nested 首屏均成功，且 52 个根各只有一张详情和一个首屏。
+        这次运行也重新抓了此前的 51 个 status；它使用较旧的增量基准，不能据此声称已验证跨轮跳过。
+        将本次成功档案保留在扩展库中后，离线复算下一次增量快照队列为零。
+        Firefox 的真实登录抓取仍待验证，
         不能用打包或模拟接口测试代替。</p>
       <p>实现与依据：
         <a href="https://github.com/Doubak/doubak-extension/blob/main/docs/designs/broadcast-details-and-replies.md">设计与模式矩阵</a>、
