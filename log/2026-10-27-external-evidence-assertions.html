@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>找到了外部条目，还不能证明它就是那部作品 —— 开发日志</title>
+<meta name="description" content="补全器设计增加用户声明的外部证据入口：先核对目标存在，再保留对应关系的来源。存在性验证不能自动升级为身份确认；规范、实现与测试仍待落地。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-10-27-external-evidence-assertions.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-10-27">2026-10-27</time>
+      <h1>找到了外部条目，还不能证明它就是那部作品</h1>
+      <p class="summary">补全器设计增加用户声明的外部证据入口：先核对目标存在，再保留对应关系的来源。存在性验证不能自动升级为身份确认；规范、实现与测试仍待落地。</p>
+    </div>
+
+    <div class="post-body">
+      <p>有些作品在第一次备份前就已经从上游消失，档案只留下个人标记或广播中的线索。
+        当本地没有详情、外部快照和现有映射也未能提供答案时，补全流程需要一种能保留来源的人工入口。
+        10 月 27 日的补全器设计为此增加了“外部证据锚点声明”。</p>
+
+      <h2>声明的是对应关系，保存的是可检查的证据</h2>
+      <p>提案允许用户提供一个外部条目 ID，并记录是谁声明了这条对应关系。
+        工具再读取外部来源的元数据，将响应与图片保存在独立增强档案里。
+        这些补充不覆盖原始 Canonical 记录，下游建站与导出仍计划离线消费已保存的证据。</p>
+      <p>这是待实现的设计。文档中的 <code>--asserts</code> 参数、声明清单和增强档案格式，
+        都还不能当作已经可运行的功能。</p>
+
+      <h2>一个合法 ID，仍可能指向错误作品</h2>
+      <p>以拟接入的 Steam 来源为例，设计要求检查返回结果属于请求的 AppID、成功标志为真，
+        并包含一致的条目 ID 和非空名称。HTTP 200 或 ID 格式合法，单独都不够。
+        请求失败、限流、区域限制等情况保留声明并记录本次未能验证，不直接判定条目不存在。</p>
+      <p>即便这些检查通过，也只证明外部目标可以读取，不能证明它与豆瓣留下的那条记录属于同一作品。
+        跨平台关系仍要保留“用户声明”的来源，不能因取得元数据就自动变成已核验映射或触发实体合并。
+        正篇、分章与不同版本之间的关系，也需要与“同一作品”分开表达。</p>
+
+      <h2>验收条件已经写下，测试还没有实现</h2>
+      <p>设计列出的用例包括非法 ID、成功状态下的失败结果、返回 ID 不一致、字段缺失与请求失败。
+        还必须有一个能正常读取、却指向另一部作品的有效 ID，证明存在性检查不会越权确认身份。</p>
+      <p>截至 2026 年 11 月 11 日，补全器仓库仍只有文档，没有可运行实现或自动化测试。
+        独立增强档案规范及下游接入也仍是计划；这篇是设计补记，不是功能发布或真实恢复结果。
+        依据见 <a href="https://github.com/Doubak/doubak-data-enricher/blob/b6576a79759beff716570ea1dae8c16df851cf8a/PRD.md">当时的设计文档</a>及
+        <a href="https://github.com/Doubak/doubak-data-enricher/commit/b6576a79759beff716570ea1dae8c16df851cf8a">声明入口与验证要求的增补</a>。</p>
+
+          </div>
+
+    <div class="post-nav">
+      <a href="/log/2026-10-28-on-page-review-history.html">← 更新：档案里有四个版本，页面漏了中间那版</a>
+      <a href="/log/2026-10-26-series-evidence-before-navigation.html">更早：页面上没有标题，档案里却有系列成员：一次导航设计调查 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
