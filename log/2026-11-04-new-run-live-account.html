@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>旧任务已经结束，新任务却被旧登录状态挡住 —— 开发日志</title>
+<meta name="description" content="终止抓取后切换登录账号，再开始新任务，仍可能被旧操作者误拦。修复开始时的身份核对，也补上面板异步刷新期间的入口保护；继续旧任务仍严格绑定原身份。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-11-04-new-run-live-account.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-11-04">2026-11-04</time>
+      <h1>旧任务已经结束，新任务却被旧登录状态挡住</h1>
+      <p class="summary">终止抓取后切换登录账号，再开始新任务，仍可能被旧操作者误拦。修复开始时的身份核对，也补上面板异步刷新期间的入口保护；继续旧任务仍严格绑定原身份。</p>
+    </div>
+
+    <div class="post-body">
+      <p>先匿名或登录另一个账号备份公开内容，再终止任务、切换登录状态，准备重新开始。
+        面板却提示“操作者登录账号发生了变化，请重新探测目标”。
+        <a href="https://github.com/Doubak/doubak-extension/issues/32">Issue #32</a> 暴露的原因是：
+        旧任务已经结束，面板缓存的操作者仍被拿来约束新任务。</p>
+
+      <h2>新开任务与继续旧档案，核对的前提不同</h2>
+      <p>新任务现在以开始时实际探测到的登录状态确定操作者，继续核对目标账号的数字 UID。
+        登录者变化不会把目标换成另一个人。匿名、本人和他人公开视角，也按这次实际核对的结果确定。</p>
+      <p>继续旧任务则必须恢复原来的操作者与目标。此前已写入档案的抓取视角不能中途换掉，
+        因此断点恢复中的身份保护保持生效。这次修复不允许换个登录账号接着写同一份档案。</p>
+
+      <h2>后端能开始了，面板还可能显示旧范围</h2>
+      <p>审查 <a href="https://github.com/Doubak/doubak-extension/pull/33">PR #33</a> 时又发现一个时间窗口：
+        终止任务后，面板会异步重新核对登录状态，但旧的“开始抓取”按钮仍可点击。
+        用户看到公开视角及旧选项，实际开始时却可能已经变成本人视角。</p>
+      <p>现在核对登录状态及目标期间会显示“正在核对登录状态与备份范围”，暂时禁用开始入口。
+        无法确定登录状态时重新查看目标，不沿用旧结果。
+        用户改了输入、会话失效或面板重新打开后，较晚返回的旧查询也不能覆盖新选择。</p>
+      <p>本人广播回复首屏的选项随确认后的账号范围更新：同一操作者保持原选择，视角改变时重新确认。
+        点击开始时先保存已经确认的目标与选项，再锁定面板；已排队的旧点击也会再次检查当前目标是否就绪。</p>
+
+      <h2>验证与交付状态</h2>
+      <p>新增测试刻意延迟登录状态与目标查询的返回，检查两个等待阶段都不能提交旧目标；
+        同时覆盖匿名与本人视角切换、查询失败、修改输入和过期点击。
+        原有恢复测试继续检查操作者变化必须暂停。Chrome 重载扩展后的手动复测也确认可以重新开始。</p>
+      <p>这篇补记记录 11 月 3–4 日合入 main 的修复。截至 11 月 11 日，最新已发布扩展仍是 v1.6.0，
+        尚不含这些改动。代码依据：
+        <a href="https://github.com/Doubak/doubak-extension/commit/d76bcb0a50a3d5d219eeaf510233b156dcb5da66">新任务身份核对</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/4af8470d988a16105b7f8295e75f737219f20c10">面板刷新与开始入口保护</a>。</p>
+
+          </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-10-30-broadcast-reply-snapshots.html">更早：广播回复只存首屏，边界留在原始档案 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
