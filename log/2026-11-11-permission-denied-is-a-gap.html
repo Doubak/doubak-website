@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一篇影评没有访问权限，不该让整场备份停下来 —— 开发日志</title>
+<meta name="description" content="真实错误页让我们区分了单篇影评的权限拒绝与整场风控。保留原始响应和明确缺口，让其他内容继续；补齐重试、崩溃恢复及新旧档案混合解析的回归测试。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-11-11-permission-denied-is-a-gap.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-11-11">2026-11-11</time>
+      <h1>一篇影评没有访问权限，不该让整场备份停下来</h1>
+      <p class="summary">真实错误页让我们区分了单篇影评的权限拒绝与整场风控。保留原始响应和明确缺口，让其他内容继续；补齐重试、崩溃恢复及新旧档案混合解析的回归测试。</p>
+    </div>
+
+    <div class="post-body">
+      <p><a href="https://github.com/Doubak/doubak-extension/issues/34">Issue #34</a> 最初看起来像限流：
+        抓取一段时间后停止，隔天再来似乎能继续。后来报告人提供了档案里的错误响应，
+        并确认在已登录的浏览器中打开同一篇影评，也看到“你没有权限访问这个页面”。
+        这个样本让我们能检查实际页面，而不只根据停止时间猜原因。</p>
+      <p>它有登录导航、明确的权限错误标题与错误页标志，没有正常影评正文，也没有 PoW 表单。
+        这些证据支持“当前无法访问这篇影评”，但不能确定是何种权限限制，更不能证明文章已经删除。
+        报告没有包含实际 HTTP 状态码；测试中的 200 和 403 是构造的输入，不是实测结论。</p>
+
+      <h2>保留一个缺口，让其他内容继续</h2>
+      <p>过去这类响应会走整场暂停的处理。现在对已核验的登录态电影影评错误模板，
+        单独记录“无权访问”：原始响应仍写入档案，该 URL 留下失败条目与缺口，其他独立内容继续抓取。
+        普通“继续”不会反复请求它；权限改变后，可以显式重试。</p>
+      <p>收尾仍需用户明确接受这些叶子页面的缺口，不能默默宣称已经抓全。
+        有序分页失败仍不能跳过。一般的 403、429、418，以及验证码和风控页面，继续触发整场暂停；
+        页面显示操作者已经变化时，也仍然停止。</p>
+      <p>识别条件限定在影评路线、域名、路径和已测过的错误页结构，
+        不会只因正文中引用“没有权限”就跳过一篇正常文章。
+        原始样本经过脱敏后已放入测试目录，让后续修改能够对照同一份证据。</p>
+
+      <h2>重试成功后，旧缺口也必须消掉</h2>
+      <p>失败响应先落盘、断点后更新，两者之间可能发生崩溃。
+        恢复时现在会从已提交的捕获重建权限失败与缺口，包括旧断点还没来得及记下该条目的情况，
+        并确保尝试次数至少为一次。</p>
+      <p>进一步补测发现相反方向也有漏洞：用户显式重试成功，成功响应已经提交，
+        断点却仍保存着旧缺口。现在只依据同路线、同 URL 的最新成功捕获消除该权限缺口，
+        不重复抓取已经成功的页面，也不删除历史失败响应。</p>
+      <p>旧版曾把该页面记为 blocked 的任务，在新版点“继续”后会重新请求一次并按新规则判断。
+        这不是离线改写旧捕获；如果仍是相同权限页，后续普通继续也不会陷入重复请求。</p>
+
+      <h2>档案格式与历史内容一起核对</h2>
+      <p>这次新增 <code>denied</code> 判定，将原始档案格式升到 <code>bundle/1.5</code>。
+        解析器和导入适配器同步支持它：错误正文不进入个人内容，不清空过去成功抓到的影评，
+        也不推断删除。混合读取旧版 1.4 正文与新版权限失败档案时，两种输入顺序都保留原记录和修订。</p>
+      <p>兼容性有明确方向：更新后的工具继续读取旧档案；旧校验器的判定取值是封闭集合，
+        会拒绝新增的 <code>denied</code>。因此不能把这次格式升级描述为所有旧工具都能完整支持。</p>
+
+      <h2>测试验证了什么</h2>
+      <p>专门的 22 项权限回归测试覆盖实际抓取链路、本人和公开视角、近似页面防误报、
+        真实风控仍停机、旧断点、显式重试及崩溃窗口。
+        实际 writer 产出的档案导出再导入后逐文件字节相同；加入权限失败捕获前后，
+        正常影评的网站与 NeoDB 导出保持一致。</p>
+      <p>扩展完整套件共 2280 项：2279 通过、0 失败，1 项因已有的 Node 解压行为差异跳过。
+        本次可测改动行覆盖 69/69，权限页识别函数分支覆盖 16/16；这些数字只针对本次修复，
+        不代表整个项目 100% 覆盖。规范、解析器、导入适配器及扩展打包的 CI 也已通过。</p>
+      <p>还在独立临时副本中分别移除了成功后的缺口修复、关闭权限失败的崩溃恢复，
+        两次都被对应测试抓到。本轮完成的是自动化和离线验证，没有新增 Chrome 或 Firefox 实机复测。
+        命令、测量范围和兼容性说明见
+        <a href="https://github.com/Doubak/doubak-extension/blob/2bbd0c6c92b1ce2c760ec225d47ab49a49ba5022/docs/designs/permission-denied-regression-review.md">回归核对记录</a>。</p>
+
+      <h2>交付状态</h2>
+      <p>以上改动已分步提交到各仓库 main。截至 2026 年 11 月 11 日，最新发布仍是 v1.6.0，
+        尚不含这次行为修复。v1.6.0 已经会把最终失败响应存入原始档案，
+        这次调查正是从保存下来的页面继续推进；新增的是对权限失败的分类、调度与恢复处理。</p>
+      <p>实现依据：
+        <a href="https://github.com/Doubak/doubak-data-specs/commit/a419a1a5af571cda3219722af38854e4e00b79b3">bundle/1.5 规范</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/960804827b7e8ae7984b2142b1f41379a1eecd69">脱敏样本与测试</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/b9a61e75d1634c23aba15b85f35b46097c1d3631">抓取行为修复</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/2bbd0c6c92b1ce2c760ec225d47ab49a49ba5022">恢复边界与回归补测</a>、
+        <a href="https://github.com/Doubak/doubak-data-parser/commit/477a03b7e6869782a62302b01155f63926c21740">历史正文兼容测试</a>。</p>
+
+          </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-11-04-new-run-live-account.html">更早：旧任务已经结束，新任务却被旧登录状态挡住 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
