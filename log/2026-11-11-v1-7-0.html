@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v1.7.0：广播回复首屏，以及两类抓取恢复修复 —— 开发日志</title>
+<meta name="description" content="本人广播可以选择保存回复首屏原始快照；修复切换登录后的新任务误拦、权限拒绝导致整场暂停，以及短评历史展示。新档案采用 bundle/1.5，保留旧档案读取能力。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-11-11-v1-7-0.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-11-11">2026-11-11</time>
+      <h1>v1.7.0：广播回复首屏，以及两类抓取恢复修复</h1>
+      <p class="summary">本人广播可以选择保存回复首屏原始快照；修复切换登录后的新任务误拦、权限拒绝导致整场暂停，以及短评历史展示。新档案采用 bundle/1.5，保留旧档案读取能力。</p>
+    </div>
+
+    <div class="post-body">
+      <p><a href="https://github.com/Doubak/doubak-extension/releases/tag/v1.7.0">v1.7.0 已在 GitHub Release 发布</a>，
+        提供 Chrome／Edge 和 Firefox 两个安装包。应用商店需分别上传审核，商店版本不会随 GitHub Release 自动更新。
+        Firefox 包要求 142 及以上版本。</p>
+
+      <h2>广播多保存一页对话证据</h2>
+      <p>“保存广播回复首屏”默认关闭，仅限当前登录者自己的账号，重开面板后需重新勾选。
+        开启后，有回复的本人 status 与已支持的 personal topic 会分别保存详情 HTML 和一个回复 API 首屏。
+        增量补未成功项，刷新模式重抓已知首屏和可编辑 topic 详情，全量重新保存本轮发现的合格项。</p>
+      <p>不翻页、不展开楼中楼、不另抓回复者主页与附件。这些快照只留在原始档案，
+        不进入个人 Canonical、网站、搜索或平台导出；首屏成功也不代表完整讨论。
+        具体操作见<a href="/how/#broadcast-reply-snapshots">使用说明</a>，
+        实测过程见<a href="/log/2026-10-30-broadcast-reply-snapshots.html">广播回复开发记录</a>。</p>
+
+      <h2>新任务和继续旧任务，各自核对身份</h2>
+      <p>修复终止旧任务、切换登录后，新任务仍被旧操作者误拦的问题。
+        面板重新核对范围期间，旧的开始按钮不能提交；继续旧任务仍要求原目标和操作者，
+        不允许换个账号接着写同一份档案。详见<a href="/log/2026-11-04-new-run-live-account.html">身份与面板修复记录</a>。</p>
+
+      <h2>单篇无权访问，留下缺口让其他内容继续</h2>
+      <p>对已核验的电影影评权限错误模板，记录独立失败与缺口，其他内容继续抓取。
+        显式重试成功后修复缺口，崩溃恢复也以已提交的响应为准。一般风控、验证码、限流仍暂停整场任务。
+        调查与测试见<a href="/log/2026-11-11-permission-denied-is-a-gap.html">权限拒绝修复记录</a>。</p>
+      <p>新档案格式为 <code>bundle/1.5</code>，新增 <code>denied</code> 判定。
+        更新后的工具继续读取旧档案；旧校验器可能拒绝新判定，处理新档案时应同步更新解析器、规范和导入适配器。</p>
+
+      <h2>历史展示与验证边界</h2>
+      <p>本版同时更新内置站点生成器，保留短评的中间版本，以日期和版本编号区分同日修改；
+        只在证据一致时合并展示广播与原页短评来源。
+        <a href="/log/2026-10-28-on-page-review-history.html">历史展示记录</a>说明了这次修复的依据。</p>
+      <p>广播快照已有 Chrome 实际导出、离线重算和自动化恢复验证。
+        Firefox 登录态回复抓取，以及两种浏览器完整的跨轮、刷新和暂停重载人工矩阵仍待验收。
+        发布包含这些已知验证边界，没有把打包通过写成所有实机情形都验证过。
+        完整变更与兼容说明见<a href="https://github.com/Doubak/doubak-extension/releases/tag/v1.7.0">发布说明</a>。</p>
+
+          </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-11-11-permission-denied-is-a-gap.html">更早：一篇影评没有访问权限，不该让整场备份停下来 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

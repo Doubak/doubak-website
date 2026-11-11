@@ -24,7 +24,7 @@
      刻意不写的：aggregateRating 和 review。没有真实评分就编一个出来，是这类
      标记最常见的用法，也是最不该学的那一种。
 
-     softwareVersion 跟首屏的角标、以及下面仓库表里的 v1.5.1 是同一个数字，
+     softwareVersion 跟首屏的角标、以及下面仓库表里的版本号是同一个数字，
      一共三处。发版时三处一起改——忘了改不会有任何症状，页面照常渲染，
      只是机器读到的版本停在上一版。tools/check-links.py 会把三处比对一遍。 -->
 <script type="application/ld+json">
@@ -37,7 +37,7 @@
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Windows, macOS, Linux, ChromeOS",
   "browserRequirements": "Chrome, Edge or Firefox 142+. Safari is not supported.",
-  "softwareVersion": "1.6.0",
+  "softwareVersion": "1.7.0",
   "description": "在本地浏览器中把豆瓣原样保存为标准 WARC 档案，支持解析结构化数据、生成离线静态豆瓣站点或导出到 NeoDB 等平台。凭据与数据全程不离开个人设备。",
   "inLanguage": "zh-Hans",
   "isAccessibleForFree": true,
@@ -94,7 +94,8 @@
         <span class="full">豆瓣备份器 · Douban Backup</span>
       </div>
     </div>
-    <p class="badge"><span class="dot"></span>扩展 v1.6.0 已发布</p>
+    <p class="badge"><span class="dot"></span>扩展 v1.7.0 已发布</p>
+    <p class="small muted">当前版本可从 <a href="https://github.com/Doubak/doubak-extension/releases/latest">GitHub Release</a> 下载；应用商店按各自审核进度更新。</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
       这不单是一个孤立的备份工具，而是一套完整的数据链路方案：把豆瓣抓下来、存成十几年后依然打得开的标准档案、
@@ -558,7 +559,7 @@
 
     <p class="small muted" style="margin-top:1.6em">
       解析器按目标 UID 归属广播，不把嵌套的他人广播另记成目标账号发布的记录。
-      默认不主动抓取评论回复；仓库 main 提供本人广播回复首屏的可选原始快照，不进入样张网站。关注列表与豆邮不抓取；原始 HTML 仍可能包含引用、导航或第三方片段，
+      默认不主动抓取评论回复；v1.7.0 提供本人广播回复首屏的可选原始快照，不进入样张网站。关注列表与豆邮不抓取；原始 HTML 仍可能包含引用、导航或第三方片段，
       不能把归属过滤当成对页面内容的全面匿名化。
       <br>
       本项目早期的大量架构设计判断，均由<a href="https://github.com/its-my-data/doubak" rel="nofollow">前代命令行工具</a>曾抓取的一份
@@ -635,7 +636,7 @@
         <tbody>
           <tr>
             <td>完整讨论、第三方目标账号下的回复</td>
-            <td>不遍历回复分页、楼中楼或回复者主页。仓库 main 有一个默认关闭、仅限本人账号的例外：保存有回复广播的详情与回复首屏原始响应，不进入个人数据、网站或平台导出。v1.6.0 尚不含此功能；详见<a href="/how/#broadcast-reply-snapshots">首屏快照说明</a>。</td>
+            <td>不遍历回复分页、楼中楼或回复者主页。v1.7.0 有一个默认关闭、仅限本人账号的例外：保存有回复广播的详情与回复首屏原始响应，不进入个人数据、网站或平台导出。详见<a href="/how/#broadcast-reply-snapshots">首屏快照说明</a>。</td>
           </tr>
           <tr>
             <td>关注、粉丝、黑名单列表</td>
@@ -680,7 +681,7 @@
           <tr><th>路线</th><th>状态</th><th>说明</th></tr>
         </thead>
         <tbody>
-          <tr><td>广播</td><td class="ok">✅ 能跑</td><td>普通 status 正文不可编辑，个人 topic 可编辑；两者都应及时备份。本人回复首屏可选保存，仅 main 已实现，尚未发布。</td></tr>
+          <tr><td>广播</td><td class="ok">✅ 能跑</td><td>普通 status 正文不可编辑，个人 topic 可编辑；两者都应及时备份。v1.7.0 可选保存本人回复首屏，仅留在原始档案。</td></tr>
           <tr><td>标记列表（书／影视／音乐／游戏／舞台剧）</td><td class="ok">✅ 能跑</td><td>看过／在看／想看，含标记日期与短评</td></tr>
           <tr><td>作品详情页</td><td class="ok">✅ 能跑</td><td>由标记列表派生，含封面图；单独成段，不想要一条命令就能删</td></tr>
           <tr><td>增量抓取</td><td class="ok">✅ 能跑</td><td>沿链回溯，标出改动与已失效的条目</td></tr>
@@ -770,6 +771,11 @@
     <ul class="log-list">
       <li>
         <time datetime="2026-11-11">2026-11-11</time>
+        <h3><a href="/log/2026-11-11-v1-7-0.html">v1.7.0：广播回复首屏，以及两类抓取恢复修复</a></h3>
+        <p>本人广播可以选择保存回复首屏原始快照；修复切换登录后的新任务误拦、权限拒绝导致整场暂停，以及短评历史展示。新档案采用 bundle/1.5，保留旧档案读取能力。</p>
+      </li>
+      <li>
+        <time datetime="2026-11-11">2026-11-11</time>
         <h3><a href="/log/2026-11-11-permission-denied-is-a-gap.html">一篇影评没有访问权限，不该让整场备份停下来</a></h3>
         <p>真实错误页让我们区分了单篇影评的权限拒绝与整场风控。保留原始响应和明确缺口，让其他内容继续；补齐重试、崩溃恢复及新旧档案混合解析的回归测试。</p>
       </li>
@@ -777,11 +783,6 @@
         <time datetime="2026-11-04">2026-11-04</time>
         <h3><a href="/log/2026-11-04-new-run-live-account.html">旧任务已经结束，新任务却被旧登录状态挡住</a></h3>
         <p>终止抓取后切换登录账号，再开始新任务，仍可能被旧操作者误拦。修复开始时的身份核对，也补上面板异步刷新期间的入口保护；继续旧任务仍严格绑定原身份。</p>
-      </li>
-      <li>
-        <time datetime="2026-10-30">2026-10-30</time>
-        <h3><a href="/log/2026-10-30-broadcast-reply-snapshots.html">广播回复只存首屏，边界留在原始档案</a></h3>
-        <p>本人账号可以选择保存广播详情与回复首屏，默认关闭。增量补缺、可变内容模式刷新首屏，全量重新捕获；回复不进入个人数据、网站或平台导出。</p>
       </li>
     </ul>
     <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>
@@ -802,12 +803,12 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
             <td>浏览器扩展。抓取，产出原始档案（bundle）。整个项目的入口都在这里。</td>
-            <td class="ok">v1.6.0</td>
+            <td class="ok">v1.7.0</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
             <td>档案格式的规范文本与 JSON Schema。整个项目的基石。</td>
-            <td class="ok">bundle 1.5（main）</td>
+            <td class="ok">bundle 1.5</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-parser">doubak-data-parser</a></td>
