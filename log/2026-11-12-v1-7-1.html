@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v1.7.1：导出失败后，清理中转并保留原始档案 —— 开发日志</title>
+<meta name="description" content="修复 ZIP 空间不足时继续写入和半成品提交，增加中转占用与清理入口，修复失效目录句柄。档案格式与权限不变，GitHub Release 提供两个浏览器包。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-11-12-v1-7-1.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-11-12">2026-11-12</time>
+      <h1>v1.7.1：导出失败后，清理中转并保留原始档案</h1>
+      <p class="summary">修复 ZIP 空间不足时继续写入和半成品提交，增加中转占用与清理入口，修复失效目录句柄。档案格式与权限不变，GitHub Release 提供两个浏览器包。</p>
+    </div>
+
+    <div class="post-body">
+      <p><a href="https://github.com/Doubak/doubak-extension/releases/tag/v1.7.1">v1.7.1 已发布到 GitHub Release</a>。
+        这是针对 <a href="https://github.com/Doubak/doubak-extension/issues/35">#35</a> 的修复版本，
+        同时覆盖“档案”的原始导出，以及“导出”的结构化数据、NeoDB 和 Markdown。</p>
+
+      <h2>失败及时停止，临时文件可以清理</h2>
+      <p>ZIP 任一成员写入失败便停止整包，放弃未完成写入并尝试清理；不下载半成品，也不记录为已导出。
+        清理失败明确提示，保留最初的错误。已交给下载的成品不会因后续界面错误而被删除。
+        Chrome、Edge 的原子目录写入失败也会保留原有目标文件。</p>
+      <p>“档案”页新增 ZIP 中转占用、浏览器配额估算和清理按钮。清理前需确认旧下载完成或取消，
+        不能删除另一个面板正在打包的文件。原始档案 ZIP 会按实际大小预检配额，
+        但配额不能保证物理磁盘空间；Firefox 仍需要中转 ZIP 和下载文件各一份空间。</p>
+      <p>发布前的 Firefox 实测还发现：打包结束后立即重试或清理，可能误报“另一个面板正在打包”。
+        现在会等待浏览器真正释放打包锁，回归测试覆盖完成、取消、写入失败和手动清理四条路径。</p>
+      <p>另修复目录删除／重建后继续使用失效句柄的读取问题。只读扫描不创建缺失目录，
+        瞬时的目录不存在会重列一次；持续错误仍报告，不隐藏档案。
+        具体处理方法见<a href="/how/#export-space">ZIP 空间不足指引</a>，
+        决策与验证细节见<a href="/log/2026-11-12-export-staging-and-disk-space.html">修复记录</a>。</p>
+
+      <h2>兼容性与发布范围</h2>
+      <p>档案格式继续使用 bundle/1.5，不迁移或改写原始档案；ZIP 内部布局、账号隔离和导出命名规则不变。
+        没有增加权限，Firefox 最低版本仍为 142。广播首屏的采集范围不变。</p>
+      <p>GitHub Release 提供 Chrome／Edge 与 Firefox 两个 ZIP。应用商店需分别提交审核，
+        不会随 GitHub Release 自动更新；安装后请核对版本号。
+        Firefox 155 的真实 OPFS 测试已验证失败清理、立即重试和源文件不变；
+        故障注入、回归测试与打包检查不代替原先磁盘用尽环境的实际复测。</p>
+
+          </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-11-12-export-staging-and-disk-space.html">更早：导出到一半空间用完：让临时 ZIP 有明确的退路 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

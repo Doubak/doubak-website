@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>导出到一半空间用完：让临时 ZIP 有明确的退路 —— 开发日志</title>
-<meta name="description" content="Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，main 已完成，尚未发布。">
+<meta name="description" content="Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，现已纳入 v1.7.1。">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
@@ -39,7 +39,7 @@
     <div class="post-head">
       <time datetime="2026-11-12">2026-11-12</time>
       <h1>导出到一半空间用完：让临时 ZIP 有明确的退路</h1>
-      <p class="summary">Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，main 已完成，尚未发布。</p>
+      <p class="summary">Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，现已纳入 v1.7.1。</p>
     </div>
 
     <div class="post-body">
@@ -47,8 +47,9 @@
         Firefox 导出时遇到“打包失败：Quota exceeded”，有时还会看到“读不出存储：Entry not found”。
         原始档案虽然还在，用户却不知道空间花在哪里、失败后留下了什么，以及下一步该清哪里。</p>
 
-      <div class="callout"><p><strong>交付状态：</strong>以下修复已提交到 main，尚未发布新版。
-        已安装的 v1.7.0 不会自动获得这些改动。Issue 在完成修复与自动化验证后关闭，
+      <div class="callout"><p><strong>2026-11-12 发布更新：</strong>以下修复已纳入
+        <a href="/log/2026-11-12-v1-7-1.html">v1.7.1</a>，GitHub Release 已发布；应用商店另行提交审核。
+        安装后请核对扩展版本，v1.7.0 不含这些修复。Issue 在完成修复与自动化验证后关闭，
         原先磁盘不足环境的实际复测仍待进行；若再次遇到问题，可另开 issue 跟进。</p></div>
 
       <h2>中转文件和下载文件，都需要空间</h2>
@@ -105,7 +106,7 @@
           </div>
 
     <div class="post-nav">
-      <span></span>
+      <a href="/log/2026-11-12-v1-7-1.html">← 更新：v1.7.1：导出失败后，清理中转并保留原始档案</a>
       <a href="/log/2026-11-11-v1-7-0.html">更早：v1.7.0：广播回复首屏，以及两类抓取恢复修复 →</a>
     </div>
   </div>

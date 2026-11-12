@@ -37,7 +37,7 @@
   "applicationCategory": "BrowserApplication",
   "operatingSystem": "Windows, macOS, Linux, ChromeOS",
   "browserRequirements": "Chrome, Edge or Firefox 142+. Safari is not supported.",
-  "softwareVersion": "1.7.0",
+  "softwareVersion": "1.7.1",
   "description": "在本地浏览器中把豆瓣原样保存为标准 WARC 档案，支持解析结构化数据、生成离线静态豆瓣站点或导出到 NeoDB 等平台。凭据与数据全程不离开个人设备。",
   "inLanguage": "zh-Hans",
   "isAccessibleForFree": true,
@@ -94,7 +94,7 @@
         <span class="full">豆瓣备份器 · Douban Backup</span>
       </div>
     </div>
-    <p class="badge"><span class="dot"></span>扩展 v1.7.0 已发布</p>
+    <p class="badge"><span class="dot"></span>扩展 v1.7.1 已发布</p>
     <p class="small muted">当前版本可从 <a href="https://github.com/Doubak/doubak-extension/releases/latest">GitHub Release</a> 下载；应用商店按各自审核进度更新。</p>
     <h1>把你的豆瓣，备份到自己手里</h1>
     <p class="lede">
@@ -771,18 +771,18 @@
     <ul class="log-list">
       <li>
         <time datetime="2026-11-12">2026-11-12</time>
+        <h3><a href="/log/2026-11-12-v1-7-1.html">v1.7.1：导出失败后，清理中转并保留原始档案</a></h3>
+        <p>修复 ZIP 空间不足时继续写入和半成品提交，增加中转占用与清理入口，修复失效目录句柄。档案格式与权限不变，GitHub Release 提供两个浏览器包。</p>
+      </li>
+      <li>
+        <time datetime="2026-11-12">2026-11-12</time>
         <h3><a href="/log/2026-11-12-export-staging-and-disk-space.html">导出到一半空间用完：让临时 ZIP 有明确的退路</a></h3>
-        <p>Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，main 已完成，尚未发布。</p>
+        <p>Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，现已纳入 v1.7.1。</p>
       </li>
       <li>
         <time datetime="2026-11-11">2026-11-11</time>
         <h3><a href="/log/2026-11-11-v1-7-0.html">v1.7.0：广播回复首屏，以及两类抓取恢复修复</a></h3>
         <p>本人广播可以选择保存回复首屏原始快照；修复切换登录后的新任务误拦、权限拒绝导致整场暂停，以及短评历史展示。新档案采用 bundle/1.5，保留旧档案读取能力。</p>
-      </li>
-      <li>
-        <time datetime="2026-11-11">2026-11-11</time>
-        <h3><a href="/log/2026-11-11-permission-denied-is-a-gap.html">一篇影评没有访问权限，不该让整场备份停下来</a></h3>
-        <p>真实错误页让我们区分了单篇影评的权限拒绝与整场风控。保留原始响应和明确缺口，让其他内容继续；补齐重试、崩溃恢复及新旧档案混合解析的回归测试。</p>
       </li>
     </ul>
     <p style="margin-top:1.5em"><a href="/log/">全部开发日志 →</a></p>
@@ -803,7 +803,7 @@
           <tr>
             <td><a href="https://github.com/Doubak/doubak-extension">doubak-extension</a></td>
             <td>浏览器扩展。抓取，产出原始档案（bundle）。整个项目的入口都在这里。</td>
-            <td class="ok">v1.7.0</td>
+            <td class="ok">v1.7.1</td>
           </tr>
           <tr>
             <td><a href="https://github.com/Doubak/doubak-data-specs">doubak-data-specs</a></td>
