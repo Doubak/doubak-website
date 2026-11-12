@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>导出到一半空间用完：让临时 ZIP 有明确的退路 —— 开发日志</title>
+<meta name="description" content="Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，main 已完成，尚未发布。">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/assets/logos/doubak-icon-small.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/logos/icon-180.png">
+<link rel="canonical" href="https://doubak.com/log/2026-11-12-export-staging-and-disk-space.html">
+<link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/logos/doubak-icon-mid.svg" width="24" height="24" alt="">
+      豆备 <span class="en">DOUBAK</span>
+    </a>
+    <nav class="site-nav">
+      <a href="/">首页</a>
+      <a href="/how/">怎么用</a>
+      <a href="https://sample.doubak.com">样张</a>
+      <a href="/log/" aria-current="page">开发日志</a>
+      <a href="https://github.com/Doubak/doubak-data-specs/blob/main/bundle/v1/SPEC.md">数据格式</a>
+      <a href="https://github.com/Doubak">GitHub</a>
+      <a class="to-douban" href="https://www.douban.com/"
+         title="网址是不是输错了？点这里去真正的豆瓣 douban.com">去豆瓣</a>
+    </nav>
+  </div>
+</header>
+
+<main class="post">
+  <div class="wrap">
+    <a class="back-link" href="/log/">← 开发日志</a>
+
+    <div class="post-head">
+      <time datetime="2026-11-12">2026-11-12</time>
+      <h1>导出到一半空间用完：让临时 ZIP 有明确的退路</h1>
+      <p class="summary">Firefox 的 ZIP 中转也占空间。修复打包失败后继续写入、半成品提交与旧目录句柄问题，增加占用统计和安全清理入口；档案与派生导出共用修复，main 已完成，尚未发布。</p>
+    </div>
+
+    <div class="post-body">
+      <p><a href="https://github.com/Doubak/doubak-extension/issues/35">Issue #35</a> 报告：
+        Firefox 导出时遇到“打包失败：Quota exceeded”，有时还会看到“读不出存储：Entry not found”。
+        原始档案虽然还在，用户却不知道空间花在哪里、失败后留下了什么，以及下一步该清哪里。</p>
+
+      <div class="callout"><p><strong>交付状态：</strong>以下修复已提交到 main，尚未发布新版。
+        已安装的 v1.7.0 不会自动获得这些改动。Issue 在完成修复与自动化验证后关闭，
+        原先磁盘不足环境的实际复测仍待进行；若再次遇到问题，可另开 issue 跟进。</p></div>
+
+      <h2>中转文件和下载文件，都需要空间</h2>
+      <p>Chrome、Edge 可以直接写入用户选择的目录。Firefox 的现有导出路径先将 ZIP 流式写入
+        浏览器的私有文件系统，再交给浏览器下载。这样不用把整份大档案装进 JavaScript 内存，
+        但原始档案之外，仍需要中转 ZIP 和下载文件各一份空间。</p>
+      <p>“Quota exceeded”可能表示浏览器存储配额已满，也可能与磁盘空间不足有关。
+        浏览器提供的剩余配额估算不能保证硬盘还有同样多的空闲空间；
+        浏览器配置文件和下载目录还可能位于不同磁盘。只把下载目录移到另一个盘，
+        并不能解决浏览器所在磁盘已满的问题。</p>
+      <p>现在原始档案 ZIP 会按实际文件大小加上格式开销预检配额，明显不足时在写入前停止。
+        结构化数据、NeoDB 和 Markdown 的压缩体积事先未知，不拿源档案大小作为硬性门槛。
+        估算不可用时仍允许尝试，但写入失败必须有明确退路。</p>
+
+      <h2>一份 ZIP 写坏了，就停止这份 ZIP</h2>
+      <p>旧的整条链导出逻辑会记下某份档案的失败，再继续处理后面的档案。
+        对分别写入目录的导出，这可以多救出一些文件；对共用一个输出流的 ZIP，
+        继续写入和收尾却可能掩盖最初的空间错误。</p>
+      <p>现在 ZIP 任一成员失败便停止整包，不交付半成品下载，也不登记“已导出”。
+        失败和取消使用 abort 放弃未完成的写入，避免 close 再次尝试提交半份 ZIP。
+        初始化、收尾和读取成品失败也会清理；清理本身失败时，保留最初的错误并告知还有中转文件需要处理。</p>
+      <p>这些逻辑同时覆盖<strong>“档案”里的原始导出和“导出”里的结构化数据、NeoDB、Markdown</strong>。
+        Chrome、Edge 的原子目录写入失败也会放弃新副本，保留已有目标文件；目录整链仍逐份报告结果。</p>
+
+      <h2>清理按钮不能猜下载已经结束</h2>
+      <p>“档案”页新增 ZIP 中转占用、浏览器配额估算和“清理 ZIP 中转文件”按钮。
+        清理只操作专用中转目录，不删除原始档案；即使文件大小暂时统计不出来，也保留清理入口。</p>
+      <p>下载交付使用的链接没有完成通知。刚触发下载就删中转，或者在下一次导出时直接删掉旧文件，
+        都可能影响仍在进行的下载。因此清理前需要用户确认：浏览器下载已经完成或取消。
+        清理和打包共用跨面板锁，另一个面板正在打包时不能删除它的文件。
+        已交付的 ZIP 也不会因为后续界面或导出记录出错而被清掉。</p>
+      <p>整条链过大时，可以逐份导出，保留全部祖先档案后再组合使用。
+        不要通过卸载扩展或清除扩展数据来释放这部分空间：未导出的原始档案也会一并消失。
+        浏览器可能延迟回收临时空间，ZIP 中断后仍需要重新打包，不能像目录导出那样续导。</p>
+
+      <h2>重新扫描，也要拿到新的目录句柄</h2>
+      <p>排查中还复现了一个独立问题：存储 Worker 缓存了目录句柄，目录被其他 Worker 删除并重建后，
+        旧句柄仍指向失效的目录，点重扫也可能继续报 Entry not found。
+        现在每次从根目录重新打开；只读扫描不会顺手重建已删除的档案。
+        扫描期间遇到目录不存在会重列一次，持续错误仍明确报告，不无限重试，也不隐藏档案。</p>
+      <p>这修复了已复现的失效句柄路径。原报告没有错误堆栈，因此不能认定每一次同名错误都有相同原因。</p>
+
+      <h2>验证到哪里，边界就写到哪里</h2>
+      <p>本地完整回归 2,294 项通过、0 失败，1 项因既有 Node 运行时差异跳过。
+        故障注入覆盖写到一半、收尾、读取成品、清理失败及再次导出，并验证失败不登记导出、
+        原有目标文件不被半成品覆盖、跨面板锁和目录重建。GitHub 两个时区的测试与打包 CI 通过，
+        Firefox 解包构建和实际面板渲染也已核对；这些不等于原先磁盘用尽环境的实机验收。</p>
+      <p>没有改变档案格式、ZIP 内部布局或扩展权限，也没有新增下载记录权限。
+        详细记录见<a href="https://github.com/Doubak/doubak-extension/blob/main/docs/designs/done/export-storage-pressure.md">导出空间与清理审计</a>。
+        实现提交：<a href="https://github.com/Doubak/doubak-extension/commit/27788df">失败停止与清理入口</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/10d4792">失效目录句柄</a>、
+        <a href="https://github.com/Doubak/doubak-extension/commit/5ddc996">统计失败时保留清理能力</a>。</p>
+
+          </div>
+
+    <div class="post-nav">
+      <span></span>
+      <a href="/log/2026-11-11-v1-7-0.html">更早：v1.7.0：广播回复首屏，以及两类抓取恢复修复 →</a>
+    </div>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="fine">
+      <p>豆备（Doubak）是一个独立的第三方开源工具，与豆瓣网及其运营方没有任何关系。</p>
+      <p><a href="/">返回首页</a> · <a href="/log/">开发日志</a> · <a href="https://github.com/Doubak">GitHub</a></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
